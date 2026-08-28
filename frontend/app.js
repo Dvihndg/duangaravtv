@@ -831,13 +831,46 @@ async function createInvoiceFromRODetail() {
   }
 }
 
-// Payment Modal Handling
+// Payment Modal Handling & VietQR Techcombank Integration
 function openPaymentModal(invId, invNumber, balanceDue) {
   document.getElementById("pay-inv-id").value = invId;
   document.getElementById("pay-inv-number").value = invNumber;
-  document.getElementById("pay-total-amount").value = `${balanceDue.toLocaleString()} VNĐ`;
+  document.getElementById("pay-total-amount").value = `${balanceDue.toLocaleString('vi-VN')} VNĐ`;
   document.getElementById("pay-amount").value = balanceDue;
+
+  // Generate Dynamic Memo & Scannable VietQR Techcombank Code
+  const memo = `GARAGEVTV ${invNumber.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const memoTextEl = document.getElementById("qr-memo-text");
+  if (memoTextEl) memoTextEl.innerText = memo;
+
+  const memoValEl = document.getElementById("qr-memo-val");
+  if (memoValEl) {
+    memoValEl.innerHTML = `
+      ${memo}
+      <button type="button" class="copy-chip" onclick="copyTextToClipboard('${memo}', 'Nội dung chuyển khoản')"><i class="fa-solid fa-copy"></i></button>
+    `;
+  }
+
+  const qrImg = document.getElementById("qr-bank-image");
+  if (qrImg) {
+    qrImg.src = `https://img.vietqr.io/image/TCB-4443338386-compact2.png?amount=${balanceDue}&addInfo=${encodeURIComponent(memo)}&accountName=DUONG%20CONG%20VINH`;
+  }
+
+  togglePaymentMethodFields();
   openModal("modal-payment");
+}
+
+function togglePaymentMethodFields() {
+  const method = document.getElementById("pay-method").value;
+  const qrContainer = document.getElementById("bank-qr-container");
+  if (qrContainer) {
+    qrContainer.style.display = (method === "bank_transfer") ? "block" : "none";
+  }
+}
+
+function copyTextToClipboard(text, label = "") {
+  navigator.clipboard.writeText(text);
+  showToast(`Đã sao chép ${label || 'nội dung'} vào bộ nhớ tạm!`);
 }
 
 async function submitPayment(e) {
@@ -853,11 +886,12 @@ async function submitPayment(e) {
     });
     closeModal("modal-payment");
     await loadInvoices();
-    alert("Đã ghi nhận thanh toán thành công!");
+    showToast("Đã ghi nhận thanh toán hóa đơn thành công!");
   } catch (err) {
     alert(`Lỗi thanh toán: ${err.message}`);
   }
 }
+
 
 // Helpers
 async function populateVehicleDropdowns() {

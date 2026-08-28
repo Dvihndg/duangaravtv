@@ -780,7 +780,7 @@
 
   <!-- Modal Payment Checkout -->
   <div id="modal-payment" class="modal-backdrop">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width: 540px;">
       <div class="modal-header">
         <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-credit-card"></i> Ghi Nhận Thanh Toán Hóa Đơn</h3>
         <button class="close-btn" onclick="closeModal('modal-payment')">&times;</button>
@@ -798,23 +798,66 @@
         </div>
         <div class="form-group">
           <label>Phương Thức Thanh Toán:</label>
-          <select id="pay-method" class="form-control">
-            <option value="cash">Tiền Mặt</option>
-            <option value="bank_transfer">Chuyển Khoản Ngân Hàng</option>
-            <option value="credit_card">Thẻ Tín Dụng</option>
+          <select id="pay-method" class="form-control" onchange="togglePaymentMethodFields()">
+            <option value="cash">💵 Tiền Mặt</option>
+            <option value="bank_transfer" selected>🏦 Chuyển Khoản Ngân Hàng (VietQR Techcombank)</option>
+            <option value="credit_card">💳 Thẻ Tín Dụng</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Số Tiền Khách Đưa / Chuyển:</label>
+
+        <!-- VietQR Techcombank Container -->
+        <div id="bank-qr-container" class="qr-card-box">
+          <div class="qr-header">
+            <div class="qr-bank-title">
+              <i class="fa-solid fa-qrcode"></i> TECHCOMBANK
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">VietQR | Napas 247</span>
+          </div>
+          <div class="qr-image-wrapper">
+            <img id="qr-bank-image" src="https://img.vietqr.io/image/TCB-4443338386-compact2.png" alt="Mã QR Chuyển Khoản Techcombank">
+          </div>
+          <div class="qr-account-info">
+            <div class="qr-info-row">
+              <span class="qr-info-label">Chủ tài khoản:</span>
+              <span class="qr-info-val">
+                DUONG CONG VINH
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard('DUONG CONG VINH', 'Tên chủ tài khoản')"><i class="fa-solid fa-copy"></i></button>
+              </span>
+            </div>
+            <div class="qr-info-row">
+              <span class="qr-info-label">Số tài khoản:</span>
+              <span class="qr-info-val">
+                4443 3383 86
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard('4443338386', 'Số tài khoản')"><i class="fa-solid fa-copy"></i></button>
+              </span>
+            </div>
+            <div class="qr-info-row">
+              <span class="qr-info-label">Ngân hàng:</span>
+              <span class="qr-info-val">Techcombank (TCB)</span>
+            </div>
+            <div class="qr-info-row">
+              <span class="qr-info-label">Nội dung CK:</span>
+              <span class="qr-info-val" id="qr-memo-val">
+                THANHTOAN HOADON
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard(document.getElementById('qr-memo-text').innerText, 'Nội dung chuyển khoản')"><i class="fa-solid fa-copy"></i></button>
+              </span>
+              <span id="qr-memo-text" style="display:none;">THANHTOAN HOADON</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label>Số Tiền Khách Đưa / Chuyển Khoản:</label>
           <input type="number" id="pay-amount" class="form-control" required>
         </div>
         <div style="text-align: right; margin-top: 1.25rem;">
           <button type="button" class="btn btn-secondary" onclick="closeModal('modal-payment')">Hủy</button>
-          <button type="submit" class="btn btn-primary">Xác Nhận Đã Thu Tiền</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-circle-check"></i> Xác Nhận Đã Thu Tiền</button>
         </div>
       </form>
     </div>
   </div>
+
 
   <script src="/static/app.js"></script>
 </body>
