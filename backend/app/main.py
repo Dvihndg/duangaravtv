@@ -67,15 +67,31 @@ app.include_router(invoices.router)
 app.include_router(ai.router)
 app.include_router(analytics.router)
 
-# Mount static frontend
-frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../frontend"))
-if os.path.exists(frontend_dir):
-    app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
+# Serve Frontend from Project Root
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
-    @app.get("/")
-    def read_root():
-        return FileResponse(os.path.join(frontend_dir, "index.html"))
+@app.get("/")
+def read_root():
+    index_path = os.path.join(root_dir, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"message": "Garage VTV API Server Operating"}
+
+@app.get("/styles.css")
+def read_styles():
+    css_path = os.path.join(root_dir, "styles.css")
+    if os.path.exists(css_path):
+        return FileResponse(css_path, media_type="text/css")
+    return {"detail": "Styles not found"}
+
+@app.get("/app.js")
+def read_app_js():
+    js_path = os.path.join(root_dir, "app.js")
+    if os.path.exists(js_path):
+        return FileResponse(js_path, media_type="application/javascript")
+    return {"detail": "App JS not found"}
 
 @app.get("/health")
 def health_check():
     return {"status": "ok", "project": settings.PROJECT_NAME}
+
