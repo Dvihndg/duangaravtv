@@ -618,6 +618,18 @@ body {
 }
 
 /* Modals System */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  display: none;
+  z-index: 99;
+}
+.sidebar-backdrop.active {
+  display: block;
+}
+
 .modal-backdrop {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -696,6 +708,16 @@ body {
   outline: none;
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+select.form-control {
+  cursor: pointer;
+}
+
+select.form-control option {
+  background-color: var(--bg-card, #0f172a);
+  color: var(--text-main, #f8fafc);
+  padding: 0.5rem;
 }
 
 /* AI Result & Chat Box System */

@@ -26,16 +26,17 @@ const ROLE_CREDENTIALS = {
   cashier: { username: "thungan", password: "cashier123" }
 };
 
-// Initialize Application
+// Fault-Tolerant Application Initialization
 document.addEventListener("DOMContentLoaded", async () => {
-  setupTheme();
-  setupNavigation();
-  setupRoleSwitcher();
-  setupFilterListeners();
-  await loginAsCurrentRole();
-  await loadAllData();
+  try { setupTheme(); } catch (e) { console.error("setupTheme:", e); }
+  try { setupNavigation(); } catch (e) { console.error("setupNavigation:", e); }
+  try { setupRoleSwitcher(); } catch (e) { console.error("setupRoleSwitcher:", e); }
+  try { setupFilterListeners(); } catch (e) { console.error("setupFilterListeners:", e); }
+  try { await loginAsCurrentRole(); } catch (e) { console.error("loginAsCurrentRole:", e); }
+  try { await populateVehicleDropdowns(); } catch (e) { console.error("populateVehicleDropdowns:", e); }
+  try { await loadAllData(); } catch (e) { console.error("loadAllData:", e); }
+  try { setupGlobalEventDelegation(); } catch (e) { console.error("setupGlobalEventDelegation:", e); }
 });
-
 
 function setupTheme() {
   const savedTheme = localStorage.getItem("garage_theme") || "light";
@@ -66,11 +67,16 @@ async function loginAsCurrentRole() {
     formData.append("username", creds.username);
     formData.append("password", creds.password);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1000);
+
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formData
+      body: formData,
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     if (res.ok) {
       const data = await res.json();
@@ -79,12 +85,12 @@ async function loginAsCurrentRole() {
       currentState.token = "demo-offline-jwt-token";
     }
   } catch (err) {
-    console.warn("Chế độ Demo Web Offline (GitHub Pages): Tự động kích hoạt JWT token mô phỏng.");
+    console.warn("Chế độ Demo Web Offline: Tự động kích hoạt JWT token mô phỏng.");
     currentState.token = "demo-offline-jwt-token";
   }
 }
 
-// Helper fetch wrapper with GitHub Pages Offline Mock Engine
+// Helper fetch wrapper with Offline Mock Engine & Instant Abort Controller
 async function apiFetch(endpoint, options = {}) {
   const headers = options.headers || {};
   if (currentState.token) {
@@ -93,20 +99,39 @@ async function apiFetch(endpoint, options = {}) {
   headers["Content-Type"] = "application/json";
 
   try {
-    const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1000); // 1.0s instant offline fallback
+
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
     if (!res.ok) {
       const errData = await res.json().catch(() => ({ detail: "Lỗi kết nối máy chủ" }));
       throw new Error(errData.detail || "Thao tác thất bại");
     }
     return await res.json();
   } catch (err) {
-    console.warn(`[GitHub Pages Demo Mode] Executing offline mock response for: ${endpoint}`);
+    console.warn(`[Offline Demo Mode] Executing offline mock response for: ${endpoint}`);
     return getOfflineMockResponse(endpoint, options);
   }
 }
 
-// Mock fallback provider for GitHub Pages Live Web Demo
+// Mock fallback provider for Web Demo
 function getOfflineMockResponse(endpoint, options) {
+  if (endpoint === "/analytics/dashboard") {
+    return {
+      kpi: {
+        total_revenue: 245000000,
+        active_repair_orders: 12,
+        pending_appointments: 8,
+        low_stock_parts_count: 34
+      }
+    };
+  }
   if (endpoint === "/customers") {
     return [
       { id: 1, full_name: "Nguyễn Hoàng Nam", phone: "0988123456", address: "123 Lê Duẩn, Quận 1, TP.HCM", vehicles: [{ license_plate: "51H-888.88", brand: "Toyota", model: "Camry 2.5Q" }] },
@@ -136,11 +161,31 @@ function getOfflineMockResponse(endpoint, options) {
   }
   if (endpoint === "/repair-orders") {
     return [
-      { id: 1, code: "RO-2026-001", vehicle_plate: "51H-888.88", initial_symptoms: "Bảo dưỡng định kỳ mốc 40,000 km, phanh kêu rít nhẹ khi đạp thắng", status: "in_progress", final_cost: 1550000 },
-      { id: 2, code: "RO-2026-002", vehicle_plate: "51G-777.89", initial_symptoms: "Xe rung lắc vô lăng trên 80km/h & điều hòa gió yếu có mùi hôi", status: "ai_draft", final_cost: 850000 },
-      { id: 3, code: "RO-2026-003", vehicle_plate: "51K-123.45", initial_symptoms: "Đèn Check Engine báo lỗi động cơ thỉnh thoảng giật cục", status: "under_review", final_cost: 1250000 },
-      { id: 4, code: "RO-2026-004", vehicle_plate: "51F-999.99", initial_symptoms: "Bảo dưỡng tổng thể 80,000km & Thay 4 lốp Michelin", status: "approved", final_cost: 15100000 }
+      { id: 1, code: "RO-2026-001", vehicle_plate: "51H-888.88", vehicle: { license_plate: "51H-888.88", brand: "Toyota", model: "Camry 2.5Q", customer: { full_name: "Nguyễn Hoàng Nam" } }, initial_symptoms: "Bảo dưỡng định kỳ mốc 40,000 km, phanh kêu rít nhẹ khi đạp thắng", status: "in_progress", final_cost: 1550000, mileage_at_reception: 40000, technical_diagnosis: "Đĩa phanh mòn nhẹ. Khuyến nghị láng đĩa phanh 3D & thay dầu máy." },
+      { id: 2, code: "RO-2026-002", vehicle_plate: "51G-777.89", vehicle: { license_plate: "51G-777.89", brand: "Honda", model: "Civic RS", customer: { full_name: "Đặng Thị Minh Anh" } }, initial_symptoms: "Xe rung lắc vô lăng trên 80km/h & điều hòa gió yếu có mùi hôi", status: "ai_draft", final_cost: 850000, mileage_at_reception: 65000, technical_diagnosis: "Bẩn lọc gió điều hòa carbon, lệch thước lái bánh xe." },
+      { id: 3, code: "RO-2026-003", vehicle_plate: "51K-123.45", vehicle: { license_plate: "51K-123.45", brand: "Mercedes-Benz", model: "GLC 300", customer: { full_name: "Đặng Thị Minh Anh" } }, initial_symptoms: "Đèn Check Engine báo lỗi động cơ thỉnh thoảng giật cục", status: "under_review", final_cost: 1250000, mileage_at_reception: 18000, technical_diagnosis: "Bugi mòn lửa, bỏ máy tạm thời." },
+      { id: 4, code: "RO-2026-004", vehicle_plate: "51F-999.99", vehicle: { license_plate: "51F-999.99", brand: "BMW", model: "X5 xDrive40i", customer: { full_name: "Lê Quốc Bảo" } }, initial_symptoms: "Bảo dưỡng tổng thể 80,000km & Thay 4 lốp Michelin", status: "approved", final_cost: 15100000, mileage_at_reception: 82000, technical_diagnosis: "Đã hoàn thành bảo dưỡng mốc 80k km." }
     ];
+  }
+  if (endpoint.startsWith("/repair-orders/")) {
+    const parts = endpoint.split("/");
+    const roId = parseInt(parts[2]);
+    return {
+      id: roId || 1,
+      code: `RO-2026-00${roId || 1}`,
+      vehicle_plate: "51H-888.88",
+      vehicle: { license_plate: "51H-888.88", brand: "Toyota", model: "Camry 2.5Q", customer: { full_name: "Nguyễn Hoàng Nam" } },
+      mileage_at_reception: 40000,
+      initial_symptoms: "Bảo dưỡng định kỳ mốc 40,000 km, phanh kêu rít nhẹ khi đạp thắng",
+      technical_diagnosis: "Đĩa phanh mòn rãnh nhẹ, cần láng đĩa phanh laser 3D & thay dầu máy Synthetic",
+      status: "in_progress",
+      final_cost: 1550000,
+      items: [
+        { id: 1, name: "Dầu nhớt Synthetic 4L (Castrol Edge)", item_type: "part", quantity: 1, unit_price: 750000, labor_cost: 0, total_price: 750000 },
+        { id: 2, name: "Lọc nhớt Toyota Genuine", item_type: "part", quantity: 1, unit_price: 180000, labor_cost: 0, total_price: 180000 },
+        { id: 3, name: "Công láng đĩa phanh 3D & bảo dưỡng heo phanh", item_type: "service", quantity: 1, unit_price: 0, labor_cost: 400000, total_price: 400000 }
+      ]
+    };
   }
   if (endpoint === "/services") {
     return [
@@ -238,6 +283,21 @@ function getOfflineMockResponse(endpoint, options) {
     };
   }
   if (options.method === "POST" || options.method === "PUT" || options.method === "DELETE") {
+    if (endpoint === "/customers") {
+      return { id: Date.now(), full_name: "Khách Mới Demo", phone: "0900000000" };
+    }
+    if (endpoint === "/vehicles") {
+      return { id: Date.now(), license_plate: "51K-999.99", brand: "Toyota", model: "Camry" };
+    }
+    if (endpoint === "/appointments") {
+      return { id: Date.now(), appointment_code: "APT-NEW", status: "pending" };
+    }
+    if (endpoint === "/repair-orders") {
+      return { id: Date.now(), code: "RO-2026-NEW", status: "received", final_cost: 0 };
+    }
+    if (endpoint.includes("/invoice")) {
+      return { id: Date.now(), invoice_number: "INV-2026-NEW", total_amount: 1550000 };
+    }
     return { success: true, message: "Thao tác mô phỏng thành công!" };
   }
   return [];
@@ -246,6 +306,7 @@ function getOfflineMockResponse(endpoint, options) {
 function setupRoleSwitcher() {
   const roleSelect = document.getElementById("role-select");
   const roleBadge = document.getElementById("role-badge");
+  if (!roleSelect || !roleBadge) return;
 
   roleSelect.addEventListener("change", async (e) => {
     currentState.currentRole = e.target.value;
@@ -257,7 +318,7 @@ function setupRoleSwitcher() {
       technician: "Kỹ Thuật Viên",
       cashier: "Thu Ngân"
     };
-    roleBadge.textContent = roleMapText[currentState.currentRole];
+    roleBadge.textContent = roleMapText[currentState.currentRole] || "Người Dùng";
 
     await loginAsCurrentRole();
     await loadAllData();
@@ -268,10 +329,31 @@ function setupRoleSwitcher() {
 function setupNavigation() {
   const navItems = document.querySelectorAll(".nav-item");
   navItems.forEach(item => {
-    item.addEventListener("click", () => {
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
       const view = item.getAttribute("data-view");
-      switchView(view);
+      if (view) switchView(view);
     });
+  });
+  const mobileNavItems = document.querySelectorAll(".mobile-nav-item");
+  mobileNavItems.forEach(item => {
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      const view = item.getAttribute("data-view");
+      if (view) switchView(view);
+    });
+  });
+}
+
+// Global Event Delegation for Maximum Interaction Reliability
+function setupGlobalEventDelegation() {
+  document.addEventListener("click", (e) => {
+    const navItem = e.target.closest("[data-view]");
+    if (navItem) {
+      const view = navItem.getAttribute("data-view");
+      if (view) switchView(view);
+      return;
+    }
   });
 }
 
@@ -310,7 +392,8 @@ function switchView(viewName) {
     invoices: "Hóa Đơn & Thanh Toán",
     "ai-studio": "AI Studio & Prompt Engineering Sandbox"
   };
-  document.getElementById("page-title").textContent = titleMap[viewName] || "Garage Management";
+  const pageTitle = document.getElementById("page-title");
+  if (pageTitle) pageTitle.textContent = titleMap[viewName] || "Garage Management";
 
   toggleMobileSidebar(false);
   loadAllData();
@@ -326,40 +409,7 @@ function toggleMobileSidebar(open = null) {
   if (backdrop) backdrop.classList.toggle("active", isOpen);
 }
 
-
-// Data Loaders
-async function loadAllData() {
-  try {
-    if (currentState.activeView === "dashboard") await loadDashboard();
-    if (currentState.activeView === "appointments") await loadAppointments();
-    if (currentState.activeView === "repair-orders") await loadRepairOrders();
-    if (currentState.activeView === "customers") await loadCustomersAndVehicles();
-    if (currentState.activeView === "inventory") await loadInventory();
-    if (currentState.activeView === "invoices") await loadInvoices();
-    if (currentState.activeView === "ai-studio") await loadAISandboxData();
-  } catch (err) {
-    console.error("Lỗi tải dữ liệu:", err);
-  }
-}
-
-// 1. Dashboard View Loader
-async function loadDashboard() {
-  const data = await apiFetch("/analytics/dashboard");
-  const kpi = data.kpi;
-
-  const revEl = document.getElementById("kpi-revenue");
-  if (revEl) revEl.textContent = `${kpi.total_revenue.toLocaleString('vi-VN')} VNĐ`;
-
-  const activeEl = document.getElementById("kpi-active-orders");
-  if (activeEl) activeEl.textContent = kpi.active_repair_orders || 12;
-
-  const pendingEl = document.getElementById("kpi-pending-apts");
-  if (pendingEl) pendingEl.textContent = kpi.pending_appointments || 8;
-
-  const newCustEl = document.getElementById("kpi-new-customers");
-  if (newCustEl) newCustEl.textContent = kpi.low_stock_parts_count || 34;
-
-// Vietnamese Date Formatter
+// Date Formatter Helper
 function formatVietnameseDate(dateStr, includeTime = true) {
   if (!dateStr) return "Hôm nay";
   try {
@@ -400,13 +450,28 @@ function setupFilterListeners() {
   if (roStatus) roStatus.addEventListener("change", filterRepairOrders);
 }
 
+// Data Loaders
+async function loadAllData() {
+  try {
+    if (currentState.activeView === "dashboard") await loadDashboard();
+    if (currentState.activeView === "appointments") await loadAppointments();
+    if (currentState.activeView === "repair-orders") await loadRepairOrders();
+    if (currentState.activeView === "customers") await loadCustomersAndVehicles();
+    if (currentState.activeView === "inventory") await loadInventory();
+    if (currentState.activeView === "invoices") await loadInvoices();
+    if (currentState.activeView === "ai-studio") await loadAISandboxData();
+  } catch (err) {
+    console.error("Lỗi tải dữ liệu:", err);
+  }
+}
+
 // 1. Dashboard View Loader
 async function loadDashboard() {
   const data = await apiFetch("/analytics/dashboard");
-  const kpi = data.kpi;
+  const kpi = data ? (data.kpi || {}) : {};
 
   const revEl = document.getElementById("kpi-revenue");
-  if (revEl) revEl.textContent = `${kpi.total_revenue.toLocaleString('vi-VN')} VNĐ`;
+  if (revEl) revEl.textContent = `${(kpi.total_revenue || 245000000).toLocaleString('vi-VN')} VNĐ`;
 
   const activeEl = document.getElementById("kpi-active-orders");
   if (activeEl) activeEl.textContent = kpi.active_repair_orders || 12;
@@ -419,7 +484,7 @@ async function loadDashboard() {
 
   const orders = await apiFetch("/repair-orders");
   const tbody = document.getElementById("dash-orders-tbody");
-  if (tbody) {
+  if (tbody && Array.isArray(orders)) {
     tbody.innerHTML = "";
 
     orders.slice(0, 5).forEach(ro => {
@@ -443,8 +508,8 @@ async function loadDashboard() {
 // 2. Appointments View Loader & Filter
 async function loadAppointments() {
   const apts = await apiFetch("/appointments");
-  currentState.appointments = apts;
-  renderAppointmentsTable(apts);
+  currentState.appointments = Array.isArray(apts) ? apts : [];
+  renderAppointmentsTable(currentState.appointments);
   await populateVehicleDropdowns();
 }
 
@@ -508,8 +573,8 @@ function renderAppointmentsTable(apts) {
 // 3. Repair Orders View Loader & Filter
 async function loadRepairOrders() {
   const orders = await apiFetch("/repair-orders");
-  currentState.repairOrders = orders;
-  renderRepairOrdersTable(orders);
+  currentState.repairOrders = Array.isArray(orders) ? orders : [];
+  renderRepairOrdersTable(currentState.repairOrders);
   await populateVehicleDropdowns();
 }
 
@@ -554,7 +619,7 @@ function renderRepairOrdersTable(orders) {
         <div style="font-size: 0.85rem; color: #cbd5e1;">Diag: ${ro.technical_diagnosis || 'Đang chẩn đoán'}</div>
       </td>
       <td><span class="status-pill ${ro.status}">${formatStatus(ro.status)}</span></td>
-      <td style="color: #34d399; font-weight: 600;">${ro.final_cost.toLocaleString('vi-VN')} VNĐ</td>
+      <td><span style="color: #34d399; font-weight: 600;">${(ro.final_cost || 0).toLocaleString('vi-VN')} VNĐ</span></td>
       <td>
         <button class="btn btn-ai btn-sm" title="Trợ Lý AI Garage" onclick="runAIServiceExplainer(${ro.id})"><i class="fa-solid fa-robot"></i> Trợ Lý AI</button>
       </td>
@@ -569,8 +634,8 @@ function renderRepairOrdersTable(orders) {
 // 4. Customers Loader & Filter
 async function loadCustomersAndVehicles() {
   const customers = await apiFetch("/customers");
-  currentState.customers = customers;
-  renderCustomersTable(customers);
+  currentState.customers = Array.isArray(customers) ? customers : [];
+  renderCustomersTable(currentState.customers);
 }
 
 function filterCustomers() {
@@ -598,7 +663,7 @@ function renderCustomersTable(customers) {
   }
 
   customers.forEach(cust => {
-    const vehsStr = cust.vehicles.map(v => `<span style="background: rgba(6,182,212,0.15); padding: 2px 6px; border-radius: 4px; color: #22d3ee; margin-right: 4px;">${v.license_plate} (${v.brand} ${v.model})</span>`).join("");
+    const vehsStr = (cust.vehicles || []).map(v => `<span style="background: rgba(6,182,212,0.15); padding: 2px 6px; border-radius: 4px; color: #22d3ee; margin-right: 4px;">${v.license_plate} (${v.brand} ${v.model})</span>`).join("");
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><strong>${cust.full_name}</strong></td>
@@ -606,59 +671,63 @@ function renderCustomersTable(customers) {
       <td>${cust.address || 'N/A'}</td>
       <td>${vehsStr || 'Chưa có xe'}</td>
       <td>
-        <button class="btn btn-secondary btn-sm" onclick="alert('Đã chọn khách hàng ${cust.full_name}')"><i class="fa-solid fa-pen"></i> Sửa</button>
+        <button class="btn btn-secondary btn-sm" onclick="showToast('Đã chọn khách hàng ${escapeHTML(cust.full_name)}')"><i class="fa-solid fa-pen"></i> Sửa</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-
 // 5. Inventory & Services Loader
 async function loadInventory() {
   const services = await apiFetch("/services");
   const parts = await apiFetch("/parts");
-  currentState.services = services;
-  currentState.parts = parts;
+  currentState.services = Array.isArray(services) ? services : [];
+  currentState.parts = Array.isArray(parts) ? parts : [];
 
   // Services tbody
   const srvTbody = document.getElementById("services-tbody");
-  srvTbody.innerHTML = "";
-  services.forEach(s => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><code>${s.code}</code></td>
-      <td><strong>${s.name}</strong></td>
-      <td style="color: #34d399;">${s.labor_cost.toLocaleString()} VNĐ</td>
-    `;
-    srvTbody.appendChild(tr);
-  });
+  if (srvTbody) {
+    srvTbody.innerHTML = "";
+    currentState.services.forEach(s => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><code>${s.code}</code></td>
+        <td><strong>${s.name}</strong></td>
+        <td style="color: #34d399;">${s.labor_cost.toLocaleString()} VNĐ</td>
+      `;
+      srvTbody.appendChild(tr);
+    });
+  }
 
   // Parts tbody
   const partsTbody = document.getElementById("parts-tbody");
-  partsTbody.innerHTML = "";
-  parts.forEach(p => {
-    const isLow = p.stock_quantity <= p.min_stock_alert;
-    const stockBadge = isLow ? `<span style="color: #f43f5e; font-weight: 700;">${p.stock_quantity} (Cảnh báo tồn ít)</span>` : `${p.stock_quantity}`;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><code>${p.code}</code></td>
-      <td><strong>${p.name}</strong></td>
-      <td style="color: #34d399;">${p.unit_price.toLocaleString()} VNĐ</td>
-      <td>${stockBadge}</td>
-    `;
-    partsTbody.appendChild(tr);
-  });
+  if (partsTbody) {
+    partsTbody.innerHTML = "";
+    currentState.parts.forEach(p => {
+      const isLow = p.stock_quantity <= p.min_stock_alert;
+      const stockBadge = isLow ? `<span style="color: #f43f5e; font-weight: 700;">${p.stock_quantity} (Cảnh báo tồn ít)</span>` : `${p.stock_quantity}`;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><code>${p.code}</code></td>
+        <td><strong>${p.name}</strong></td>
+        <td style="color: #34d399;">${p.unit_price.toLocaleString()} VNĐ</td>
+        <td>${stockBadge}</td>
+      `;
+      partsTbody.appendChild(tr);
+    });
+  }
 }
 
 // 6. Invoices Loader
 async function loadInvoices() {
   const invoices = await apiFetch("/invoices");
-  currentState.invoices = invoices;
+  currentState.invoices = Array.isArray(invoices) ? invoices : [];
   const tbody = document.getElementById("invoices-tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
-  invoices.forEach(inv => {
+  currentState.invoices.forEach(inv => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><strong>${inv.invoice_number}</strong></td>
@@ -676,7 +745,17 @@ async function loadInvoices() {
   });
 }
 
-// Markdown to HTML Formatter for AI Output
+// Formatting Helper
+function escapeHTML(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function renderFormattedAIOutput(elementId, text) {
   const container = document.getElementById(elementId);
   if (!container) return;
@@ -686,7 +765,6 @@ function renderFormattedAIOutput(elementId, text) {
     return;
   }
 
-  // Handle loading state
   if (text.startsWith("⏳")) {
     container.innerHTML = `
       <div class="ai-loader">
@@ -697,7 +775,6 @@ function renderFormattedAIOutput(elementId, text) {
     return;
   }
 
-  // Parse lines into formatted HTML
   const lines = text.split("\n");
   let html = "";
   let inList = false;
@@ -710,10 +787,8 @@ function renderFormattedAIOutput(elementId, text) {
       return;
     }
 
-    // Bold formatting replacement
     let formattedLine = escapeHTML(trimmed).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
-    // Headers or Bullet Points
     if (trimmed.startsWith("•") || trimmed.startsWith("- ") || trimmed.startsWith("+ ")) {
       if (!inList) { html += "<ul>"; inList = true; }
       const content = formattedLine.replace(/^[•\-+]\s*/, "");
@@ -729,15 +804,6 @@ function renderFormattedAIOutput(elementId, text) {
 
   if (inList) html += "</ul>";
   container.innerHTML = html;
-}
-
-function escapeHTML(str) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
 
 function showToast(message) {
@@ -845,18 +911,20 @@ async function submitModalAIQuestion() {
   }
 }
 
-// AI Sandbox / Assistant Tab Loader (View 7)
+// AI Sandbox Loader
 async function loadAISandboxData() {
   const orders = await apiFetch("/repair-orders");
   const select = document.getElementById("ai-sandbox-ro-select");
   if (!select) return;
   select.innerHTML = '<option value="">-- Không chọn phiếu (Đặt câu hỏi chung về xe) --</option>';
-  orders.forEach(ro => {
-    const opt = document.createElement("option");
-    opt.value = ro.id;
-    opt.textContent = `Mã phiếu ${ro.code} - Xe ${ro.vehicle ? ro.vehicle.license_plate : 'N/A'}`;
-    select.appendChild(opt);
-  });
+  if (Array.isArray(orders)) {
+    orders.forEach(ro => {
+      const opt = document.createElement("option");
+      opt.value = ro.id;
+      opt.textContent = `Mã phiếu ${ro.code} - Xe ${ro.vehicle ? ro.vehicle.license_plate : 'N/A'}`;
+      select.appendChild(opt);
+    });
+  }
 }
 
 function applyPromptTemplate() {
@@ -879,7 +947,7 @@ async function runAISandbox() {
   }
 
   const container = document.getElementById("ai-sandbox-output-container");
-  container.style.display = "block";
+  if (container) container.style.display = "block";
   renderFormattedAIOutput("ai-sandbox-output", "⏳ Trợ lý AI Engine đang phân tích câu hỏi...");
 
   try {
@@ -891,14 +959,17 @@ async function runAISandbox() {
 }
 
 function copyAISandboxResult() {
-  const text = document.getElementById("ai-sandbox-output").innerText;
-  navigator.clipboard.writeText(text);
-  showToast("Đã sao chép phản hồi AI vào bộ nhớ tạm!");
+  const textEl = document.getElementById("ai-sandbox-output");
+  if (textEl) {
+    navigator.clipboard.writeText(textEl.innerText);
+    showToast("Đã sao chép phản hồi AI vào bộ nhớ tạm!");
+  }
 }
 
 // Modal Helpers
 function showAIModal(title, bodyText, modelUsed = "Trợ Lý AI Garage VTV") {
-  document.getElementById("modal-ai-title").innerHTML = `<i class="fa-solid fa-robot"></i> ${title}`;
+  const titleEl = document.getElementById("modal-ai-title");
+  if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-robot"></i> ${title}`;
   renderFormattedAIOutput("modal-ai-body", bodyText);
   const badge = document.getElementById("modal-ai-model-badge");
   if (badge) badge.innerHTML = `<i class="fa-solid fa-microchip"></i> Engine: ${modelUsed}`;
@@ -906,25 +977,33 @@ function showAIModal(title, bodyText, modelUsed = "Trợ Lý AI Garage VTV") {
 }
 
 function copyAIResult() {
-  const text = document.getElementById("modal-ai-body").innerText;
-  navigator.clipboard.writeText(text);
-  showToast("Đã sao chép phản hồi AI vào bộ nhớ tạm!");
+  const textEl = document.getElementById("modal-ai-body");
+  if (textEl) {
+    navigator.clipboard.writeText(textEl.innerText);
+    showToast("Đã sao chép phản hồi AI vào bộ nhớ tạm!");
+  }
 }
 
-
-function openModal(modalId) {
-  document.getElementById(modalId).classList.add("active");
+async function openModal(modalId) {
+  if (modalId === "modal-new-appointment" || modalId === "modal-new-ro") {
+    await populateVehicleDropdowns();
+  }
+  const el = document.getElementById(modalId);
+  if (el) el.classList.add("active");
 }
+
 function closeModal(modalId) {
-  document.getElementById(modalId).classList.remove("active");
+  const el = document.getElementById(modalId);
+  if (el) el.classList.remove("active");
 }
 
 // Form Submissions
 async function submitNewAppointment(e) {
-  e.preventDefault();
-  const vehicle_id = parseInt(document.getElementById("apt-vehicle-id").value);
-  const appointment_date = new Date(document.getElementById("apt-date").value).isoformat ? new Date(document.getElementById("apt-date").value).toISOString() : document.getElementById("apt-date").value;
-  const notes = document.getElementById("apt-notes").value;
+  if (e && e.preventDefault) e.preventDefault();
+  const vehicle_id = parseInt(document.getElementById("apt-vehicle-id")?.value || 0);
+  const rawDate = document.getElementById("apt-date")?.value;
+  const appointment_date = rawDate ? new Date(rawDate).toISOString() : new Date().toISOString();
+  const notes = document.getElementById("apt-notes")?.value || "";
 
   try {
     await apiFetch("/appointments", {
@@ -933,17 +1012,17 @@ async function submitNewAppointment(e) {
     });
     closeModal("modal-new-appointment");
     await loadAppointments();
-    alert("Đã tạo lịch hẹn thành công!");
+    showToast("Đã tạo lịch hẹn thành công!");
   } catch (err) {
     alert(`Lỗi: ${err.message}`);
   }
 }
 
 async function submitNewRO(e) {
-  e.preventDefault();
-  const vehicle_id = parseInt(document.getElementById("ro-vehicle-id").value);
-  const mileage_at_reception = parseInt(document.getElementById("ro-mileage").value);
-  const initial_symptoms = document.getElementById("ro-symptoms").value;
+  if (e && e.preventDefault) e.preventDefault();
+  const vehicle_id = parseInt(document.getElementById("ro-vehicle-id")?.value || 0);
+  const mileage_at_reception = parseInt(document.getElementById("ro-mileage")?.value || 0);
+  const initial_symptoms = document.getElementById("ro-symptoms")?.value || "";
 
   try {
     await apiFetch("/repair-orders", {
@@ -952,22 +1031,22 @@ async function submitNewRO(e) {
     });
     closeModal("modal-new-ro");
     await loadRepairOrders();
-    alert("Đã tạo phiếu sửa chữa thành công!");
+    showToast("Đã tạo phiếu sửa chữa thành công!");
   } catch (err) {
     alert(`Lỗi: ${err.message}`);
   }
 }
 
 async function submitNewCustomer(e) {
-  e.preventDefault();
-  const full_name = document.getElementById("cust-name").value;
-  const phone = document.getElementById("cust-phone").value;
-  const address = document.getElementById("cust-address").value;
+  if (e && e.preventDefault) e.preventDefault();
+  const full_name = document.getElementById("cust-name")?.value || "";
+  const phone = document.getElementById("cust-phone")?.value || "";
+  const address = document.getElementById("cust-address")?.value || "";
 
-  const license_plate = document.getElementById("cust-veh-plate").value;
-  const brand = document.getElementById("cust-veh-brand").value;
-  const model = document.getElementById("cust-veh-model").value;
-  const year = parseInt(document.getElementById("cust-veh-year").value);
+  const license_plate = document.getElementById("cust-veh-plate")?.value || "";
+  const brand = document.getElementById("cust-veh-brand")?.value || "";
+  const model = document.getElementById("cust-veh-model")?.value || "";
+  const year = parseInt(document.getElementById("cust-veh-year")?.value || 2022);
 
   try {
     const cust = await apiFetch("/customers", {
@@ -982,7 +1061,8 @@ async function submitNewCustomer(e) {
 
     closeModal("modal-new-customer");
     await loadCustomersAndVehicles();
-    alert("Đã thêm khách hàng và xe thành công!");
+    await populateVehicleDropdowns();
+    showToast("Đã thêm khách hàng và xe thành công!");
   } catch (err) {
     alert(`Lỗi: ${err.message}`);
   }
@@ -993,27 +1073,33 @@ async function openRODetailModal(roId) {
   currentState.activeROId = roId;
   const ro = await apiFetch(`/repair-orders/${roId}`);
 
-  document.getElementById("ro-detail-title").innerHTML = `<i class="fa-solid fa-wrench"></i> Phiếu Sửa Chữa ${ro.code}`;
-  document.getElementById("ro-detail-info").innerHTML = `
-    <strong>Xe:</strong> ${ro.vehicle ? ro.vehicle.license_plate : 'N/A'} (${ro.vehicle ? ro.vehicle.brand : ''} ${ro.vehicle ? ro.vehicle.model : ''}) | 
-    <strong>Km nhận:</strong> ${ro.mileage_at_reception.toLocaleString()} km | 
-    <strong>Trạng thái:</strong> <span class="status-pill ${ro.status}">${formatStatus(ro.status)}</span><br>
-    <strong>Triệu chứng ban đầu:</strong> ${ro.initial_symptoms || 'Chưa có'}
-  `;
-  document.getElementById("ro-tech-diagnosis").value = ro.technical_diagnosis || "";
-  document.getElementById("ro-detail-total").textContent = `${ro.final_cost.toLocaleString()} VNĐ`;
+  const titleEl = document.getElementById("ro-detail-title");
+  if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-wrench"></i> Phiếu Sửa Chữa ${ro.code || ('RO-' + roId)}`;
 
-  // Render items
-  renderROItems(ro.items);
+  const infoEl = document.getElementById("ro-detail-info");
+  if (infoEl) {
+    infoEl.innerHTML = `
+      <strong>Xe:</strong> ${ro.vehicle ? ro.vehicle.license_plate : (ro.vehicle_plate || 'N/A')} (${ro.vehicle ? ro.vehicle.brand : ''} ${ro.vehicle ? ro.vehicle.model : ''}) | 
+      <strong>Km nhận:</strong> ${(ro.mileage_at_reception || 40000).toLocaleString()} km | 
+      <strong>Trạng thái:</strong> <span class="status-pill ${ro.status}">${formatStatus(ro.status)}</span><br>
+      <strong>Triệu chứng ban đầu:</strong> ${ro.initial_symptoms || 'Chưa có'}
+    `;
+  }
 
-  // Populate Add Item Catalog dropdowns
+  const diagEl = document.getElementById("ro-tech-diagnosis");
+  if (diagEl) diagEl.value = ro.technical_diagnosis || "";
+
+  const totalEl = document.getElementById("ro-detail-total");
+  if (totalEl) totalEl.textContent = `${(ro.final_cost || 0).toLocaleString()} VNĐ`;
+
+  renderROItems(ro.items || []);
   await populateItemCatalogDropdown();
-
   openModal("modal-ro-detail");
 }
 
 function renderROItems(items) {
   const tbody = document.getElementById("ro-items-tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   items.forEach(item => {
@@ -1032,8 +1118,11 @@ function renderROItems(items) {
 }
 
 async function populateItemCatalogDropdown() {
-  const type = document.getElementById("item-type-select").value;
+  const typeEl = document.getElementById("item-type-select");
+  if (!typeEl) return;
+  const type = typeEl.value;
   const select = document.getElementById("item-catalog-select");
+  if (!select) return;
   select.innerHTML = "";
 
   if (type === "service") {
@@ -1061,9 +1150,9 @@ function toggleItemSelectType() {
 
 async function addItemToRO() {
   if (!currentState.activeROId) return;
-  const type = document.getElementById("item-type-select").value;
-  const catalogId = parseInt(document.getElementById("item-catalog-select").value);
-  const qty = parseFloat(document.getElementById("item-qty").value);
+  const type = document.getElementById("item-type-select")?.value || "service";
+  const catalogId = parseInt(document.getElementById("item-catalog-select")?.value || 0);
+  const qty = parseFloat(document.getElementById("item-qty")?.value || 1);
 
   let payload = {
     item_type: type,
@@ -1074,14 +1163,18 @@ async function addItemToRO() {
 
   if (type === "service") {
     const srv = currentState.services.find(s => s.id === catalogId);
-    payload.service_id = srv.id;
-    payload.name = srv.name;
-    payload.labor_cost = srv.labor_cost;
+    if (srv) {
+      payload.service_id = srv.id;
+      payload.name = srv.name;
+      payload.labor_cost = srv.labor_cost;
+    }
   } else {
     const part = currentState.parts.find(p => p.id === catalogId);
-    payload.part_id = part.id;
-    payload.name = part.name;
-    payload.unit_price = part.unit_price;
+    if (part) {
+      payload.part_id = part.id;
+      payload.name = part.name;
+      payload.unit_price = part.unit_price;
+    }
   }
 
   try {
@@ -1109,13 +1202,13 @@ async function deleteROItem(itemId) {
 
 async function saveTechDiagnosis() {
   if (!currentState.activeROId) return;
-  const diag = document.getElementById("ro-tech-diagnosis").value;
+  const diag = document.getElementById("ro-tech-diagnosis")?.value || "";
   try {
     await apiFetch(`/repair-orders/${currentState.activeROId}`, {
       method: "PUT",
       body: JSON.stringify({ technical_diagnosis: diag, status: "in_progress" })
     });
-    alert("Đã cập nhật chẩn đoán kỹ thuật!");
+    showToast("Đã cập nhật chẩn đoán kỹ thuật!");
     await loadRepairOrders();
   } catch (err) {
     alert(`Lỗi: ${err.message}`);
@@ -1137,7 +1230,7 @@ async function createInvoiceFromRODetail() {
     const inv = await apiFetch(`/repair-orders/${currentState.activeROId}/invoice`, { method: "POST" });
     closeModal("modal-ro-detail");
     switchView("invoices");
-    alert(`Đã lập thành công Hóa đơn ${inv.invoice_number}!`);
+    showToast(`Đã lập thành công Hóa đơn ${inv.invoice_number}!`);
   } catch (err) {
     alert(`Lỗi lập hóa đơn: ${err.message}`);
   }
@@ -1145,13 +1238,19 @@ async function createInvoiceFromRODetail() {
 
 // Payment Modal Handling & VietQR Techcombank Integration
 function openPaymentModal(invId, invNumber, balanceDue) {
-  document.getElementById("pay-inv-id").value = invId;
-  document.getElementById("pay-inv-number").value = invNumber;
-  document.getElementById("pay-total-amount").value = `${balanceDue.toLocaleString('vi-VN')} VNĐ`;
-  document.getElementById("pay-amount").value = balanceDue;
+  const invIdEl = document.getElementById("pay-inv-id");
+  if (invIdEl) invIdEl.value = invId;
 
-  // Generate Dynamic Memo & Scannable VietQR Techcombank Code
-  const memo = `GARAGEVTV ${invNumber.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const invNumEl = document.getElementById("pay-inv-number");
+  if (invNumEl) invNumEl.value = invNumber;
+
+  const totalEl = document.getElementById("pay-total-amount");
+  if (totalEl) totalEl.value = `${(balanceDue || 0).toLocaleString('vi-VN')} VNĐ`;
+
+  const amountInput = document.getElementById("pay-amount");
+  if (amountInput) amountInput.value = balanceDue || 0;
+
+  const memo = `GARAGEVTV ${String(invNumber).replace(/[^a-zA-Z0-9]/g, '')}`;
   const memoTextEl = document.getElementById("qr-memo-text");
   if (memoTextEl) memoTextEl.innerText = memo;
 
@@ -1190,7 +1289,8 @@ function updateQRAmountLive() {
 }
 
 function togglePaymentMethodFields() {
-  const method = document.getElementById("pay-method").value;
+  const methodEl = document.getElementById("pay-method");
+  const method = methodEl ? methodEl.value : "bank_transfer";
   const qrContainer = document.getElementById("bank-qr-container");
 
   if (qrContainer) {
@@ -1204,10 +1304,10 @@ function copyTextToClipboard(text, label = "") {
 }
 
 async function submitPayment(e) {
-  e.preventDefault();
-  const invoice_id = parseInt(document.getElementById("pay-inv-id").value);
-  const payment_method = document.getElementById("pay-method").value;
-  const amount = parseFloat(document.getElementById("pay-amount").value);
+  if (e && e.preventDefault) e.preventDefault();
+  const invoice_id = parseInt(document.getElementById("pay-inv-id")?.value || 0);
+  const payment_method = document.getElementById("pay-method")?.value || "bank_transfer";
+  const amount = parseFloat(document.getElementById("pay-amount")?.value || 0);
 
   try {
     await apiFetch("/payments", {
@@ -1222,22 +1322,25 @@ async function submitPayment(e) {
   }
 }
 
-
 // Helpers
 async function populateVehicleDropdowns() {
   const vehicles = await apiFetch("/vehicles");
-  currentState.vehicles = vehicles;
+  currentState.vehicles = Array.isArray(vehicles) ? vehicles : [];
 
-  ["apt-vehicle-id", "ro-vehicle-id"].forEach(id => {
+  ["apt-vehicle-id", "ro-vehicle-id", "wz-vehicle-select"].forEach(id => {
     const select = document.getElementById(id);
     if (!select) return;
     select.innerHTML = "";
-    vehicles.forEach(v => {
-      const opt = document.createElement("option");
-      opt.value = v.id;
-      opt.textContent = `${v.license_plate} (${v.brand} ${v.model})`;
-      select.appendChild(opt);
-    });
+    if (currentState.vehicles.length === 0) {
+      select.innerHTML = '<option value="">-- Chưa có dữ liệu xe --</option>';
+    } else {
+      currentState.vehicles.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v.id;
+        opt.textContent = `${v.license_plate} (${v.brand} ${v.model})`;
+        select.appendChild(opt);
+      });
+    }
   });
 }
 
@@ -1278,7 +1381,7 @@ function switchWizardStep(stepNum) {
 }
 
 async function submitWizardScreen1() {
-  const symptoms = document.getElementById("wz-symptoms-input").value;
+  const symptoms = document.getElementById("wz-symptoms-input")?.value || "";
   if (!symptoms.trim()) {
     showToast("Vui lòng nhập mô tả triệu chứng xe!");
     return;
@@ -1335,8 +1438,10 @@ function renderWizardReviewTable() {
       <td style="color: #34d399; font-weight:700;">400,000 VNĐ</td>
     </tr>
   `;
-  document.getElementById("wz-review-total").innerText = "1,550,000 VNĐ";
-  document.getElementById("wz-final-total-display").innerText = "1,550,000 VNĐ";
+  const reviewTotal = document.getElementById("wz-review-total");
+  if (reviewTotal) reviewTotal.innerText = "1,550,000 VNĐ";
+  const finalTotal = document.getElementById("wz-final-total-display");
+  if (finalTotal) finalTotal.innerText = "1,550,000 VNĐ";
 }
 
 // Step 13: 5 Demo Scenario Launchers
@@ -1346,27 +1451,29 @@ async function triggerDemoScenarioUI(scenarioId) {
     const res = await apiFetch(`/ai/demo-scenarios/${scenarioId}`, { method: "POST" });
     wizardState.activeData = res;
     
-    // Auto-fill Screen 1 symptoms
-    document.getElementById("wz-symptoms-input").value = res.symptoms;
+    const symEl = document.getElementById("wz-symptoms-input");
+    if (symEl) symEl.value = res.symptoms;
     
-    // Render Screen 2 AI Output
-    const warnHtml = res.warnings.length > 0 ? 
+    const warnHtml = res.warnings && res.warnings.length > 0 ? 
       `<div style="background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3); padding: 0.85rem; border-radius: var(--radius-md); margin-top: 1rem; color: #f43f5e; font-weight: 700;">
         ${res.warnings.join('<br>')}
       </div>` : '';
       
-    document.getElementById("wz-ai-diag-output").innerHTML = `
-      <div style="font-weight:700; color: var(--accent-purple); margin-bottom: 0.5rem;">[${res.scenario_title}]</div>
-      <div><strong>Chẩn đoán:</strong> ${res.diagnosis}</div>
-      <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">${res.ai_raw_output}</div>
-    `;
-    document.getElementById("wz-ai-warnings-box").innerHTML = warnHtml;
+    const diagOut = document.getElementById("wz-ai-diag-output");
+    if (diagOut) {
+      diagOut.innerHTML = `
+        <div style="font-weight:700; color: var(--accent-purple); margin-bottom: 0.5rem;">[${res.scenario_title}]</div>
+        <div><strong>Chẩn đoán:</strong> ${res.diagnosis}</div>
+        <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">${res.ai_raw_output}</div>
+      `;
+    }
+    const warnBox = document.getElementById("wz-ai-warnings-box");
+    if (warnBox) warnBox.innerHTML = warnHtml;
 
-    // Render Review Table
     const tbody = document.getElementById("wz-review-items-tbody");
     if (tbody) {
       tbody.innerHTML = "";
-      res.suggested_parts.forEach(p => {
+      (res.suggested_parts || []).forEach(p => {
         const stockCol = p.stock === 0 ? 
           `<span style="color: #f43f5e; font-weight:800;">0 (⚠️ HẾT HÀNG KHO)</span>` : 
           `<span style="color: #10b981; font-weight:700;">${p.stock} (Còn hàng)</span>`;
@@ -1382,7 +1489,7 @@ async function triggerDemoScenarioUI(scenarioId) {
         tbody.appendChild(tr);
       });
 
-      res.suggested_services.forEach(s => {
+      (res.suggested_services || []).forEach(s => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><code>${s.code}</code></td>
@@ -1396,9 +1503,11 @@ async function triggerDemoScenarioUI(scenarioId) {
       });
     }
 
-    const fmtTotal = `${res.estimated_total.toLocaleString('vi-VN')} VNĐ`;
-    document.getElementById("wz-review-total").innerText = fmtTotal;
-    document.getElementById("wz-final-total-display").innerText = fmtTotal;
+    const fmtTotal = `${(res.estimated_total || 0).toLocaleString('vi-VN')} VNĐ`;
+    const reviewTotal = document.getElementById("wz-review-total");
+    if (reviewTotal) reviewTotal.innerText = fmtTotal;
+    const finalTotal = document.getElementById("wz-final-total-display");
+    if (finalTotal) finalTotal.innerText = fmtTotal;
 
     switchWizardStep(2);
     showToast(`Đã tải Kịch bản ${scenarioId}: ${res.scenario_title}`);
@@ -1413,11 +1522,16 @@ async function loadAIBenchmarkReport() {
   if (container) container.style.display = "block";
   try {
     const data = await apiFetch("/ai/evaluation-report");
-    document.getElementById("bm-top1").innerText = `${data.top1_accuracy_percent}%`;
-    document.getElementById("bm-parts").innerText = `${data.parts_accuracy_percent}%`;
-    document.getElementById("bm-price-var").innerText = `${data.price_variance_percent}%`;
-    document.getElementById("bm-latency").innerText = `${data.average_latency_ms} ms`;
-    document.getElementById("bm-cost").innerText = `$${data.total_estimated_cost_usd}`;
+    const top1 = document.getElementById("bm-top1");
+    if (top1) top1.innerText = `${data.top1_accuracy_percent}%`;
+    const parts = document.getElementById("bm-parts");
+    if (parts) parts.innerText = `${data.parts_accuracy_percent}%`;
+    const pvar = document.getElementById("bm-price-var");
+    if (pvar) pvar.innerText = `${data.price_variance_percent}%`;
+    const lat = document.getElementById("bm-latency");
+    if (lat) lat.innerText = `${data.average_latency_ms} ms`;
+    const cost = document.getElementById("bm-cost");
+    if (cost) cost.innerText = `$${data.total_estimated_cost_usd}`;
     showToast("Đã tải Báo cáo Đo lường & Đánh giá AI Engine!");
   } catch (err) {
     showToast(`Lỗi tải báo cáo: ${err.message}`);
@@ -1428,17 +1542,14 @@ function triggerApprovedPayment() {
   openPaymentModal(999, "INV-2026-FINAL", 1550000);
 }
 
-// ============================================================
-// CHÁT BOT INTERACTIVE UI & OBD DIAGNOSTIC FORM HANDLERS
-// ============================================================
-
+// Interactive Chatbot Engine
 async function sendAIChatMessage() {
   const inputEl = document.getElementById("ai-chat-input");
-  const text = (inputEl.value || "").trim();
+  const text = (inputEl ? inputEl.value || "" : "").trim();
   if (!text) return;
 
   appendChatMessage("user", text);
-  inputEl.value = "";
+  if (inputEl) inputEl.value = "";
 
   const typingId = appendChatMessage("ai", "<em>AI Assistant đang phân tích dữ liệu...</em>");
 
@@ -1450,7 +1561,7 @@ async function sendAIChatMessage() {
 
     const streamEl = document.getElementById("ai-chat-stream");
     const typingBubble = document.getElementById(typingId);
-    if (typingBubble) streamEl.removeChild(typingBubble);
+    if (typingBubble && streamEl) streamEl.removeChild(typingBubble);
 
     appendChatMessage("ai", res.output || "AI không thể đưa ra phản hồi.");
   } catch (err) {
@@ -1537,18 +1648,18 @@ function clearAIChatHistory() {
 }
 
 async function submitOBDDiagnosticForm(event) {
-  event.preventDefault();
-  const brand = document.getElementById("obd-brand").value;
-  const model = document.getElementById("obd-model").value;
-  const year = parseInt(document.getElementById("obd-year").value) || 2022;
-  const mileage = parseInt(document.getElementById("obd-mileage").value) || 40000;
-  const obd_code = document.getElementById("obd-code").value;
-  const symptoms = document.getElementById("obd-symptoms").value;
+  if (event && event.preventDefault) event.preventDefault();
+  const brand = document.getElementById("obd-brand")?.value || "Toyota";
+  const model = document.getElementById("obd-model")?.value || "Camry";
+  const year = parseInt(document.getElementById("obd-year")?.value || 2022);
+  const mileage = parseInt(document.getElementById("obd-mileage")?.value || 40000);
+  const obd_code = document.getElementById("obd-code")?.value || "P0300";
+  const symptoms = document.getElementById("obd-symptoms")?.value || "";
 
   const card = document.getElementById("obd-output-card");
   const content = document.getElementById("obd-output-content");
-  card.style.display = "block";
-  content.innerHTML = `<em style="color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> AI Engine đang phân tích mã lỗi OBD-II ${obd_code}...</em>`;
+  if (card) card.style.display = "block";
+  if (content) content.innerHTML = `<em style="color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> AI Engine đang phân tích mã lỗi OBD-II ${obd_code}...</em>`;
 
   try {
     const res = await apiFetch("/ai/obd-diagnostic", {
@@ -1561,23 +1672,53 @@ async function submitOBDDiagnosticForm(event) {
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
 
-    content.innerHTML = formatted;
+    if (content) content.innerHTML = formatted;
     showToast(`Đã hoàn tất phân tích mã lỗi OBD: ${obd_code}`);
   } catch (err) {
-    content.innerHTML = `<span style="color: var(--accent-rose);">❌ Lỗi phân tích OBD: ${err.message}</span>`;
+    if (content) content.innerHTML = `<span style="color: var(--accent-rose);">❌ Lỗi phân tích OBD: ${err.message}</span>`;
   }
 }
 
-function escapeHTML(str) {
-  return str.replace(/[&<>'"]/g, 
-    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-  );
-}
-
-// Global Window Function Bindings for HTML Handlers
+// Global Window Bindings for HTML Inline Event Handlers
+window.toggleTheme = toggleTheme;
+window.toggleMobileSidebar = toggleMobileSidebar;
+window.switchView = switchView;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.showToast = showToast;
+window.submitNewAppointment = submitNewAppointment;
+window.submitNewRO = submitNewRO;
+window.submitNewCustomer = submitNewCustomer;
+window.submitPayment = submitPayment;
+window.openRODetailModal = openRODetailModal;
+window.saveTechDiagnosis = saveTechDiagnosis;
+window.addItemToRO = addItemToRO;
+window.deleteROItem = deleteROItem;
+window.createInvoiceFromRODetail = createInvoiceFromRODetail;
+window.triggerAIFromRODetail = triggerAIFromRODetail;
+window.openPaymentModal = openPaymentModal;
+window.updateQRAmountLive = updateQRAmountLive;
+window.togglePaymentMethodFields = togglePaymentMethodFields;
+window.copyTextToClipboard = copyTextToClipboard;
+window.switchWizardStep = switchWizardStep;
+window.submitWizardScreen1 = submitWizardScreen1;
+window.proceedToScreen3 = proceedToScreen3;
+window.proceedToScreen4 = proceedToScreen4;
+window.triggerDemoScenarioUI = triggerDemoScenarioUI;
+window.loadAIBenchmarkReport = loadAIBenchmarkReport;
+window.triggerApprovedPayment = triggerApprovedPayment;
+window.setModalAIQuestion = setModalAIQuestion;
+window.submitModalAIQuestion = submitModalAIQuestion;
+window.copyAIResult = copyAIResult;
+window.setFreeQuestion = setFreeQuestion;
+window.runAISandbox = runAISandbox;
+window.applyPromptTemplate = applyPromptTemplate;
+window.copyAISandboxResult = copyAISandboxResult;
+window.runAIServiceExplainer = runAIServiceExplainer;
+window.runAIDraftQuotation = runAIDraftQuotation;
+window.runAIHistorySummary = runAIHistorySummary;
 window.sendAIChatMessage = sendAIChatMessage;
 window.triggerQuickPrompt = triggerQuickPrompt;
 window.clearAIChatHistory = clearAIChatHistory;
 window.submitOBDDiagnosticForm = submitOBDDiagnosticForm;
-
-
+window.toggleItemSelectType = toggleItemSelectType;
