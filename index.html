@@ -378,7 +378,22 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
           <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-wrench"></i> Phiếu Sửa Chữa & Chẩn Đoán Kỹ Thuật</h3>
           <button class="btn btn-primary" onclick="openModal('modal-new-ro')"><i class="fa-solid fa-folder-plus"></i>
-            Tiếp Nhận & Lập Phiếu</button>
+        </div>
+
+        <!-- Filter Bar for Repair Orders -->
+        <div style="display: flex; gap: 0.85rem; margin-bottom: 1.25rem; background: var(--bg-sidebar); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); align-items: center;">
+          <div style="flex: 1; position: relative;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            <input type="text" id="ro-search-input" class="form-control" style="padding-left: 2.5rem;" placeholder="Tìm phiếu theo biển số xe, mã phiếu, triệu chứng...">
+          </div>
+          <select id="ro-status-filter" class="form-control" style="width: 200px;">
+            <option value="">Trạng Thái: Tất Cả</option>
+            <option value="in_progress">Đang Sửa Chữa</option>
+            <option value="ai_draft">Dự Thảo AI (AI_DRAFT)</option>
+            <option value="under_review">Thợ Kiểm Tra (UNDER_REVIEW)</option>
+            <option value="approved">Phê Duyệt (APPROVED)</option>
+            <option value="finished">Hoàn Thành</option>
+          </select>
         </div>
 
         <div class="table-card">

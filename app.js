@@ -31,9 +31,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupTheme();
   setupNavigation();
   setupRoleSwitcher();
+  setupFilterListeners();
   await loginAsCurrentRole();
   await loadAllData();
 });
+
 
 function setupTheme() {
   const savedTheme = localStorage.getItem("garage_theme") || "light";
@@ -328,7 +330,64 @@ async function loadDashboard() {
   const newCustEl = document.getElementById("kpi-new-customers");
   if (newCustEl) newCustEl.textContent = kpi.low_stock_parts_count || 34;
 
-  // Load Recent Orders Table matching Figma (Mã Phiếu | Khách Hàng | Xe | Trạng Thái | Ngày Tiếp Nhận)
+// Vietnamese Date Formatter
+function formatVietnameseDate(dateStr, includeTime = true) {
+  if (!dateStr) return "Hôm nay";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    if (includeTime) {
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes} - ${day}/${month}/${year}`;
+    }
+    return `${day}/${month}/${year}`;
+  } catch (e) {
+    return dateStr;
+  }
+}
+
+// Real-Time Filter & Search Listeners Setup
+function setupFilterListeners() {
+  ["appointment-search", "appointment-status-filter", "appointment-date-filter"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", filterAppointments);
+      el.addEventListener("change", filterAppointments);
+    }
+  });
+
+  const custSearch = document.getElementById("customer-search-input");
+  if (custSearch) {
+    custSearch.addEventListener("input", filterCustomers);
+  }
+
+  const roSearch = document.getElementById("ro-search-input");
+  const roStatus = document.getElementById("ro-status-filter");
+  if (roSearch) roSearch.addEventListener("input", filterRepairOrders);
+  if (roStatus) roStatus.addEventListener("change", filterRepairOrders);
+}
+
+// 1. Dashboard View Loader
+async function loadDashboard() {
+  const data = await apiFetch("/analytics/dashboard");
+  const kpi = data.kpi;
+
+  const revEl = document.getElementById("kpi-revenue");
+  if (revEl) revEl.textContent = `${kpi.total_revenue.toLocaleString('vi-VN')} VNĐ`;
+
+  const activeEl = document.getElementById("kpi-active-orders");
+  if (activeEl) activeEl.textContent = kpi.active_repair_orders || 12;
+
+  const pendingEl = document.getElementById("kpi-pending-apts");
+  if (pendingEl) pendingEl.textContent = kpi.pending_appointments || 8;
+
+  const newCustEl = document.getElementById("kpi-new-customers");
+  if (newCustEl) newCustEl.textContent = kpi.low_stock_parts_count || 34;
+
   const orders = await apiFetch("/repair-orders");
   const tbody = document.getElementById("dash-orders-tbody");
   if (tbody) {
@@ -336,9 +395,9 @@ async function loadDashboard() {
 
     orders.slice(0, 5).forEach(ro => {
       const tr = document.createElement("tr");
-      const customerName = (ro.vehicle && ro.vehicle.customer) ? ro.vehicle.customer.full_name : "Khách Hàng Hàng";
+      const customerName = (ro.vehicle && ro.vehicle.customer) ? ro.vehicle.customer.full_name : "Khách Hàng";
       const vehicleInfo = ro.vehicle ? `${ro.vehicle.brand} ${ro.vehicle.model} (${ro.vehicle.license_plate})` : "N/A";
-      const createdDate = ro.created_at ? new Date(ro.created_at).toLocaleDateString('vi-VN') : "Hôm nay";
+      const createdDate = formatVietnameseDate(ro.created_at, false);
 
       tr.innerHTML = `
         <td><strong style="color: var(--accent-primary);">${ro.code}</strong></td>
@@ -352,59 +411,123 @@ async function loadDashboard() {
   }
 }
 
-
-// 2. Appointments View Loader
+// 2. Appointments View Loader & Filter
 async function loadAppointments() {
   const apts = await apiFetch("/appointments");
   currentState.appointments = apts;
+  renderAppointmentsTable(apts);
+  await populateVehicleDropdowns();
+}
+
+function filterAppointments() {
+  const query = (document.getElementById("appointment-search")?.value || "").toLowerCase().trim();
+  const statusFilter = document.getElementById("appointment-status-filter")?.value || "";
+  const dateFilter = document.getElementById("appointment-date-filter")?.value || "";
+
+  const filtered = currentState.appointments.filter(apt => {
+    const veh = apt.vehicle || {};
+    const custName = (veh.customer?.full_name || apt.customer_name || "").toLowerCase();
+    const plate = (veh.license_plate || apt.vehicle_plate || "").toLowerCase();
+    const brandModel = (veh.brand ? `${veh.brand} ${veh.model}` : apt.vehicle_info || "").toLowerCase();
+    const service = (apt.notes || apt.service_requested || "").toLowerCase();
+
+    const matchesQuery = !query || custName.includes(query) || plate.includes(query) || brandModel.includes(query) || service.includes(query);
+    const matchesStatus = !statusFilter || apt.status === statusFilter;
+    
+    let matchesDate = true;
+    if (dateFilter && apt.appointment_date) {
+      const aptDateStr = new Date(apt.appointment_date).toISOString().split('T')[0];
+      matchesDate = (aptDateStr === dateFilter);
+    }
+
+    return matchesQuery && matchesStatus && matchesDate;
+  });
+
+  renderAppointmentsTable(filtered);
+}
+
+function renderAppointmentsTable(apts) {
   const tbody = document.getElementById("appointments-tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
+  if (apts.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Không tìm thấy lịch hẹn phù hợp.</td></tr>`;
+    return;
+  }
+
   apts.forEach((apt, idx) => {
     const veh = apt.vehicle;
-    const customerName = (veh && veh.customer) ? veh.customer.full_name : "Khách Hàng";
-    const vehicleInfo = veh ? `${veh.brand} ${veh.model} (${veh.license_plate})` : "N/A";
-    const aptTime = new Date(apt.appointment_date).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
-    const code = `LH-${100 + (apt.id || idx + 1)}`;
+    const customerName = (veh && veh.customer) ? veh.customer.full_name : (apt.customer_name || "Khách Hàng");
+    const vehicleInfo = veh ? `${veh.brand} ${veh.model} (${veh.license_plate})` : (apt.vehicle_info || "N/A");
+    const aptTime = formatVietnameseDate(apt.appointment_date, true);
+    const code = apt.appointment_code || `LH-${100 + (apt.id || idx + 1)}`;
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><strong style="color: var(--accent-primary);">${code}</strong></td>
       <td><strong>${customerName}</strong></td>
       <td><span style="color: var(--accent-cyan); font-weight: 600;">${vehicleInfo}</span></td>
-      <td>${apt.notes || 'Bảo dưỡng định kỳ & kiểm tra'}</td>
+      <td>${apt.notes || apt.service_requested || 'Bảo dưỡng định kỳ & kiểm tra'}</td>
       <td style="font-size: 0.85rem; color: var(--text-muted);">${aptTime}</td>
       <td><span class="status-pill ${apt.status}">${formatStatus(apt.status)}</span></td>
     `;
     tbody.appendChild(tr);
   });
-
-  await populateVehicleDropdowns();
 }
 
-
-// 3. Repair Orders View Loader
+// 3. Repair Orders View Loader & Filter
 async function loadRepairOrders() {
   const orders = await apiFetch("/repair-orders");
   currentState.repairOrders = orders;
+  renderRepairOrdersTable(orders);
+  await populateVehicleDropdowns();
+}
+
+function filterRepairOrders() {
+  const query = (document.getElementById("ro-search-input")?.value || "").toLowerCase().trim();
+  const statusFilter = document.getElementById("ro-status-filter")?.value || "";
+
+  const filtered = currentState.repairOrders.filter(ro => {
+    const veh = ro.vehicle || {};
+    const code = (ro.code || "").toLowerCase();
+    const plate = (veh.license_plate || ro.vehicle_plate || "").toLowerCase();
+    const symptoms = (ro.initial_symptoms || "").toLowerCase();
+    const diagnosis = (ro.technical_diagnosis || "").toLowerCase();
+
+    const matchesQuery = !query || code.includes(query) || plate.includes(query) || symptoms.includes(query) || diagnosis.includes(query);
+    const matchesStatus = !statusFilter || ro.status === statusFilter;
+
+    return matchesQuery && matchesStatus;
+  });
+
+  renderRepairOrdersTable(filtered);
+}
+
+function renderRepairOrdersTable(orders) {
   const tbody = document.getElementById("repair-orders-tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
+
+  if (orders.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Không tìm thấy phiếu sửa chữa phù hợp.</td></tr>`;
+    return;
+  }
 
   orders.forEach(ro => {
     const veh = ro.vehicle;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><strong>${ro.code}</strong></td>
-      <td><strong style="color: #38bdf8;">${veh ? veh.license_plate : 'N/A'}</strong></td>
+      <td><strong style="color: #38bdf8;">${veh ? veh.license_plate : (ro.vehicle_plate || 'N/A')}</strong></td>
       <td style="max-width: 250px;">
         <div style="font-size: 0.85rem; color: var(--text-muted);">Symptom: ${ro.initial_symptoms || 'Chưa ghi nhận'}</div>
         <div style="font-size: 0.85rem; color: #cbd5e1;">Diag: ${ro.technical_diagnosis || 'Đang chẩn đoán'}</div>
       </td>
       <td><span class="status-pill ${ro.status}">${formatStatus(ro.status)}</span></td>
-      <td style="color: #34d399; font-weight: 600;">${ro.final_cost.toLocaleString()} VNĐ</td>
+      <td style="color: #34d399; font-weight: 600;">${ro.final_cost.toLocaleString('vi-VN')} VNĐ</td>
       <td>
-        <button class="btn btn-ai btn-sm" title="Trợ Lý AI Garage (Báo giá, Giải thích & Hỏi đáp tự do)" onclick="runAIServiceExplainer(${ro.id})"><i class="fa-solid fa-robot"></i> Trợ Lý AI</button>
+        <button class="btn btn-ai btn-sm" title="Trợ Lý AI Garage" onclick="runAIServiceExplainer(${ro.id})"><i class="fa-solid fa-robot"></i> Trợ Lý AI</button>
       </td>
       <td>
         <button class="btn btn-secondary btn-sm" onclick="openRODetailModal(${ro.id})"><i class="fa-solid fa-eye"></i> Chi Tiết</button>
@@ -412,16 +535,38 @@ async function loadRepairOrders() {
     `;
     tbody.appendChild(tr);
   });
-
-  await populateVehicleDropdowns();
 }
 
-// 4. Customers Loader
+// 4. Customers Loader & Filter
 async function loadCustomersAndVehicles() {
   const customers = await apiFetch("/customers");
   currentState.customers = customers;
+  renderCustomersTable(customers);
+}
+
+function filterCustomers() {
+  const query = (document.getElementById("customer-search-input")?.value || "").toLowerCase().trim();
+  const filtered = currentState.customers.filter(cust => {
+    const name = (cust.full_name || "").toLowerCase();
+    const phone = (cust.phone || "").toLowerCase();
+    const address = (cust.address || "").toLowerCase();
+    const vehs = (cust.vehicles || []).map(v => `${v.license_plate} ${v.brand} ${v.model}`).join(" ").toLowerCase();
+
+    return !query || name.includes(query) || phone.includes(query) || address.includes(query) || vehs.includes(query);
+  });
+
+  renderCustomersTable(filtered);
+}
+
+function renderCustomersTable(customers) {
   const tbody = document.getElementById("customers-tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
+
+  if (customers.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Không tìm thấy khách hàng phù hợp.</td></tr>`;
+    return;
+  }
 
   customers.forEach(cust => {
     const vehsStr = cust.vehicles.map(v => `<span style="background: rgba(6,182,212,0.15); padding: 2px 6px; border-radius: 4px; color: #22d3ee; margin-right: 4px;">${v.license_plate} (${v.brand} ${v.model})</span>`).join("");
@@ -438,6 +583,7 @@ async function loadCustomersAndVehicles() {
     tbody.appendChild(tr);
   });
 }
+
 
 // 5. Inventory & Services Loader
 async function loadInventory() {
