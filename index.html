@@ -1,12 +1,986 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="light">
+
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=./frontend/">
-  <script>window.location.href = "./frontend/";</script>
-  <title>GARAGE VTV AUTOMOTIVE OS - LIVE WEB DEMO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ thống Quản lý Garage Ô tô Tích hợp AI (Manus AI Garage Engine)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./frontend/styles.css">
 </head>
+
 <body>
-  <p>Đang chuyển hướng đến <a href="./frontend/">GARAGE VTV AUTOMOTIVE OS Live Web Demo</a>...</p>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand-header">
+      <div class="brand-logo"><i class="fa-solid fa-car-wrench"></i></div>
+      <div>
+        <div class="brand-name">GARAGE VTV</div>
+        </div>
+      </div>
+
+      <div class="nav-section-title">Tổng quan</div>
+      <ul class="nav-list">
+        <li class="nav-item active" data-view="dashboard">
+          <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </li>
+        <li class="nav-item" data-view="appointments">
+          <i class="fa-solid fa-calendar-check"></i> Lịch Hẹn & Tiếp Nhận
+        </li>
+        <li class="nav-item" data-view="repair-orders">
+          <i class="fa-solid fa-file-invoice-dollar"></i> Phiếu Sửa Chữa
+        </li>
+      </ul>
+
+      <div class="nav-section-title">Danh mục & Khách</div>
+      <ul class="nav-list">
+        <li class="nav-item" data-view="customers">
+          <i class="fa-solid fa-users"></i> Khách Hàng & Xe
+        </li>
+        <li class="nav-item" data-view="inventory">
+          <i class="fa-solid fa-boxes-stacked"></i> Kho Phụ Tùng & Dịch Vụ
+        </li>
+        <li class="nav-item" data-view="invoices">
+          <i class="fa-solid fa-receipt"></i> Hóa Đơn & Thanh Toán
+        </li>
+      </ul>
+
+      <div class="nav-section-title">Công cụ AI</div>
+      <ul class="nav-list">
+        <li class="nav-item ai-tab" data-view="ai-studio">
+          <i class="fa-solid fa-robot"></i> Trợ Lý AI Garage
+        </li>
+      </ul>
+
+  </aside>
+
+  <!-- Main Area -->
+  <main class="main-wrapper">
+    <!-- Top Header Bar -->
+    <header class="top-bar">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <h2 id="page-title" style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700;">Tổng Quan
+          Garage</h2>
+      </div>
+
+      <!-- Controls: Theme Toggle & Role Switcher -->
+      <div class="header-controls">
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle" class="theme-toggle-btn" title="Chuyển chế độ Sáng/Tối" onclick="toggleTheme()">
+          <i class="fa-solid fa-sun" id="theme-icon"></i>
+        </button>
+
+        <!-- Role Switcher -->
+        <div class="role-switcher-container">
+          <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;"><i
+              class="fa-solid fa-user-gear"></i> Vai trò:</span>
+          <select id="role-select" class="form-control"
+            style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.82rem; font-weight: 600;">
+            <option value="manager">Quản Lý (Admin)</option>
+            <option value="receptionist" selected>Lễ Tân (Receptionist)</option>
+            <option value="technician">Kỹ Thuật Viên (Tech)</option>
+            <option value="cashier">Thu Ngân (Cashier)</option>
+          </select>
+          <span id="role-badge" class="role-badge receptionist">Lễ Tân</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="content-container">
+
+      <!-- VIEW 1: Dashboard -->
+      <section id="view-dashboard" class="view-section active">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <h4>Xe Đang Sửa</h4>
+              <div class="val" id="kpi-active-orders">12</div>
+              <div class="kpi-trend up"><i class="fa-solid fa-wrench"></i> Đang sửa chữa tại xưởng</div>
+            </div>
+            <div class="kpi-icon blue"><i class="fa-solid fa-car-wrench"></i></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <h4>Lịch Hẹn Hôm Nay</h4>
+              <div class="val" id="kpi-pending-apts">8</div>
+              <div class="kpi-trend neutral"><i class="fa-solid fa-calendar-check"></i> Chờ tiếp nhận</div>
+            </div>
+            <div class="kpi-icon amber"><i class="fa-solid fa-calendar-day"></i></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <h4>Doanh Thu Tháng</h4>
+              <div class="val" id="kpi-revenue">245,000,000đ</div>
+              <div class="kpi-trend up"><i class="fa-solid fa-arrow-trend-up"></i> +15.8% so với tháng trước</div>
+            </div>
+            <div class="kpi-icon emerald"><i class="fa-solid fa-sack-dollar"></i></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <h4>Khách Mới Tháng</h4>
+              <div class="val" id="kpi-new-customers">34</div>
+              <div class="kpi-trend up"><i class="fa-solid fa-user-plus"></i> +8 khách mới tuần này</div>
+            </div>
+            <div class="kpi-icon purple"><i class="fa-solid fa-users"></i></div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+          <!-- 6-Month Revenue Bar Chart -->
+          <div class="table-card" style="padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-family: 'Outfit'; font-size: 1.05rem;"><i class="fa-solid fa-chart-column" style="color: var(--accent-primary);"></i> Doanh Thu 6 Tháng Gần Nhất</h3>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Đơn vị: VNĐ</span>
+            </div>
+            <div class="chart-container">
+              <div class="chart-bar-group">
+                <span class="chart-val">180Tr</span>
+                <div class="chart-bar" style="height: 65%;"></div>
+                <span class="chart-label">T8</span>
+              </div>
+              <div class="chart-bar-group">
+                <span class="chart-val">215Tr</span>
+                <div class="chart-bar" style="height: 78%;"></div>
+                <span class="chart-label">T9</span>
+              </div>
+              <div class="chart-bar-group">
+                <span class="chart-val">195Tr</span>
+                <div class="chart-bar" style="height: 70%;"></div>
+                <span class="chart-label">T10</span>
+              </div>
+              <div class="chart-bar-group">
+                <span class="chart-val">230Tr</span>
+                <div class="chart-bar" style="height: 85%;"></div>
+                <span class="chart-label">T11</span>
+              </div>
+              <div class="chart-bar-group">
+                <span class="chart-val">250Tr</span>
+                <div class="chart-bar" style="height: 95%;"></div>
+                <span class="chart-label">T12</span>
+              </div>
+              <div class="chart-bar-group">
+                <span class="chart-val">245Tr</span>
+                <div class="chart-bar" style="height: 90%; background: var(--gradient-brand);"></div>
+                <span class="chart-label" style="color: var(--accent-cyan);">T1</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Feed -->
+          <div class="table-card" style="padding: 1.5rem;">
+            <h3 style="font-family: 'Outfit'; font-size: 1.05rem; margin-bottom: 1.25rem;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-cyan);"></i> Hoạt Động Gần Đây</h3>
+            <div class="activity-feed">
+              <div class="activity-item">
+                <div class="activity-icon" style="color: var(--accent-amber);"><i class="fa-solid fa-car-side"></i></div>
+                <div>
+                  <div class="activity-title">Tiếp nhận xe Mercedes C200</div>
+                  <div class="activity-desc">Khách hàng Nguyễn Văn An vào làm bảo dưỡng 40,000km.</div>
+                </div>
+                <span class="activity-time">10 phút trước</span>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon" style="color: var(--accent-emerald);"><i class="fa-solid fa-circle-check"></i></div>
+                <div>
+                  <div class="activity-title">Hoàn thành phiếu VTV-2908</div>
+                  <div class="activity-desc">KTV Sơn đã bàn giao xe Mazda CX-5 hoàn tất láng đĩa phanh.</div>
+                </div>
+                <span class="activity-time">32 phút trước</span>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon" style="color: var(--accent-purple);"><i class="fa-solid fa-box"></i></div>
+                <div>
+                  <div class="activity-title">Cập nhật kho phụ tùng</div>
+                  <div class="activity-desc">Nhập thêm 10 bộ má phanh Ceramic cho xe Toyota.</div>
+                </div>
+                <span class="activity-time">1 giờ trước</span>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon" style="color: var(--accent-primary);"><i class="fa-solid fa-calendar-plus"></i></div>
+                <div>
+                  <div class="activity-title">Khách đặt lịch hẹn mới</div>
+                  <div class="activity-desc">Hệ thống tự động duyệt lịch sửa chữa máy lạnh cho Ford Ranger.</div>
+                </div>
+                <span class="activity-time">2 giờ trước</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Repair Orders Table Panel -->
+        <div class="table-card">
+          <div class="table-header">
+            <h3 style="font-family: 'Outfit'; font-size: 1.05rem;"><i class="fa-solid fa-list-check"></i> Phiếu Sửa Chữa Gần Đây</h3>
+            <button class="btn btn-primary btn-sm" onclick="switchView('repair-orders')">Xem Tất Cả</button>
+          </div>
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Mã Phiếu</th>
+                <th>Khách Hàng</th>
+                <th>Xe</th>
+                <th>Trạng Thái</th>
+                <th>Ngày Tiếp Nhận</th>
+              </tr>
+            </thead>
+            <tbody id="dash-orders-tbody">
+              <!-- Dynamically populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 2: Appointments & Vehicle Reception -->
+      <section id="view-appointments" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <div>
+            <h3 style="font-family: 'Outfit'; font-size: 1.35rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-calendar-days" style="color: var(--accent-primary);"></i> Quản Lý Lịch Hẹn & Tiếp Nhận Xe
+              <span class="brand-tag">LIVE VIEW</span>
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.2rem;">
+              Theo dõi lịch đặt hẹn theo mốc giờ và danh sách đăng ký tiếp nhận xe ô tô.
+            </p>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('modal-new-appointment')"><i class="fa-solid fa-plus"></i> Tạo Lịch Hẹn Mới</button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div style="display: flex; gap: 0.85rem; margin-bottom: 1.25rem; background: var(--bg-sidebar); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); align-items: center;">
+          <div style="flex: 1; position: relative;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            <input type="text" id="appointment-search" class="form-control" style="padding-left: 2.5rem;" placeholder="Tìm kiếm lịch hẹn theo biển số xe, tên khách hàng...">
+          </div>
+          <select id="appointment-status-filter" class="form-control" style="width: 180px;">
+            <option value="">Trạng Thái: Tất Cả</option>
+            <option value="pending">Chờ Tiếp Nhận</option>
+            <option value="confirmed">Đã Xác Nhận</option>
+            <option value="completed">Đã Nhận Xe</option>
+            <option value="cancelled">Đã Hủy</option>
+          </select>
+          <input type="date" id="appointment-date-filter" class="form-control" style="width: 160px;">
+        </div>
+
+        <!-- Split View: Schedule Timeline vs Registered Appointments Table -->
+        <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 1.5rem;">
+          <!-- Hourly Timeline Schedule Card -->
+          <div class="table-card" style="padding: 1.5rem;">
+            <h3 style="font-family: 'Outfit'; font-size: 1.05rem; margin-bottom: 1.25rem;"><i class="fa-solid fa-clock" style="color: var(--accent-amber);"></i> Thời Gian Biểu Hôm Nay</h3>
+            <div class="schedule-timeline">
+              <div class="timeline-slot">
+                <span class="slot-time">08:00</span>
+                <div class="slot-card">
+                  <div class="slot-header">
+                    <span class="slot-customer">Đặng Quốc Khánh</span>
+                    <span class="status-pill received">Đã Nhận</span>
+                  </div>
+                  <div class="slot-vehicle">Mercedes C200 (30A-888.88)</div>
+                  <div class="slot-service">Bảo dưỡng định kỳ 40K</div>
+                </div>
+              </div>
+
+              <div class="timeline-slot">
+                <span class="slot-time">10:00</span>
+                <div class="slot-card">
+                  <div class="slot-header">
+                    <span class="slot-customer">Phạm Minh Tuấn</span>
+                    <span class="status-pill in_progress">Đang Sửa</span>
+                  </div>
+                  <div class="slot-vehicle">Ford Ranger Wildtrak (29C-777.89)</div>
+                  <div class="slot-service">Kiểm tra gầm & tiếng kêu rít</div>
+                </div>
+              </div>
+
+              <div class="timeline-slot">
+                <span class="slot-time">12:00</span>
+                <div style="flex: 1; padding: 0.75rem; border: 1px dashed var(--border-color); border-radius: var(--radius-md); text-align: center; color: var(--text-light); font-size: 0.8rem;">
+                  Khung giờ trống
+                </div>
+              </div>
+
+              <div class="timeline-slot">
+                <span class="slot-time">13:30</span>
+                <div class="slot-card">
+                  <div class="slot-header">
+                    <span class="slot-customer">Nguyễn Bảo Châu</span>
+                    <span class="status-pill received">Đã Hẹn</span>
+                  </div>
+                  <div class="slot-vehicle">Hyundai Tucson (30H-123.45)</div>
+                  <div class="slot-service">Thay má phanh & láng đĩa phanh</div>
+                </div>
+              </div>
+
+              <div class="timeline-slot">
+                <span class="slot-time">15:00</span>
+                <div class="slot-card">
+                  <div class="slot-header">
+                    <span class="slot-customer">Trịnh Thùy Linh</span>
+                    <span class="status-pill received">Đã Hẹn</span>
+                  </div>
+                  <div class="slot-vehicle">VinFast VF8 (30K-999.99)</div>
+                  <div class="slot-service">Cân chỉnh thước lái 3D</div>
+                </div>
+              </div>
+
+              <div class="timeline-slot">
+                <span class="slot-time">16:30</span>
+                <div class="slot-card">
+                  <div class="slot-header">
+                    <span class="slot-customer">Vũ Tiến Thành</span>
+                    <span class="status-pill received">Đã Hẹn</span>
+                  </div>
+                  <div class="slot-vehicle">Toyota Vios (30E-555.66)</div>
+                  <div class="slot-service">Vệ sinh kim phun họng hút</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Appointments List Table -->
+          <div class="table-card">
+            <div class="table-header">
+              <h3 style="font-family: 'Outfit'; font-size: 1.05rem;"><i class="fa-solid fa-list" style="color: var(--accent-primary);"></i> Danh Sách Lịch Hẹn Đăng Ký</h3>
+            </div>
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Khách Hàng</th>
+                  <th>Xe</th>
+                  <th>Dịch Vụ Đăng Ký</th>
+                  <th>Thời Gian</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody id="appointments-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: Repair Orders (Phiếu Sửa Chữa) -->
+      <section id="view-repair-orders" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-wrench"></i> Phiếu Sửa Chữa & Chẩn Đoán Kỹ Thuật</h3>
+          <button class="btn btn-primary" onclick="openModal('modal-new-ro')"><i class="fa-solid fa-folder-plus"></i>
+            Tiếp Nhận & Lập Phiếu</button>
+        </div>
+
+        <div class="table-card">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Mã Phiếu</th>
+                <th>Biển Số Xe</th>
+                <th>Triệu Chứng / Chẩn Đoán</th>
+                <th>Trạng Thái</th>
+                <th>Tổng Chi Phí</th>
+                <th>Chức Năng AI Engine</th>
+                <th>Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="repair-orders-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 4: Customers & Vehicles -->
+      <section id="view-customers" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-address-book"></i> Danh Sách Khách Hàng & Xe</h3>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="customer-search-input" class="form-control" placeholder="Tìm theo tên/SĐT/Biển số..."
+              style="width: 250px;">
+            <button class="btn btn-primary" onclick="openModal('modal-new-customer')"><i
+                class="fa-solid fa-user-plus"></i> Thêm Khách Hàng</button>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Khách Hàng</th>
+                <th>Số Điện Thoại</th>
+                <th>Địa Chỉ</th>
+                <th>Danh Sách Xe</th>
+                <th>Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 5: Inventory & Services -->
+      <section id="view-inventory" class="view-section">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <!-- Services catalog -->
+          <div class="table-card">
+            <div class="table-header">
+              <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-list"></i> Danh Mục Dịch Vụ</h3>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-service')">+ Thêm Dịch Vụ</button>
+            </div>
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Tên Dịch Vụ</th>
+                  <th>Tiền Công</th>
+                </tr>
+              </thead>
+              <tbody id="services-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Parts Inventory -->
+          <div class="table-card">
+            <div class="table-header">
+              <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-box"></i> Kho Phụ Tùng</h3>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-part')">+ Nhập Phụ Tùng</button>
+            </div>
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Tên Phụ Tùng</th>
+                  <th>Đơn Giá Bán</th>
+                  <th>Tồn Kho</th>
+                </tr>
+              </thead>
+              <tbody id="parts-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 6: Invoices & Payments -->
+      <section id="view-invoices" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-file-invoice"></i> Hóa Đơn Sửa Chữa & Thanh Toán</h3>
+        </div>
+
+        <div class="table-card">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Số Hóa Đơn</th>
+                <th>Mã Phiếu Sửa Chữa</th>
+                <th>Tiền Trước Thuế</th>
+                <th>VAT (8%)</th>
+                <th>Tổng Tiền</th>
+                <th>Đã Thanh Toán</th>
+                <th>Trạng Thái</th>
+                <th>Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="invoices-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 7: Trợ Lý AI Garage VTV -->
+      <section id="view-ai-studio" class="view-section">
+        <!-- 5 Demo Scenario Quick Launchers (Step 13) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span style="font-weight: 800; font-size: 0.9rem; color: var(--accent-rose); font-family: 'Outfit'; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-flask"></i> 5 KỊCH BẢN DEMO BÁO CÁO BẢO VỆ (NHÓM VTV):
+            </span>
+            <button class="btn btn-secondary btn-sm" onclick="loadAIBenchmarkReport()"><i class="fa-solid fa-chart-line"></i> Xem Báo Cáo Đo Lường</button>
+          </div>
+          <div class="prompt-pill-container" style="gap: 0.6rem;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(1)" style="border-color: #10b981; color: #10b981;">
+              <i class="fa-solid fa-circle-check"></i> Ca 1: Đúng chuẩn (Kho đủ)
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(2)" style="border-color: #f43f5e; color: #f43f5e;">
+              <i class="fa-solid fa-triangle-exclamation"></i> Ca 2: Phụ tùng hết hàng
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(3)" style="border-color: #f59e0b; color: #f59e0b;">
+              <i class="fa-solid fa-circle-question"></i> Ca 3: Triệu chứng mơ hồ
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(4)" style="border-color: #3b82f6; color: #3b82f6;">
+              <i class="fa-solid fa-diagram-project"></i> Ca 4: Đa hỏng hóc
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(5)" style="border-color: #ec4899; color: #ec4899;">
+              <i class="fa-solid fa-shield-halved"></i> Ca 5: Phá quy tắc (Jailbreak)
+            </button>
+          </div>
+        </div>
+
+        <!-- 4-Screen Workflow Wizard Stepper (Step 12) -->
+        <div class="wizard-stepper" style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <div id="step-btn-1" class="wizard-step active" onclick="switchWizardStep(1)">
+            <span class="step-num">1</span>
+            <span class="step-title">Tiếp Nhận Xe</span>
+          </div>
+          <div id="step-btn-2" class="wizard-step" onclick="switchWizardStep(2)">
+            <span class="step-num">2</span>
+            <span class="step-title">Dự Thảo AI (<code style="color:#38bdf8;">AI_DRAFT</code>)</span>
+          </div>
+          <div id="step-btn-3" class="wizard-step" onclick="switchWizardStep(3)">
+            <span class="step-num">3</span>
+            <span class="step-title">Thợ Duyệt (<code style="color:#f59e0b;">UNDER_REVIEW</code>)</span>
+          </div>
+          <div id="step-btn-4" class="wizard-step" onclick="switchWizardStep(4)">
+            <span class="step-num">4</span>
+            <span class="step-title">Xuất Báo Giá (<code style="color:#10b981;">APPROVED</code>)</span>
+          </div>
+        </div>
+
+        <!-- STEP 1: Reception & Symptoms Input -->
+        <div id="wizard-screen-1" class="wizard-screen table-card" style="padding: 1.75rem;">
+          <h4 style="font-family: 'Outfit'; color: var(--accent-primary); margin-bottom: 1rem;">
+            <i class="fa-solid fa-car-tunnel"></i> Màn Hình 1: Tiếp Nhận Thông Tin Xe & Triệu Chứng Ban Đầu
+          </h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+            <div class="form-group">
+              <label>Chọn Xe Tiếp Nhận:</label>
+              <select id="wz-vehicle-select" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label>Số Km Nhận Xe:</label>
+              <input type="number" id="wz-mileage" class="form-control" value="40000">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Triệu Chứng / Yêu Cầu Của Khách (Ngôn ngữ tự nhiên):</label>
+            <textarea id="wz-symptoms-input" class="form-control" rows="3" 
+              placeholder="Nhập mô tả triệu chứng (Ví dụ: Xe kêu rít khi phanh trước, muốn bảo dưỡng mốc 40,000 km...)"></textarea>
+          </div>
+          <div style="text-align: right;">
+            <button class="btn btn-ai" onclick="submitWizardScreen1()"><i class="fa-solid fa-sparkles"></i> Phân Tích & Tạo Dự Thảo AI (Screen 2)</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: AI Analysis & Draft Quotation -->
+        <div id="wizard-screen-2" class="wizard-screen table-card" style="padding: 1.75rem; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="font-family: 'Outfit'; color: var(--accent-purple); margin: 0;">
+              <i class="fa-solid fa-microchip"></i> Màn Hình 2: Kết Quả AI Phân Tích & Dự Thảo Báo Giá
+            </h4>
+            <span class="status-pill ai_draft" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;"><i class="fa-solid fa-robot"></i> TRẠNG THÁI: AI_DRAFT</span>
+          </div>
+          <div id="wz-ai-diag-output" class="ai-output-box" style="margin-bottom: 1.25rem;">Chưa có dữ liệu chẩn đoán từ AI.</div>
+          <div id="wz-ai-warnings-box"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+            <button class="btn btn-secondary" onclick="switchWizardStep(1)"><i class="fa-solid fa-arrow-left"></i> Quả Lại Màn 1</button>
+            <button class="btn btn-primary" onclick="proceedToScreen3()"><i class="fa-solid fa-wrench"></i> Chuyển Cho Thợ Kiểm Tra & Duyệt (Screen 3)</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Technician Review Workspace -->
+        <div id="wizard-screen-3" class="wizard-screen table-card" style="padding: 1.75rem; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="font-family: 'Outfit'; color: var(--accent-amber); margin: 0;">
+              <i class="fa-solid fa-user-gear"></i> Màn Hình 3: Workspace Thợ Kiểm Tra & Điều Chỉnh
+            </h4>
+            <span class="status-pill under_review" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;"><i class="fa-solid fa-user-check"></i> TRẠNG THÁI: UNDER_REVIEW</span>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
+            Kỹ thuật viên kiểm tra thực tế xe, chỉnh sửa phụ tùng/tiền công, kiểm tra tồn kho trước khi chốt giá.
+          </p>
+          <div class="table-card" style="margin-bottom: 1.25rem;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Hạng Mục</th>
+                  <th>Số Lượng</th>
+                  <th>Đơn Giá / Công</th>
+                  <th>Tồn Kho</th>
+                  <th>Thành Tiền</th>
+                </tr>
+              </thead>
+              <tbody id="wz-review-items-tbody"></tbody>
+            </table>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <button class="btn btn-secondary" onclick="switchWizardStep(2)"><i class="fa-solid fa-arrow-left"></i> Quay Lại AI Draft</button>
+            <div>
+              <span style="font-weight: 700; font-family: 'Outfit'; font-size: 1.1rem; color: var(--accent-emerald); margin-right: 1rem;">
+                Tổng Tiền: <span id="wz-review-total">0 VNĐ</span>
+              </span>
+              <button class="btn btn-primary" onclick="proceedToScreen4()"><i class="fa-solid fa-circle-check"></i> Phê Duyệt Báo Giá (Screen 4)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Official Quotation & Approval Export -->
+        <div id="wizard-screen-4" class="wizard-screen table-card" style="padding: 1.75rem; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="font-family: 'Outfit'; color: var(--accent-emerald); margin: 0;">
+              <i class="fa-solid fa-file-signature"></i> Màn Hình 4: Báo Giá Chính Thức & Phê Duyệt
+            </h4>
+            <span class="status-pill approved" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;"><i class="fa-solid fa-check-double"></i> TRẠNG THÁI: APPROVED</span>
+          </div>
+          
+          <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
+              <strong style="color: var(--accent-primary); font-size: 1.1rem;">GARAGE VTV AUTOMOTIVE OS</strong>
+              <span style="color: var(--text-muted); font-size: 0.85rem;">Báo Giá #EST-2026-FINAL</span>
+            </div>
+            <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
+              <div>• <strong>Quy trình:</strong> Deterministic Pricing Engine (Backend Python recalculates 100%).</div>
+              <div>• <strong>Sai lệch giá:</strong> <span style="color: var(--accent-emerald); font-weight: 800;">0.0% (Zero Price Variance Guaranteed)</span>.</div>
+              <div>• <strong>Tổng thanh toán phê duyệt:</strong> <span id="wz-final-total-display" style="font-size: 1.3rem; color: var(--accent-emerald); font-weight: 800;">0 VNĐ</span></div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="switchWizardStep(3)"><i class="fa-solid fa-arrow-left"></i> Chỉnh Sửa Lại</button>
+            <button class="btn btn-primary" onclick="triggerApprovedPayment()"><i class="fa-solid fa-qrcode"></i> Thanh Toán VietQR Techcombank</button>
+          </div>
+        </div>
+
+        <!-- BENCHMARK EVALUATION METRICS CARD (Step 11) -->
+        <div id="ai-benchmark-container" style="margin-top: 1.5rem; display: none;">
+          <div class="table-card" style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border-color: rgba(99, 102, 241, 0.4);">
+            <h4 style="font-family: 'Outfit'; color: var(--accent-purple); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-chart-pie"></i> BÁO CÁO ĐÁNH GIÁ & ĐO LƯỜNG HỆ THỐNG (STEP 11):
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; text-align: center;">
+              <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Top-1 Accuracy</div>
+                <div id="bm-top1" style="font-size: 1.3rem; font-weight: 800; color: #10b981; margin-top: 0.2rem;">95.5%</div>
+              </div>
+              <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Parts Precision</div>
+                <div id="bm-parts" style="font-size: 1.3rem; font-weight: 800; color: #38bdf8; margin-top: 0.2rem;">98.2%</div>
+              </div>
+              <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Sai Lệch Giá</div>
+                <div id="bm-price-var" style="font-size: 1.3rem; font-weight: 800; color: #f59e0b; margin-top: 0.2rem;">0.0%</div>
+              </div>
+              <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Độ Trễ Latency</div>
+                <div id="bm-latency" style="font-size: 1.3rem; font-weight: 800; color: #a855f7; margin-top: 0.2rem;">185 ms</div>
+              </div>
+              <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Chi Phí Token</div>
+                <div id="bm-cost" style="font-size: 1.3rem; font-weight: 800; color: #ec4899; margin-top: 0.2rem;">$0.0024</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+    </div>
+  </main>
+
+  <!-- MODALS SECTION -->
+
+  <!-- Modal AI Result -->
+  <div id="modal-ai-result" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 720px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--gradient-ai); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem;">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <div>
+            <h3 id="modal-ai-title" style="font-family: 'Outfit'; color: var(--accent-purple); font-size: 1.15rem; margin: 0;">Trợ Lý AI Garage VTV</h3>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Tư vấn kỹ thuật, báo giá nháp & giải thích quy trình</span>
+          </div>
+        </div>
+        <button class="close-btn" onclick="closeModal('modal-ai-result')">&times;</button>
+      </div>
+
+      <!-- Interactive Question Input Box inside Modal -->
+      <div style="margin-bottom: 1rem; background: var(--bg-primary); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <label style="font-weight: 700; font-size: 0.83rem; margin-bottom: 0.5rem; display: block; color: var(--text-main);">
+          <i class="fa-solid fa-comments" style="color: var(--accent-purple);"></i> Đặt câu hỏi tự do cho Trợ lý AI:
+        </label>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="modal-ai-question-input" class="form-control" 
+            placeholder="Nhập câu hỏi (VD: Báo giá nháp / Giải thích cho khách / Kêu gầm xe...)"
+            onkeydown="if(event.key === 'Enter') submitModalAIQuestion()">
+          <button class="btn btn-ai" onclick="submitModalAIQuestion()"><i class="fa-solid fa-paper-plane"></i> Gửi</button>
+        </div>
+
+        <!-- Quick Prompt Shortcuts -->
+        <div class="prompt-pill-container">
+          <span class="prompt-pill" onclick="setModalAIQuestion('Lập báo giá nháp chi tiết cho phiếu sửa chữa này')"><i class="fa-solid fa-calculator"></i> 📋 Báo Giá Nháp</span>
+          <span class="prompt-pill" onclick="setModalAIQuestion('Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa')"><i class="fa-solid fa-user-check"></i> 🚗 Giải Thích Khách</span>
+          <span class="prompt-pill" onclick="setModalAIQuestion('Tóm tắt lịch sử sửa chữa và cảnh báo kỹ thuật cho xe này')"><i class="fa-solid fa-clock-rotate-left"></i> 📌 Lịch Sử Xe</span>
+          <span class="prompt-pill" onclick="setModalAIQuestion('Tư vấn mốc bảo dưỡng 40,000 km gồm những gì và chi phí bao nhiêu?')"><i class="fa-solid fa-wrench"></i> 💡 Bảo Dưỡng 40k km</span>
+        </div>
+      </div>
+
+      <div id="modal-ai-body" class="ai-output-box" style="max-height: 340px; overflow-y: auto;">Đang xử lý...</div>
+      
+      <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+        <span id="modal-ai-model-badge" style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-microchip"></i> Engine: Trợ Lý AI Garage VTV</span>
+        <div>
+          <button class="btn btn-secondary" onclick="closeModal('modal-ai-result')">Đóng</button>
+          <button class="btn btn-primary" onclick="copyAIResult()"><i class="fa-solid fa-copy"></i> Sao Chép Kết Quả</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Modal New Appointment -->
+  <div id="modal-new-appointment" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-calendar-plus"></i> Tạo Lịch Hẹn Mới</h3>
+        <button class="close-btn" onclick="closeModal('modal-new-appointment')">&times;</button>
+      </div>
+      <form id="form-new-appointment" onsubmit="submitNewAppointment(event)">
+        <div class="form-group">
+          <label>Chọn Xe Hẹn Sửa:</label>
+          <select id="apt-vehicle-id" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label>Thời Gian Hẹn:</label>
+          <input type="datetime-local" id="apt-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Ghi Chú Yêu Cầu Của Khách:</label>
+          <textarea id="apt-notes" class="form-control" rows="3"
+            placeholder="Ví dụ: Xe kêu tiếng lạ ở phanh trước, muốn bảo dưỡng mốc 40,000 km..."></textarea>
+        </div>
+        <div style="text-align: right; margin-top: 1rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-appointment')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Xác Nhận Đặt Lịch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal New Repair Order -->
+  <div id="modal-new-ro" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-car"></i> Tiếp Nhận Xe & Tạo Phiếu Sửa Chữa</h3>
+        <button class="close-btn" onclick="closeModal('modal-new-ro')">&times;</button>
+      </div>
+      <form id="form-new-ro" onsubmit="submitNewRO(event)">
+        <div class="form-group">
+          <label>Chọn Xe Tiếp Nhận:</label>
+          <select id="ro-vehicle-id" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label>Số Km Nhận Xe:</label>
+          <input type="number" id="ro-mileage" class="form-control" value="45000" required>
+        </div>
+        <div class="form-group">
+          <label>Triệu Chứng Ban Đầu Khi Khách Bàn Giao:</label>
+          <textarea id="ro-symptoms" class="form-control" rows="3"
+            placeholder="Mô tả lại hiện trạng xe do khách báo..."></textarea>
+        </div>
+        <div style="text-align: right; margin-top: 1rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-ro')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Tạo Phiếu Tiếp Nhận</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal RO Detail & Items Management -->
+  <div id="modal-ro-detail" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3 id="ro-detail-title" style="font-family: 'Outfit';"><i class="fa-solid fa-wrench"></i> Chi Tiết Phiếu Sửa
+          Chữa</h3>
+        <button class="close-btn" onclick="closeModal('modal-ro-detail')">&times;</button>
+      </div>
+
+      <div id="ro-detail-info" style="margin-bottom: 1rem; line-height: 1.6; font-size: 0.93rem;"></div>
+
+      <div class="form-group">
+        <label>Chẩn Đoán Kỹ Thuật (KTV Điền):</label>
+        <textarea id="ro-tech-diagnosis" class="form-control" rows="2"
+          placeholder="Ghi chú chẩn đoán kỹ thuật..."></textarea>
+        <button class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;" onclick="saveTechDiagnosis()">Lưu Ghi Chú
+          Kỹ Thuật</button>
+      </div>
+
+      <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
+
+      <h4 style="font-family: 'Outfit'; margin-bottom: 0.75rem;">Thêm Hạng Mục (Dịch Vụ & Phụ Tùng):</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 100px 100px; gap: 0.5rem; margin-bottom: 1rem;">
+        <select id="item-type-select" class="form-control" onchange="toggleItemSelectType()">
+          <option value="service">Dịch Vụ</option>
+          <option value="part">Phụ Tùng Kho</option>
+        </select>
+        <select id="item-catalog-select" class="form-control"></select>
+        <input type="number" id="item-qty" class="form-control" value="1" min="1" placeholder="SL">
+        <button class="btn btn-primary" onclick="addItemToRO()"><i class="fa-solid fa-plus"></i> Thêm</button>
+      </div>
+
+      <table class="custom-table" style="margin-bottom: 1.5rem;">
+        <thead>
+          <tr>
+            <th>Hạng Mục</th>
+            <th>Loại</th>
+            <th>SL</th>
+            <th>Đơn Giá / Tiền Công</th>
+            <th>Thành Tiền</th>
+            <th>Xóa</th>
+          </tr>
+        </thead>
+        <tbody id="ro-items-tbody"></tbody>
+      </table>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div><strong>Tổng Chi Phí: </strong><span id="ro-detail-total"
+            style="font-family: 'Outfit'; font-size: 1.3rem; color: var(--accent-emerald); font-weight: 800;">0
+            VNĐ</span></div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-ai" onclick="triggerAIFromRODetail('assistant')"><i
+              class="fa-solid fa-robot"></i> Trợ Lý AI Garage</button>
+          <button class="btn btn-primary" onclick="createInvoiceFromRODetail()"><i class="fa-solid fa-file-invoice"></i>
+            Lập Hóa Đơn</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal New Customer -->
+  <div id="modal-new-customer" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-user-plus"></i> Thêm Khách Hàng & Đăng Ký Xe</h3>
+        <button class="close-btn" onclick="closeModal('modal-new-customer')">&times;</button>
+      </div>
+      <form id="form-new-customer" onsubmit="submitNewCustomer(event)">
+        <div class="form-group">
+          <label>Họ và Tên Khách Hàng:</label>
+          <input type="text" id="cust-name" class="form-control" required placeholder="Nguyễn Văn A">
+        </div>
+        <div class="form-group">
+          <label>Số Điện Thoại:</label>
+          <input type="text" id="cust-phone" class="form-control" required placeholder="0901234567">
+        </div>
+        <div class="form-group">
+          <label>Địa Chỉ:</label>
+          <input type="text" id="cust-address" class="form-control" placeholder="Số 123 Đường XYZ...">
+        </div>
+        <hr style="border-color: var(--border-color); margin: 1rem 0;">
+        <h4 style="font-family: 'Outfit';">Thông Tin Xe Ban Đầu:</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+          <input type="text" id="cust-veh-plate" class="form-control" required placeholder="Biển số (VD: 51H-999.99)">
+          <input type="text" id="cust-veh-brand" class="form-control" required placeholder="Hãng (VD: Toyota)">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+          <input type="text" id="cust-veh-model" class="form-control" required placeholder="Dòng xe (VD: Camry)">
+          <input type="number" id="cust-veh-year" class="form-control" value="2022" placeholder="Năm sản xuất">
+        </div>
+        <div style="text-align: right; margin-top: 1.25rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-customer')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Lưu Khách Hàng & Xe</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Payment Checkout -->
+  <div id="modal-payment" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-credit-card"></i> Ghi Nhận Thanh Toán Hóa Đơn</h3>
+        <button class="close-btn" onclick="closeModal('modal-payment')">&times;</button>
+      </div>
+      <form id="form-payment" onsubmit="submitPayment(event)">
+        <input type="hidden" id="pay-inv-id">
+        <div class="form-group">
+          <label>Số Hóa Đơn:</label>
+          <input type="text" id="pay-inv-number" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+          <label>Tổng Tiền Cần Thanh Toán:</label>
+          <input type="text" id="pay-total-amount" class="form-control" readonly
+            style="font-family: 'Outfit'; color: var(--accent-emerald); font-size: 1.2rem; font-weight: 800;">
+        </div>
+        <div class="form-group">
+          <label>Phương Thức Thanh Toán:</label>
+          <select id="pay-method" class="form-control" onchange="togglePaymentMethodFields()">
+            <option value="cash">💵 Tiền Mặt</option>
+            <option value="bank_transfer" selected>🏦 Chuyển Khoản Ngân Hàng (VietQR Techcombank)</option>
+            <option value="credit_card">💳 Thẻ Tín Dụng</option>
+          </select>
+        </div>
+
+        <!-- VietQR Techcombank Container -->
+        <div id="bank-qr-container" class="qr-card-box">
+          <div class="qr-header">
+            <div class="qr-bank-title">
+              <i class="fa-solid fa-qrcode"></i> TECHCOMBANK
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">VietQR | Napas 247</span>
+          </div>
+          <div class="qr-image-wrapper">
+            <img id="qr-bank-image" src="https://img.vietqr.io/image/TCB-4443338386-compact2.png" alt="Mã QR Chuyển Khoản Techcombank">
+          </div>
+          <div class="qr-account-info">
+            <div class="qr-info-row">
+              <span class="qr-info-label">Chủ tài khoản:</span>
+              <span class="qr-info-val">
+                DUONG CONG VINH
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard('DUONG CONG VINH', 'Tên chủ tài khoản')"><i class="fa-solid fa-copy"></i></button>
+              </span>
+            </div>
+            <div class="qr-info-row">
+              <span class="qr-info-label">Số tài khoản:</span>
+              <span class="qr-info-val">
+                4443 3383 86
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard('4443338386', 'Số tài khoản')"><i class="fa-solid fa-copy"></i></button>
+              </span>
+            </div>
+            <div class="qr-info-row">
+              <span class="qr-info-label">Ngân hàng:</span>
+              <span class="qr-info-val">Techcombank (TCB)</span>
+            </div>
+            <div class="qr-info-row">
+              <span class="qr-info-label">Số tiền chuyển khoản:</span>
+              <span class="qr-info-val" id="qr-amount-val" style="color: var(--accent-emerald); font-size: 1rem; font-weight: 800;">
+                0 VNĐ
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard(document.getElementById('pay-amount').value, 'Số tiền chuyển khoản')"><i class="fa-solid fa-copy"></i></button>
+              </span>
+            </div>
+            <div class="qr-info-row">
+              <span class="qr-info-label">Nội dung CK:</span>
+              <span class="qr-info-val" id="qr-memo-val">
+                THANHTOAN HOADON
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard(document.getElementById('qr-memo-text').innerText, 'Nội dung chuyển khoản')"><i class="fa-solid fa-copy"></i></button>
+              </span>
+              <span id="qr-memo-text" style="display:none;">THANHTOAN HOADON</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label>Số Tiền Khách Đưa / Chuyển Khoản:</label>
+          <input type="number" id="pay-amount" class="form-control" required oninput="updateQRAmountLive()">
+        </div>
+
+        <div style="text-align: right; margin-top: 1.25rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-payment')">Hủy</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-circle-check"></i> Xác Nhận Đã Thu Tiền</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <script src="./frontend/app.js"></script>
 </body>
+
 </html>
