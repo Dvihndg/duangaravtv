@@ -11,12 +11,17 @@
   <link rel="stylesheet" href="frontend/styles.css">
   <link rel="stylesheet" href="./frontend/styles.css">
 
+
 </head>
 
 <body>
 
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="toggleMobileSidebar(false)"></div>
+
   <!-- Sidebar -->
   <aside class="sidebar">
+
     <div class="brand-header">
       <div class="brand-logo"><i class="fa-solid fa-car-wrench"></i></div>
       <div>
@@ -63,10 +68,12 @@
   <main class="main-wrapper">
     <!-- Top Header Bar -->
     <header class="top-bar">
-      <div style="display: flex; align-items: center; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <button class="mobile-menu-btn" onclick="toggleMobileSidebar(true)" title="Mở Menu Vai Trò & Danh Mục"><i class="fa-solid fa-bars"></i></button>
         <h2 id="page-title" style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700;">Tổng Quan
           Garage</h2>
       </div>
+
 
       <!-- Controls: Theme Toggle & Role Switcher -->
       <div class="header-controls">
@@ -218,20 +225,22 @@
             <h3 style="font-family: 'Outfit'; font-size: 1.05rem;"><i class="fa-solid fa-list-check"></i> Phiếu Sửa Chữa Gần Đây</h3>
             <button class="btn btn-primary btn-sm" onclick="switchView('repair-orders')">Xem Tất Cả</button>
           </div>
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>Mã Phiếu</th>
-                <th>Khách Hàng</th>
-                <th>Xe</th>
-                <th>Trạng Thái</th>
-                <th>Ngày Tiếp Nhận</th>
-              </tr>
-            </thead>
-            <tbody id="dash-orders-tbody">
-              <!-- Dynamically populated by JS -->
-            </tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã Phiếu</th>
+                  <th>Khách Hàng</th>
+                  <th>Xe</th>
+                  <th>Trạng Thái</th>
+                  <th>Ngày Tiếp Nhận</th>
+                </tr>
+              </thead>
+              <tbody id="dash-orders-tbody">
+                <!-- Dynamically populated by JS -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -346,21 +355,23 @@
             <div class="table-header">
               <h3 style="font-family: 'Outfit'; font-size: 1.05rem;"><i class="fa-solid fa-list" style="color: var(--accent-primary);"></i> Danh Sách Lịch Hẹn Đăng Ký</h3>
             </div>
-            <table class="custom-table">
-              <thead>
-                <tr>
-                  <th>Mã</th>
-                  <th>Khách Hàng</th>
-                  <th>Xe</th>
-                  <th>Dịch Vụ Đăng Ký</th>
-                  <th>Thời Gian</th>
-                  <th>Trạng Thái</th>
-                </tr>
-              </thead>
-              <tbody id="appointments-tbody">
-                <!-- Populated by JS -->
-              </tbody>
-            </table>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Mã</th>
+                    <th>Khách Hàng</th>
+                    <th>Xe</th>
+                    <th>Dịch Vụ Đăng Ký</th>
+                    <th>Thời Gian</th>
+                    <th>Trạng Thái</th>
+                  </tr>
+                </thead>
+                <tbody id="appointments-tbody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -374,22 +385,24 @@
         </div>
 
         <div class="table-card">
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>Mã Phiếu</th>
-                <th>Biển Số Xe</th>
-                <th>Triệu Chứng / Chẩn Đoán</th>
-                <th>Trạng Thái</th>
-                <th>Tổng Chi Phí</th>
-                <th>Chức Năng AI Engine</th>
-                <th>Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody id="repair-orders-tbody">
-              <!-- Populated by JS -->
-            </tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã Phiếu</th>
+                  <th>Biển Số Xe</th>
+                  <th>Triệu Chứng / Chẩn Đoán</th>
+                  <th>Trạng Thái</th>
+                  <th>Tổng Chi Phí</th>
+                  <th>Chức Năng AI Engine</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="repair-orders-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -406,20 +419,22 @@
         </div>
 
         <div class="table-card">
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>Khách Hàng</th>
-                <th>Số Điện Thoại</th>
-                <th>Địa Chỉ</th>
-                <th>Danh Sách Xe</th>
-                <th>Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody id="customers-tbody">
-              <!-- Populated by JS -->
-            </tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Khách Hàng</th>
+                  <th>Số Điện Thoại</th>
+                  <th>Địa Chỉ</th>
+                  <th>Danh Sách Xe</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="customers-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -432,18 +447,20 @@
               <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-list"></i> Danh Mục Dịch Vụ</h3>
               <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-service')">+ Thêm Dịch Vụ</button>
             </div>
-            <table class="custom-table">
-              <thead>
-                <tr>
-                  <th>Mã</th>
-                  <th>Tên Dịch Vụ</th>
-                  <th>Tiền Công</th>
-                </tr>
-              </thead>
-              <tbody id="services-tbody">
-                <!-- Populated by JS -->
-              </tbody>
-            </table>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Mã</th>
+                    <th>Tên Dịch Vụ</th>
+                    <th>Tiền Công</th>
+                  </tr>
+                </thead>
+                <tbody id="services-tbody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <!-- Parts Inventory -->
@@ -452,19 +469,21 @@
               <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-box"></i> Kho Phụ Tùng</h3>
               <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-part')">+ Nhập Phụ Tùng</button>
             </div>
-            <table class="custom-table">
-              <thead>
-                <tr>
-                  <th>Mã</th>
-                  <th>Tên Phụ Tùng</th>
-                  <th>Đơn Giá Bán</th>
-                  <th>Tồn Kho</th>
-                </tr>
-              </thead>
-              <tbody id="parts-tbody">
-                <!-- Populated by JS -->
-              </tbody>
-            </table>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Mã</th>
+                    <th>Tên Phụ Tùng</th>
+                    <th>Đơn Giá Bán</th>
+                    <th>Tồn Kho</th>
+                  </tr>
+                </thead>
+                <tbody id="parts-tbody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -476,23 +495,25 @@
         </div>
 
         <div class="table-card">
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>Số Hóa Đơn</th>
-                <th>Mã Phiếu Sửa Chữa</th>
-                <th>Tiền Trước Thuế</th>
-                <th>VAT (8%)</th>
-                <th>Tổng Tiền</th>
-                <th>Đã Thanh Toán</th>
-                <th>Trạng Thái</th>
-                <th>Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody id="invoices-tbody">
-              <!-- Populated by JS -->
-            </tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Số Hóa Đơn</th>
+                  <th>Mã Phiếu Sửa Chữa</th>
+                  <th>Tiền Trước Thuế</th>
+                  <th>VAT (8%)</th>
+                  <th>Tổng Tiền</th>
+                  <th>Đã Thanh Toán</th>
+                  <th>Trạng Thái</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="invoices-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -598,19 +619,21 @@
             Kỹ thuật viên kiểm tra thực tế xe, chỉnh sửa phụ tùng/tiền công, kiểm tra tồn kho trước khi chốt giá.
           </p>
           <div class="table-card" style="margin-bottom: 1.25rem;">
-            <table class="custom-table">
-              <thead>
-                <tr>
-                  <th>Mã</th>
-                  <th>Hạng Mục</th>
-                  <th>Số Lượng</th>
-                  <th>Đơn Giá / Công</th>
-                  <th>Tồn Kho</th>
-                  <th>Thành Tiền</th>
-                </tr>
-              </thead>
-              <tbody id="wz-review-items-tbody"></tbody>
-            </table>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Mã</th>
+                    <th>Hạng Mục</th>
+                    <th>Số Lượng</th>
+                    <th>Đơn Giá / Công</th>
+                    <th>Tồn Kho</th>
+                    <th>Thành Tiền</th>
+                  </tr>
+                </thead>
+                <tbody id="wz-review-items-tbody"></tbody>
+              </table>
+            </div>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <button class="btn btn-secondary" onclick="switchWizardStep(2)"><i class="fa-solid fa-arrow-left"></i> Quay Lại AI Draft</button>
@@ -829,19 +852,21 @@
         <button class="btn btn-primary" onclick="addItemToRO()"><i class="fa-solid fa-plus"></i> Thêm</button>
       </div>
 
-      <table class="custom-table" style="margin-bottom: 1.5rem;">
-        <thead>
-          <tr>
-            <th>Hạng Mục</th>
-            <th>Loại</th>
-            <th>SL</th>
-            <th>Đơn Giá / Tiền Công</th>
-            <th>Thành Tiền</th>
-            <th>Xóa</th>
-          </tr>
-        </thead>
-        <tbody id="ro-items-tbody"></tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="custom-table" style="margin-bottom: 1.5rem;">
+          <thead>
+            <tr>
+              <th>Hạng Mục</th>
+              <th>Loại</th>
+              <th>SL</th>
+              <th>Đơn Giá / Tiền Công</th>
+              <th>Thành Tiền</th>
+              <th>Xóa</th>
+            </tr>
+          </thead>
+          <tbody id="ro-items-tbody"></tbody>
+        </table>
+      </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div><strong>Tổng Chi Phí: </strong><span id="ro-detail-total"
@@ -983,6 +1008,29 @@
     </div>
   </div>
 
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="mobile-bottom-nav">
+    <div class="mobile-nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
+      <i class="fa-solid fa-chart-pie"></i>
+      <span>Tổng quan</span>
+    </div>
+    <div class="mobile-nav-item" data-view="appointments" onclick="switchView('appointments')">
+      <i class="fa-solid fa-calendar-check"></i>
+      <span>Lịch hẹn</span>
+    </div>
+    <div class="mobile-nav-item ai-tab" data-view="ai-studio" onclick="switchView('ai-studio')">
+      <i class="fa-solid fa-robot"></i>
+      <span>Trợ lý AI</span>
+    </div>
+    <div class="mobile-nav-item" data-view="repair-orders" onclick="switchView('repair-orders')">
+      <i class="fa-solid fa-wrench"></i>
+      <span>Phiếu sửa</span>
+    </div>
+    <div class="mobile-nav-item" data-view="invoices" onclick="switchView('invoices')">
+      <i class="fa-solid fa-receipt"></i>
+      <span>Hóa đơn</span>
+    </div>
+  </nav>
 
   <script src="app.js"></script>
   <script src="./app.js"></script>
@@ -991,4 +1039,3 @@
 </body>
 
 </html>
-

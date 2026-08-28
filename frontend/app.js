@@ -251,6 +251,14 @@ function switchView(viewName) {
     }
   });
 
+  document.querySelectorAll(".mobile-nav-item").forEach(el => {
+    if (el.getAttribute("data-view") === viewName) {
+      el.classList.add("active");
+    } else {
+      el.classList.remove("active");
+    }
+  });
+
   document.querySelectorAll(".view-section").forEach(sec => {
     sec.classList.remove("active");
   });
@@ -269,8 +277,20 @@ function switchView(viewName) {
   };
   document.getElementById("page-title").textContent = titleMap[viewName] || "Garage Management";
 
+  toggleMobileSidebar(false);
   loadAllData();
 }
+
+function toggleMobileSidebar(open = null) {
+  const sidebar = document.querySelector(".sidebar");
+  const backdrop = document.getElementById("sidebar-backdrop");
+  if (!sidebar) return;
+
+  const isOpen = open !== null ? open : !sidebar.classList.contains("mobile-open");
+  sidebar.classList.toggle("mobile-open", isOpen);
+  if (backdrop) backdrop.classList.toggle("active", isOpen);
+}
+
 
 // Data Loaders
 async function loadAllData() {

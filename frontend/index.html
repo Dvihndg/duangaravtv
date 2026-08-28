@@ -16,8 +16,12 @@
 
 <body>
 
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="toggleMobileSidebar(false)"></div>
+
   <!-- Sidebar -->
   <aside class="sidebar">
+
     <div class="brand-header">
       <div class="brand-logo"><i class="fa-solid fa-car-wrench"></i></div>
       <div>
@@ -64,10 +68,12 @@
   <main class="main-wrapper">
     <!-- Top Header Bar -->
     <header class="top-bar">
-      <div style="display: flex; align-items: center; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <button class="mobile-menu-btn" onclick="toggleMobileSidebar(true)" title="Mở Menu Vai Trò & Danh Mục"><i class="fa-solid fa-bars"></i></button>
         <h2 id="page-title" style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700;">Tổng Quan
           Garage</h2>
       </div>
+
 
       <!-- Controls: Theme Toggle & Role Switcher -->
       <div class="header-controls">
@@ -985,10 +991,35 @@
   </div>
 
 
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="mobile-bottom-nav">
+    <div class="mobile-nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
+      <i class="fa-solid fa-chart-pie"></i>
+      <span>Tổng quan</span>
+    </div>
+    <div class="mobile-nav-item" data-view="appointments" onclick="switchView('appointments')">
+      <i class="fa-solid fa-calendar-check"></i>
+      <span>Lịch hẹn</span>
+    </div>
+    <div class="mobile-nav-item ai-tab" data-view="ai-studio" onclick="switchView('ai-studio')">
+      <i class="fa-solid fa-robot"></i>
+      <span>Trợ lý AI</span>
+    </div>
+    <div class="mobile-nav-item" data-view="repair-orders" onclick="switchView('repair-orders')">
+      <i class="fa-solid fa-wrench"></i>
+      <span>Phiếu sửa</span>
+    </div>
+    <div class="mobile-nav-item" data-view="invoices" onclick="switchView('invoices')">
+      <i class="fa-solid fa-receipt"></i>
+      <span>Hóa đơn</span>
+    </div>
+  </nav>
+
   <script src="app.js"></script>
   <script src="./app.js"></script>
   <script src="../app.js"></script>
 </body>
 
 </html>
+
 
