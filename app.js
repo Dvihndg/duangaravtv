@@ -1574,3 +1574,10 @@ function escapeHTML(str) {
   );
 }
 
+// Global Window Function Bindings for HTML Handlers
+window.sendAIChatMessage = sendAIChatMessage;
+window.triggerQuickPrompt = triggerQuickPrompt;
+window.clearAIChatHistory = clearAIChatHistory;
+window.submitOBDDiagnosticForm = submitOBDDiagnosticForm;
+
+
