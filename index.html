@@ -134,7 +134,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div class="grid-split-dashboard">
           <!-- 6-Month Revenue Bar Chart -->
           <div class="table-card" style="padding: 1.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
@@ -272,7 +272,7 @@
         </div>
 
         <!-- Split View: Schedule Timeline vs Registered Appointments Table -->
-        <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 1.5rem;">
+        <div class="grid-split-appointments">
           <!-- Hourly Timeline Schedule Card -->
           <div class="table-card" style="padding: 1.5rem;">
             <h3 style="font-family: 'Outfit'; font-size: 1.05rem; margin-bottom: 1.25rem;"><i class="fa-solid fa-clock" style="color: var(--accent-amber);"></i> Thời Gian Biểu Hôm Nay</h3>
@@ -436,7 +436,7 @@
 
       <!-- VIEW 5: Inventory & Services -->
       <section id="view-inventory" class="view-section">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div class="grid-2col">
           <!-- Services catalog -->
           <div class="table-card">
             <div class="table-header">
@@ -675,7 +675,7 @@
             <h4 style="font-family: 'Outfit'; color: var(--accent-purple); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
               <i class="fa-solid fa-chart-pie"></i> BÁO CÁO ĐÁNH GIÁ & ĐO LƯỜNG HỆ THỐNG (STEP 11):
             </h4>
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; text-align: center;">
+            <div class="grid-5col-benchmark">
               <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                 <div style="font-size: 0.75rem; color: var(--text-muted);">Top-1 Accuracy</div>
                 <div id="bm-top1" style="font-size: 1.3rem; font-weight: 800; color: #10b981; margin-top: 0.2rem;">95.5%</div>

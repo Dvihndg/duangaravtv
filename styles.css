@@ -1021,12 +1021,78 @@ body {
   display: block;
 }
 
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+/* Responsive Grid System Utility Classes */
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
 }
 
+.grid-split-dashboard {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.grid-split-appointments {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 1.5rem;
+}
+
+.grid-5col-benchmark {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+  text-align: center;
+}
+
+/* ==========================================================================
+   Multi-Device Responsive Breakpoints System (Grid & Layout Adaptation)
+   ========================================================================== */
+
+/* 1. Large Desktops & Ultra-Wide (> 1400px) */
+@media (min-width: 1401px) {
+  .content-container {
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+}
+
+/* 2. Laptops & Small Desktops (1025px - 1400px) */
+@media (max-width: 1400px) and (min-width: 1025px) {
+  .kpi-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* 3. Tablets / iPads (769px - 1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .sidebar {
+    width: 220px;
+    padding: 1.25rem 0.85rem;
+  }
+  .brand-name { font-size: 1.05rem; }
+  .nav-item { font-size: 0.85rem; padding: 0.65rem 0.75rem; }
+  
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .grid-split-dashboard,
+  .grid-split-appointments,
+  .grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+  .grid-5col-benchmark {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* 4. Mobile / Smartphones (<= 768px) */
 @media (max-width: 768px) {
   body {
     flex-direction: column;
@@ -1088,9 +1154,14 @@ body {
   }
 
   /* Grid 2-column to 1-column responsive layout */
-  div[style*="grid-template-columns"] {
+  .grid-split-dashboard,
+  .grid-split-appointments,
+  .grid-2col {
     grid-template-columns: 1fr !important;
     gap: 1.0rem !important;
+  }
+  .grid-5col-benchmark {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   /* Filter bars */
@@ -1165,3 +1236,31 @@ body {
     color: var(--accent-purple);
   }
 }
+
+/* 5. Extra Small Phones (< 480px) */
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .grid-5col-benchmark {
+    grid-template-columns: 1fr !important;
+  }
+  .wizard-step {
+    flex: 1 1 100% !important;
+  }
+  .top-bar {
+    padding: 0.75rem 0.5rem;
+  }
+  .header-controls select {
+    font-size: 0.75rem !important;
+    padding: 0.2rem 0.3rem !important;
+  }
+  .role-badge {
+    display: none;
+  }
+  .btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+  }
+}
+
