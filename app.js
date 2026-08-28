@@ -107,52 +107,72 @@ async function apiFetch(endpoint, options = {}) {
 function getOfflineMockResponse(endpoint, options) {
   if (endpoint === "/customers") {
     return [
-      { id: 1, full_name: "Đặng Quốc Khánh", phone: "0908888888", address: "Số 88 Phố Huế, Hà Nội", vehicles: [{ license_plate: "30A-888.88", brand: "Mercedes", model: "C200" }] },
-      { id: 2, full_name: "Phạm Minh Tuấn", phone: "0917777889", address: "Số 12 Cầu Giấy, Hà Nội", vehicles: [{ license_plate: "29C-777.89", brand: "Ford", model: "Ranger" }] },
-      { id: 3, full_name: "Nguyễn Bảo Châu", phone: "0981234567", address: "Số 45 Nguyễn Trãi, Hà Nội", vehicles: [{ license_plate: "30H-123.45", brand: "Hyundai", model: "Tucson" }] },
-      { id: 4, full_name: "Trịnh Thùy Linh", phone: "0939999999", address: "Số 99 Trần Duy Hưng, Hà Nội", vehicles: [{ license_plate: "30K-999.99", brand: "VinFast", model: "VF8" }] }
+      { id: 1, full_name: "Nguyễn Hoàng Nam", phone: "0988123456", address: "123 Lê Duẩn, Quận 1, TP.HCM", vehicles: [{ license_plate: "51H-888.88", brand: "Toyota", model: "Camry 2.5Q" }] },
+      { id: 2, full_name: "Đặng Thị Minh Anh", phone: "0977654321", address: "456 Nguyễn Thị Minh Khai, Quận 3, TP.HCM", vehicles: [{ license_plate: "51G-777.89", brand: "Honda", model: "Civic RS" }, { license_plate: "51K-123.45", brand: "Mercedes-Benz", model: "GLC 300" }] },
+      { id: 3, full_name: "Lê Quốc Bảo", phone: "0912345678", address: "789 Võ Văn Kiệt, Quận 5, TP.HCM", vehicles: [{ license_plate: "51F-999.99", brand: "BMW", model: "X5 xDrive40i" }] },
+      { id: 4, full_name: "Phạm Thu Thảo", phone: "0909998877", address: "12 Phạm Văn Đồng, Bình Thạnh, TP.HCM", vehicles: [{ license_plate: "51LD-555.66", brand: "VinFast", model: "VF8 Plus" }] },
+      { id: 5, full_name: "Trần Anh Tuấn", phone: "0933445566", address: "34 Nguyễn Hữu Thọ, Quận 7, TP.HCM", vehicles: [{ license_plate: "51C-444.33", brand: "Ford", model: "Ranger Wildtrak" }] }
     ];
   }
   if (endpoint === "/vehicles") {
     return [
-      { id: 1, license_plate: "30A-888.88", brand: "Mercedes-Benz", model: "C200", year: 2022, current_mileage: 40000 },
-      { id: 2, license_plate: "29C-777.89", brand: "Ford", model: "Ranger Wildtrak", year: 2021, current_mileage: 65000 },
-      { id: 3, license_plate: "30H-123.45", brand: "Hyundai", model: "Tucson", year: 2023, current_mileage: 28000 },
-      { id: 4, license_plate: "30K-999.99", brand: "VinFast", model: "VF8", year: 2023, current_mileage: 15000 }
+      { id: 1, license_plate: "51H-888.88", brand: "Toyota", model: "Camry 2.5Q", year: 2022, current_mileage: 40000 },
+      { id: 2, license_plate: "51G-777.89", brand: "Honda", model: "Civic RS", year: 2021, current_mileage: 65000 },
+      { id: 3, license_plate: "51K-123.45", brand: "Mercedes-Benz", model: "GLC 300 4MATIC", year: 2023, current_mileage: 18000 },
+      { id: 4, license_plate: "51F-999.99", brand: "BMW", model: "X5 xDrive40i", year: 2020, current_mileage: 82000 },
+      { id: 5, license_plate: "51LD-555.66", brand: "VinFast", model: "VF8 Plus", year: 2023, current_mileage: 15000 },
+      { id: 6, license_plate: "51C-444.33", brand: "Ford", model: "Ranger Wildtrak 2.0L", year: 2022, current_mileage: 45000 }
     ];
   }
   if (endpoint === "/appointments") {
     return [
-      { id: 101, appointment_code: "APT-888", customer_name: "Đặng Quốc Khánh", vehicle_plate: "30A-888.88", vehicle_info: "Mercedes C200", service_requested: "Bảo dưỡng định kỳ 40K", appointment_date: "2026-08-29T08:00:00", status: "received" },
-      { id: 102, appointment_code: "APT-777", customer_name: "Phạm Minh Tuấn", vehicle_plate: "29C-777.89", vehicle_info: "Ford Ranger", service_requested: "Kiểm tra gầm & tiếng kêu rít", appointment_date: "2026-08-29T10:00:00", status: "in_progress" },
-      { id: 103, appointment_code: "APT-123", customer_name: "Nguyễn Bảo Châu", vehicle_plate: "30H-123.45", vehicle_info: "Hyundai Tucson", service_requested: "Thay má phanh & láng đĩa phanh", appointment_date: "2026-08-29T13:30:00", status: "received" }
+      { id: 101, appointment_code: "APT-888", customer_name: "Nguyễn Hoàng Nam", vehicle_plate: "51H-888.88", vehicle_info: "Toyota Camry 2.5Q", service_requested: "Bảo dưỡng định kỳ mốc 40.000 km", appointment_date: "2026-08-29T08:00:00", status: "received" },
+      { id: 102, appointment_code: "APT-777", customer_name: "Đặng Thị Minh Anh", vehicle_plate: "51G-777.89", vehicle_info: "Honda Civic RS", service_requested: "Thay má phanh & Căn chỉnh thước lái 3D", appointment_date: "2026-08-29T10:00:00", status: "in_progress" },
+      { id: 103, appointment_code: "APT-123", customer_name: "Đặng Thị Minh Anh", vehicle_plate: "51K-123.45", vehicle_info: "Mercedes GLC 300", service_requested: "Vệ sinh giàn lạnh & Phủ Ceramic cao cấp", appointment_date: "2026-08-29T13:30:00", status: "received" },
+      { id: 104, appointment_code: "APT-999", customer_name: "Lê Quốc Bảo", vehicle_plate: "51F-999.99", vehicle_info: "BMW X5 xDrive40i", service_requested: "Đại tu ly hợp & Bảo dưỡng mốc 80.000 km", appointment_date: "2026-08-29T15:00:00", status: "pending" }
     ];
   }
   if (endpoint === "/repair-orders") {
     return [
-      { id: 1, code: "RO-2026-001", vehicle_plate: "30A-888.88", initial_symptoms: "Bảo dưỡng định kỳ mốc 40,000 km, phanh mòn nhẹ", status: "in_progress", final_cost: 1550000 },
-      { id: 2, code: "RO-2026-002", vehicle_plate: "29C-777.89", initial_symptoms: "Xe kêu rít rít ở phanh trước khi đạp thắng", status: "ai_draft", final_cost: 850000 },
-      { id: 3, code: "RO-2026-003", vehicle_plate: "30H-123.45", initial_symptoms: "Vô lăng rung lắc khi chạy tốc độ cao", status: "under_review", final_cost: 1250000 }
+      { id: 1, code: "RO-2026-001", vehicle_plate: "51H-888.88", initial_symptoms: "Bảo dưỡng định kỳ mốc 40,000 km, phanh kêu rít nhẹ khi đạp thắng", status: "in_progress", final_cost: 1550000 },
+      { id: 2, code: "RO-2026-002", vehicle_plate: "51G-777.89", initial_symptoms: "Xe rung lắc vô lăng trên 80km/h & điều hòa gió yếu có mùi hôi", status: "ai_draft", final_cost: 850000 },
+      { id: 3, code: "RO-2026-003", vehicle_plate: "51K-123.45", initial_symptoms: "Đèn Check Engine báo lỗi động cơ thỉnh thoảng giật cục", status: "under_review", final_cost: 1250000 },
+      { id: 4, code: "RO-2026-004", vehicle_plate: "51F-999.99", initial_symptoms: "Bảo dưỡng tổng thể 80,000km & Thay 4 lốp Michelin", status: "approved", final_cost: 15100000 }
     ];
   }
   if (endpoint === "/services") {
     return [
-      { id: 1, code: "SER-001", name: "Bảo dưỡng định kỳ cấp 40,000 km", labor_cost: 350000 },
-      { id: 2, code: "SER-002", name: "Láng đĩa phanh & Bảo dưỡng heo phanh", labor_cost: 400000 },
-      { id: 3, code: "SER-ALIGN-3D", name: "Cân chỉnh góc đặt bánh xe 3D", labor_cost: 500000 }
+      { id: 1, code: "SER-001", name: "Thay dầu động cơ & Lọc dầu chính hãng", labor_cost: 150000 },
+      { id: 2, code: "SER-002", name: "Bảo dưỡng & Căn chỉnh hệ thống Phanh 4 bánh", labor_cost: 300000 },
+      { id: 3, code: "SER-003", name: "Cân bằng động & Cân chỉnh thước lái Laser 3D", labor_cost: 450000 },
+      { id: 4, code: "SER-004", name: "Súc rửa kim phun & Cổ hút ga sinh học", labor_cost: 350000 },
+      { id: 5, code: "SER-005", name: "Kiểm tra & Vệ sinh điều hòa (HVAC)", labor_cost: 500000 },
+      { id: 6, code: "SER-006", name: "Đại tu & Thay thế bộ Ly hợp / Hộp số", labor_cost: 1500000 },
+      { id: 7, code: "SER-007", name: "Vệ sinh gầm xe & Phủ bóng Ceramic bảo vệ sơn", labor_cost: 1200000 },
+      { id: 8, code: "SER-008", name: "Chẩn đoán & Xóa lỗi đọc chuẩn OBD-II ECU", labor_cost: 200000 },
+      { id: 9, code: "SER-009", name: "Thay bình ắc quy GS/Varta & Kiểm tra máy phát", labor_cost: 100000 },
+      { id: 10, code: "SER-010", name: "Bảo dưỡng tổng thể mốc 80.000 km", labor_cost: 800000 }
     ];
   }
   if (endpoint === "/parts") {
     return [
-      { id: 1, code: "PAR-OIL-001", name: "Dầu nhớt động cơ Synthetic 4L", unit_price: 250000, stock_quantity: 25, min_stock_alert: 5 },
-      { id: 2, code: "PAR-FIL-001", name: "Lọc nhớt động cơ chính hãng", unit_price: 150000, stock_quantity: 18, min_stock_alert: 5 },
-      { id: 3, code: "PAR-AC-FIL-MAX", name: "Lọc gió điều hòa Carbon cao cấp", unit_price: 450000, stock_quantity: 0, min_stock_alert: 5 }
+      { id: 1, code: "PAR-001", name: "Dầu động cơ Castrol Edge 5W-30 (Can 4L)", unit_price: 750000, stock_quantity: 25, min_stock_alert: 5 },
+      { id: 2, code: "PAR-002", name: "Lọc dầu Toyota Genuine Camry/Corolla", unit_price: 180000, stock_quantity: 30, min_stock_alert: 5 },
+      { id: 3, code: "PAR-003", name: "Bộ má phanh đĩa trước Brembo Honda Civic", unit_price: 1200000, stock_quantity: 8, min_stock_alert: 3 },
+      { id: 4, code: "PAR-004", name: "Lọc gió động cơ Bosch BMW X5/X6", unit_price: 450000, stock_quantity: 4, min_stock_alert: 5 },
+      { id: 5, code: "PAR-005", name: "Bugi Iridium NGK Laser Premium", unit_price: 220000, stock_quantity: 16, min_stock_alert: 4 },
+      { id: 6, code: "PAR-006", name: "Bình ắc quy khô GS 12V-65Ah", unit_price: 1650000, stock_quantity: 10, min_stock_alert: 3 },
+      { id: 7, code: "PAR-007", name: "Lốp xe Michelin Pilot Sport 4 (235/45R18)", unit_price: 3400000, stock_quantity: 12, min_stock_alert: 4 },
+      { id: 8, code: "PAR-008", name: "Cặp gạt mưa Silicon Bosch Aerotwin", unit_price: 380000, stock_quantity: 2, min_stock_alert: 5 },
+      { id: 9, code: "PAR-009", name: "Dầu phanh cao cấp Motul DOT4 (1L)", unit_price: 250000, stock_quantity: 15, min_stock_alert: 4 },
+      { id: 10, code: "PAR-010", name: "Nước làm mát động cơ Motul Inugel (5L)", unit_price: 420000, stock_quantity: 20, min_stock_alert: 5 }
     ];
   }
   if (endpoint === "/invoices") {
     return [
       { id: 1, invoice_number: "INV-2026-001", repair_order_id: 1, subtotal: 1435185, tax_amount: 114815, total_amount: 1550000, paid_amount: 0, balance_due: 1550000, status: "unpaid" },
-      { id: 2, invoice_number: "INV-2026-002", repair_order_id: 2, subtotal: 787037, tax_amount: 62963, total_amount: 850000, paid_amount: 850000, balance_due: 0, status: "paid" }
+      { id: 2, invoice_number: "INV-2026-002", repair_order_id: 2, subtotal: 787037, tax_amount: 62963, total_amount: 850000, paid_amount: 850000, balance_due: 0, status: "paid" },
+      { id: 3, invoice_number: "INV-2026-003", repair_order_id: 3, subtotal: 1157407, tax_amount: 92593, total_amount: 1250000, paid_amount: 500000, balance_due: 750000, status: "partial" }
     ];
   }
   if (endpoint.startsWith("/ai/demo-scenarios/")) {
