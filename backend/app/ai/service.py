@@ -1,342 +1,802 @@
-import json
 import logging
-from typing import Dict, Any, Optional
-# pyrefly: ignore [missing-import]
+from typing import Any, Dict, Optional, Tuple
+
 from sqlalchemy.orm import Session
 
 from backend.app.config import settings
-from backend.app.models import AILog, RepairOrder, Vehicle, Customer
+from backend.app.models import AILog, RepairOrder, Vehicle
 from backend.app.ai.prompts import (
     SYSTEM_GARAGE_ASSISTANT,
     PROMPT_AI_ASSISTANT,
     PROMPT_HISTORY_SUMMARY,
     PROMPT_SERVICE_EXPLAINER,
-    PROMPT_DRAFT_QUOTATION
+    PROMPT_DRAFT_QUOTATION,
 )
 
 logger = logging.getLogger("garage_ai")
 
+
 class AIService:
+    """
+    Service trung tâm cho các tính năng AI của Garage Ô tô VTV.
+
+    Nguyên tắc:
+    - AI chỉ tư vấn/diễn giải dựa trên dữ liệu được cung cấp.
+    - Không để AI tự quyết định giá tiền.
+    - Các phép tính tiền được thực hiện bằng Python.
+    - Không bịa lịch sử sửa chữa hoặc tình trạng xe.
+    - Chẩn đoán kỹ thuật luôn được xem là nhận định sơ bộ.
+    """
+
+    VAT_RATE = 0.08
+
+    # ============================================================
+    # COMMON HELPERS
+    # ============================================================
+
     @staticmethod
-    def _call_llm(system_prompt: str, user_prompt: str) -> tuple[str, str]:
+    def _safe_float(value: Any, default: float = 0.0) -> float:
+        """Chuyển giá trị về float an toàn."""
+        try:
+            if value is None:
+                return default
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def _safe_int(value: Any, default: int = 0) -> int:
+        """Chuyển giá trị về int an toàn."""
+        try:
+            if value is None:
+                return default
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    @classmethod
+    def _calculate_item_cost(cls, item: Any) -> Tuple[float, float, float]:
         """
-        Gửi yêu cầu tới DeepSeek API (DeepSeek Pro V4) / Gemini / OpenAI API nếu có API key.
-        Nếu không có API key hoặc lỗi mạng, sử dụng Fallback Engine thông minh.
+        Tính:
+        - tiền phụ tùng
+        - tiền công
+        - tổng tiền
+
+        Không phụ thuộc vào item.total_price để tránh sai lệch dữ liệu.
         """
-        # 1. Ưu tiên gọi DeepSeek / Custom OpenAI-compatible API nếu có DEEPSEEK_API_KEY
+
+        quantity = cls._safe_float(getattr(item, "quantity", 0), 0.0)
+        unit_price = cls._safe_float(getattr(item, "unit_price", 0), 0.0)
+        labor_cost = cls._safe_float(getattr(item, "labor_cost", 0), 0.0)
+
+        part_cost = quantity * unit_price
+        total = part_cost + labor_cost
+
+        return part_cost, labor_cost, total
+
+    @classmethod
+    def _build_items_summary(cls, items: Any) -> Tuple[str, float, float, float]:
+        """
+        Tạo nội dung danh sách hạng mục và tính tổng.
+
+        Returns:
+            items_str,
+            total_parts,
+            total_labor,
+            subtotal
+        """
+
+        if not items:
+            return (
+                "- Chưa có hạng mục dịch vụ/phụ tùng.",
+                0.0,
+                0.0,
+                0.0,
+            )
+
+        lines = []
+        total_parts = 0.0
+        total_labor = 0.0
+
+        for index, item in enumerate(items, start=1):
+            name = getattr(item, "name", None) or "Hạng mục chưa đặt tên"
+
+            quantity = cls._safe_float(
+                getattr(item, "quantity", 0),
+                0.0,
+            )
+
+            unit_price = cls._safe_float(
+                getattr(item, "unit_price", 0),
+                0.0,
+            )
+
+            labor_cost = cls._safe_float(
+                getattr(item, "labor_cost", 0),
+                0.0,
+            )
+
+            part_cost = quantity * unit_price
+            item_total = part_cost + labor_cost
+
+            total_parts += part_cost
+            total_labor += labor_cost
+
+            lines.append(
+                f"{index}. {name} | "
+                f"SL: {quantity:g} | "
+                f"Đơn giá phụ tùng: {unit_price:,.0f} VNĐ | "
+                f"Tiền phụ tùng: {part_cost:,.0f} VNĐ | "
+                f"Tiền công: {labor_cost:,.0f} VNĐ | "
+                f"Thành tiền: {item_total:,.0f} VNĐ"
+            )
+
+        subtotal = total_parts + total_labor
+
+        return (
+            "\n".join(lines),
+            total_parts,
+            total_labor,
+            subtotal,
+        )
+
+    @staticmethod
+    def _format_money(value: float) -> str:
+        """Format tiền Việt Nam."""
+        return f"{value:,.0f} VNĐ"
+
+    @classmethod
+    def _save_ai_log(
+        cls,
+        db: Session,
+        feature: str,
+        prompt_input: str,
+        response_output: str,
+        model_used: str,
+    ) -> None:
+        """Lưu log AI."""
+        try:
+            log_entry = AILog(
+                feature=feature,
+                prompt_input=prompt_input,
+                response_output=response_output,
+                model_used=model_used,
+            )
+
+            db.add(log_entry)
+            db.commit()
+
+        except Exception:
+            db.rollback()
+            logger.exception("Không thể lưu AI log.")
+
+    # ============================================================
+    # LLM
+    # ============================================================
+
+    @staticmethod
+    def _call_llm(system_prompt: str, user_prompt: str) -> Tuple[str, str]:
+        """
+        Gửi request tới AI provider.
+
+        Thứ tự:
+        1. DeepSeek / OpenAI-compatible API
+        2. Gemini
+        3. Fallback nội bộ
+
+        Nếu provider lỗi, hệ thống vẫn hoạt động.
+        """
+
+        # --------------------------------------------------------
+        # 1. DeepSeek / OpenAI-compatible API
+        # --------------------------------------------------------
+
         if settings.DEEPSEEK_API_KEY:
             try:
                 import httpx
-                base_url = settings.DEEPSEEK_BASE_URL.rstrip('/')
-                if base_url.endswith('/chat/completions'):
+
+                base_url = (
+                    settings.DEEPSEEK_BASE_URL or ""
+                ).rstrip("/")
+
+                if base_url.endswith("/chat/completions"):
                     api_url = base_url
-                elif base_url.endswith('/v1'):
+                elif base_url.endswith("/v1"):
                     api_url = f"{base_url}/chat/completions"
                 else:
                     api_url = f"{base_url}/v1/chat/completions"
 
+                model_name = (
+                    settings.AI_MODEL_NAME
+                    or "deepseek-chat"
+                )
+
                 headers = {
-                    "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}",
-                    "Content-Type": "application/json"
+                    "Authorization": (
+                        f"Bearer {settings.DEEPSEEK_API_KEY}"
+                    ),
+                    "Content-Type": "application/json",
                 }
+
                 payload = {
-                    "model": settings.AI_MODEL_NAME or "deepseek-v4-pro",
+                    "model": model_name,
                     "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt}
+                        {
+                            "role": "system",
+                            "content": system_prompt,
+                        },
+                        {
+                            "role": "user",
+                            "content": user_prompt,
+                        },
                     ],
-                    "temperature": 0.3
+                    "temperature": 0.2,
+                    "max_tokens": 2000,
                 }
-                response = httpx.post(api_url, headers=headers, json=payload, timeout=30.0)
+
+                response = httpx.post(
+                    api_url,
+                    headers=headers,
+                    json=payload,
+                    timeout=30.0,
+                )
+
                 if response.status_code == 200:
                     data = response.json()
-                    content = data["choices"][0]["message"]["content"]
-                    model_used = data.get("model", settings.AI_MODEL_NAME or "deepseek-v4-pro")
-                    return content.strip(), f"AI API ({model_used})"
-                else:
-                    logger.warning(f"AI API ({api_url}) trả về HTTP {response.status_code}: {response.text}. Chuyển sang LLM khác hoặc Fallback.")
-            except Exception as e:
-                logger.warning(f"Lỗi gọi AI API: {str(e)}. Chuyển sang Fallback Engine.")
 
+                    choices = data.get("choices") or []
 
-        # 2. Thử Google Gemini nếu có GEMINI_API_KEY
+                    if choices:
+                        message = choices[0].get("message") or {}
+                        content = message.get("content")
+
+                        if content:
+                            model_used = data.get(
+                                "model",
+                                model_name,
+                            )
+
+                            return (
+                                content.strip(),
+                                f"AI API ({model_used})",
+                            )
+
+                logger.warning(
+                    "AI API trả về HTTP %s: %s",
+                    response.status_code,
+                    response.text[:500],
+                )
+
+            except Exception:
+                logger.exception(
+                    "Lỗi gọi DeepSeek/OpenAI-compatible API."
+                )
+
+        # --------------------------------------------------------
+        # 2. Gemini
+        # --------------------------------------------------------
+
         if settings.GEMINI_API_KEY:
             try:
-                # pyrefly: ignore [missing-import]
                 import google.generativeai as genai
-                genai.configure(api_key=settings.GEMINI_API_KEY)
-                model = genai.GenerativeModel(
-                    model_name=settings.AI_MODEL_NAME,
-                    system_instruction=system_prompt
-                )
-                response = model.generate_content(user_prompt)
-                if response and response.text:
-                    return response.text.strip(), f"Gemini ({settings.AI_MODEL_NAME})"
-            except Exception as e:
-                logger.warning(f"Lỗi gọi Gemini API: {str(e)}. Chuyển sang Fallback Engine.")
 
-        # 3. Fallback Engine nếu không có key hoặc API lỗi
-        return AIService._fallback_engine(system_prompt, user_prompt)
+                genai.configure(
+                    api_key=settings.GEMINI_API_KEY
+                )
+
+                model_name = (
+                    settings.AI_MODEL_NAME
+                    or "gemini-2.0-flash"
+                )
+
+                model = genai.GenerativeModel(
+                    model_name=model_name,
+                    system_instruction=system_prompt,
+                )
+
+                response = model.generate_content(
+                    user_prompt
+                )
+
+                if response and getattr(
+                    response,
+                    "text",
+                    None,
+                ):
+                    return (
+                        response.text.strip(),
+                        f"Gemini ({model_name})",
+                    )
+
+            except Exception:
+                logger.exception(
+                    "Lỗi gọi Gemini API."
+                )
+
+        # --------------------------------------------------------
+        # 3. Internal fallback
+        # --------------------------------------------------------
+
+        return AIService._fallback_engine(
+            system_prompt,
+            user_prompt,
+        )
+
+    # ============================================================
+    # FALLBACK ENGINE
+    # ============================================================
 
     @staticmethod
-    def _fallback_engine(system_prompt: str, user_prompt: str) -> tuple[str, str]:
+    def _fallback_engine(
+        system_prompt: str,
+        user_prompt: str,
+    ) -> Tuple[str, str]:
         """
-        AI Fallback Engine hoạt động dựa trên phân tích dữ liệu đầu vào.
-        Đảm bảo ứng dụng chạy 100% không phụ thuộc vào Internet / API Key.
+        Fallback khi không có AI API.
+
+        Quan trọng:
+        Không tự bịa dữ liệu xe, lịch sử sửa chữa,
+        giá phụ tùng hoặc tình trạng kỹ thuật.
         """
-        model_used = f"DeepSeek Pro V4 (Internal Fallback - {settings.AI_MODEL_NAME})"
+
+        model_used = (
+            "Internal Fallback"
+        )
+
         prompt_lower = user_prompt.lower()
 
-        # Check if user prompt is history summary
-        if "lịch sử các lần sửa chữa" in prompt_lower or ("biển số xe" in prompt_lower and "tóm tắt súc tích" in prompt_lower):
+        # --------------------------------------------------------
+        # HISTORY
+        # --------------------------------------------------------
+
+        if (
+            "lịch sử các phiếu sửa chữa" in prompt_lower
+            or "lịch sử các lần sửa chữa" in prompt_lower
+        ):
             return (
-                "📌 **TÓM TẮT LỊCH SỬ XE & CẢNH BÁO KỸ THUẬT (Trợ Lý AI Garage)**\n\n"
-                "• **Lịch sử sửa chữa gần nhất:** Xe đã thực hiện bảo dưỡng định kỳ, thay dầu động cơ và lọc gió.\n"
-                "• **Tình trạng hệ thống:** Phanh trước đã được căn chỉnh ở lần phục vụ gần đây.\n"
-                "• **Lưu ý KTV khi tiếp nhận:** Cần kiểm tra kỹ độ hao mòn đĩa phanh, mức dầu phanh và áp suất lốp trước khi bàn giao phiếu mới.\n"
-                "• **Khuyến nghị:** Đã đến hạn kiểm tra nước làm mát và bugi đánh lửa theo mốc km hiện tại."
-            ), model_used
+                "📋 **TÓM TẮT LỊCH SỬ XE**\n\n"
+                "Hệ thống hiện đang sử dụng chế độ trả lời dự phòng "
+                "nếu chưa thể phân tích sâu lịch sử sửa chữa bằng AI.\n\n"
+                "Dữ liệu lịch sử đã được cung cấp cho hệ thống. "
+                "Kỹ thuật viên nên đối chiếu các phiếu sửa chữa gần nhất "
+                "và kiểm tra các hạng mục có liên quan trực tiếp đến "
+                "triệu chứng hiện tại của xe.\n\n"
+                "⚠️ Không nên kết luận tình trạng phụ tùng chỉ dựa "
+                "trên lịch sử; cần kiểm tra thực tế trước khi sửa chữa "
+                "hoặc thay thế.",
+                model_used,
+            )
 
-        # Explicit service explainer prompt check
-        elif "dữ liệu phiếu sửa chữa:" in prompt_lower or "giải thích ngắn gọn cho khách" in prompt_lower:
-            lines = user_prompt.split("\n")
-            explain_items = []
-            for line in lines:
-                if "-" in line and ("VNĐ" in line or "VND" in line or "đ" in line or ":" in line):
-                    explain_items.append(line.strip())
+        # --------------------------------------------------------
+        # SERVICE EXPLANATION
+        # --------------------------------------------------------
 
-            formatted_items = "\n".join([f"  {item}" for item in explain_items]) if explain_items else "  - Bảo dưỡng và kiểm tra tổng quát các bộ phận truyền động."
-
+        if (
+            "dữ liệu phiếu sửa chữa:" in prompt_lower
+            or "giải thích ngắn gọn" in prompt_lower
+        ):
             return (
-                "🚗 **DIỄN GIẢI HẠNG MỤC SỬA CHỮA DỄ HIỂU (Trợ Lý AI Garage)**\n\n"
-                "Chào Anh/Chị, Trợ lý AI Garage đã kiểm tra phiếu sửa chữa và kính gửi diễn giải các công việc cần làm:\n\n"
-                "🛠️ **Các hạng mục kiểm tra & thay thế:**\n"
-                f"{formatted_items}\n\n"
-                "💡 **Vì sao cần làm?**\n"
-                "Việc thực hiện các hạng mục này giúp xe vận hành êm ái, đảm bảo an toàn tuyệt đối khi lưu thông trên đường và tránh hư hỏng nặng cho các chi tiết máy liên quan.\n\n"
-                "⏱️ **Thời gian ước tính:** Khoảng 2 - 3 giờ làm việc.\n"
-                "🛡️ **Bảo hành:** Tất cả phụ tùng chính hãng và công sửa chữa được bảo hành 6 tháng hoặc 10,000 km."
-            ), model_used
+                "🚗 **GIẢI THÍCH PHIẾU SỬA CHỮA**\n\n"
+                "Phiếu sửa chữa đã ghi nhận các hạng mục cần "
+                "kiểm tra/thực hiện trên xe.\n\n"
+                "🛠️ **Các hạng mục:**\n"
+                "Vui lòng đối chiếu trực tiếp danh sách hạng mục "
+                "trong phiếu sửa chữa.\n\n"
+                "💡 **Lưu ý:**\n"
+                "Việc thay thế phụ tùng chỉ nên thực hiện sau khi "
+                "kỹ thuật viên kiểm tra và xác nhận tình trạng thực tế.\n\n"
+                "⚠️ Chi phí trong phiếu là dữ liệu dự kiến và có thể "
+                "thay đổi nếu phát hiện thêm vấn đề trong quá trình "
+                "kiểm tra.",
+                model_used,
+            )
 
-        # Check for free-form questions or explicit requests
-        elif "báo giá" in prompt_lower or "giá" in prompt_lower or "chi phí" in prompt_lower or "tiền" in prompt_lower:
+        # --------------------------------------------------------
+        # QUOTATION
+        # --------------------------------------------------------
+
+        if (
+            "báo giá" in prompt_lower
+            or "chi phí" in prompt_lower
+            or "tổng chi phí" in prompt_lower
+        ):
             return (
-                "📋 **TƯ VẤN & BÁO GIÁ DỊCH VỤ DỰ KIẾN (Trợ Lý AI Garage)**\n\n"
-                "Kính gửi Quý khách hàng / Kỹ thuật viên,\n\n"
-                "Garage VTV xin gửi thông tin tư vấn báo giá nháp cho câu hỏi/yêu cầu của Quý khách:\n\n"
-                "1. **Bảo dưỡng định kỳ / Thay dầu máy:** ~350,000 - 850,000 VNĐ (tùy loại dầu động cơ bôi trơn chính hãng).\n"
-                "2. **Kiểm tra & Thay má phanh trước/sau:** ~600,000 - 1,400,000 VNĐ/bộ.\n"
-                "3. **Vệ sinh hệ thống nhiên liệu / Kim phun:** ~450,000 VNĐ.\n"
-                "4. **Kiểm tra & Sửa chữa hệ thống gầm / Kêu rít:** ~300,000 - 1,200,000 VNĐ.\n"
-                "5. **Công dịch vụ & Kiểm tra tổng quát:** Miễn phí công kiểm tra chẩn đoán bằng máy đọc lỗi chuyên dụng.\n\n"
-                "💡 **Lưu ý:** Báo giá chính xác nhất sẽ được lập dựa trên tình trạng kiểm tra trực tiếp thực tế xe tại xưởng."
-            ), model_used
+                "📋 **BÁO GIÁ NHÁP**\n\n"
+                "Hệ thống đã tính toán chi phí dựa trên các "
+                "hạng mục được nhập trong phiếu sửa chữa.\n\n"
+                "⚠️ Đây là báo giá nháp. Chi phí thực tế có thể "
+                "thay đổi sau khi kiểm tra xe và xác nhận phạm vi "
+                "sửa chữa với khách hàng.\n\n"
+                "Vui lòng đối chiếu số lượng, đơn giá phụ tùng "
+                "và tiền công trước khi xác nhận sửa chữa.",
+                model_used,
+            )
 
-        elif "giải thích" in prompt_lower or "vì sao" in prompt_lower or "tại sao" in prompt_lower or "dịch vụ" in prompt_lower:
+        # --------------------------------------------------------
+        # DIAGNOSTIC
+        # --------------------------------------------------------
+
+        if any(
+            keyword in prompt_lower
+            for keyword in [
+                "kêu",
+                "hỏng",
+                "lỗi",
+                "sự cố",
+                "phanh",
+                "dầu",
+                "động cơ",
+                "máy",
+                "rung",
+                "giật",
+                "nóng",
+            ]
+        ):
             return (
-                "🚗 **DIỄN GIẢI KỸ THUẬT & DỊCH VỤ XE (Trợ Lý AI Garage)**\n\n"
-                "Chào Anh/Chị, Trợ lý AI Garage VTV xin giải thích chi tiết về quy trình kỹ thuật:\n\n"
-                "🛠️ **Quy trình kiểm tra & xử lý:**\n"
-                "  - Kiểm tra chẩn đoán tổng thể hệ thống liên quan bằng thiết bị đo chuyên dụng.\n"
-                "  - Tẩy rửa, vệ sinh hoặc thay thế các phụ tùng đến hạn hao mòn theo đúng thông số nhà sản xuất.\n"
-                "  - Chạy thử xe và cân chỉnh hệ thống an toàn trước khi bàn giao.\n\n"
-                "💡 **Vì sao cần thực hiện?**\n"
-                "Thực hiện dịch vụ này giúp duy trì hiệu suất vận hành tối ưu, tiết kiệm nhiên liệu, đảm bảo an toàn tuyệt đối và kéo dài tuổi thọ động cơ/khung gầm.\n\n"
-                "⏱️ **Thời gian thi công:** Khoảng 1 - 3 giờ làm việc.\n"
-                "🛡️ **Cam kết:** Phụ tùng chính hãng 100%, bảo hành 6 tháng hoặc 10,000 km."
-            ), model_used
+                "🔍 **NHẬN ĐỊNH KỸ THUẬT SƠ BỘ**\n\n"
+                "Hiện tượng bạn mô tả có thể liên quan đến "
+                "một hoặc nhiều bộ phận của xe. Tuy nhiên, "
+                "chưa thể xác định chính xác nguyên nhân chỉ "
+                "dựa trên mô tả bằng văn bản.\n\n"
+                "⚠️ Đây chỉ là nhận định sơ bộ.\n\n"
+                "🛠️ **Khuyến nghị:**\n"
+                "- Kiểm tra trực tiếp tại garage.\n"
+                "- Kiểm tra các bộ phận liên quan đến triệu chứng.\n"
+                "- Đọc mã lỗi nếu xe có hệ thống điện tử liên quan.\n"
+                "- Chạy thử xe hoặc đo kiểm thực tế nếu cần.\n\n"
+                "Không nên thay phụ tùng chỉ dựa trên một triệu chứng "
+                "mà chưa xác nhận nguyên nhân.",
+                model_used,
+            )
 
-        elif "kêu" in prompt_lower or "hỏng" in prompt_lower or "lỗi" in prompt_lower or "sự cố" in prompt_lower or "phanh" in prompt_lower or "dầu" in prompt_lower or "máy" in prompt_lower:
-            return (
-                "🔍 **CHẨN ĐOÁN SỰ CỐ & TƯ VẤN KỸ THUẬT (Trợ Lý AI Garage)**\n\n"
-                "Trợ lý AI đã ghi nhận câu hỏi về hiện tượng hỏng hóc/sự cố của xe. Dưới đây là phân tích chẩn đoán ban đầu:\n\n"
-                "⚠️ **Các nguyên nhân phổ biến:**\n"
-                "1. **Đĩa phanh / Má phanh mòn:** Phát ra tiếng kêu rít rít khi đạp phanh do lá thép báo mòn cọ xát đĩa.\n"
-                "2. **Hệ thống cao su gầm / Rô-toyn rơ:** Gây tiếng kêu lụp cụp khi đi qua đường xóc.\n"
-                "3. **Dầu nhớt bẩn / Thiếu dầu:** Động cơ vận hành ồn, nóng máy và báo đèn xi-nhan áp suất dầu.\n\n"
-                "🛠️ **Khuyến nghị xử lý:**\n"
-                "Nên đưa xe đến Garage VTV để KTV nâng gầm kiểm tra trực tiếp và đo đạc kỹ thuật chính xác nhất."
-            ), model_used
+        # --------------------------------------------------------
+        # GENERAL
+        # --------------------------------------------------------
 
-        else:
-            return (
-                "📋 **BÁO GIÁ NHÁP & TƯ VẤN TỰ ĐỘNG (Trợ Lý AI Garage)**\n\n"
-                "Kính gửi Quý khách hàng,\n Garage xin gửi bảng báo giá nháp chi tiết và tư vấn cho dịch vụ dự kiến:\n\n"
-                "1. **Chi phí công sửa chữa & bảo dưỡng:** Theo bảng giá chuẩn của garage.\n"
-                "2. **Chi phí phụ tùng thay thế:** Phụ tùng chính hãng đúng chủng loại xe.\n"
-                "3. **Thuế GTGT (VAT 8%):** Được tính trực tiếp khi xuất hóa đơn chính thức.\n\n"
-                "Vui lòng xác nhận để Kỹ thuật viên tiến hành sửa chữa ngay!"
-            ), model_used
+        return (
+            "🤖 **TRỢ LÝ AI GARAGE VTV**\n\n"
+            "Tôi có thể hỗ trợ:\n"
+            "- Giải thích hạng mục sửa chữa.\n"
+            "- Phân tích sơ bộ triệu chứng xe.\n"
+            "- Tóm tắt lịch sử sửa chữa.\n"
+            "- Giải thích chi phí và báo giá nháp.\n"
+            "- Tư vấn quy trình bảo dưỡng/sửa chữa.\n\n"
+            "⚠️ Với các vấn đề kỹ thuật, thông tin tư vấn chỉ "
+            "mang tính tham khảo và cần được xác nhận bằng kiểm "
+            "tra thực tế tại garage.",
+            model_used,
+        )
 
+    # ============================================================
+    # HISTORY SUMMARY
+    # ============================================================
 
     @classmethod
-    def generate_history_summary(cls, db: Session, vehicle_id: int) -> Dict[str, Any]:
-        """AI Tóm tắt lịch sử sửa chữa trước khi tiếp nhận xe"""
-        vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+    def generate_history_summary(
+        cls,
+        db: Session,
+        vehicle_id: int,
+    ) -> Dict[str, Any]:
+        """Tóm tắt lịch sử sửa chữa của xe."""
+
+        vehicle = (
+            db.query(Vehicle)
+            .filter(Vehicle.id == vehicle_id)
+            .first()
+        )
+
         if not vehicle:
             return {
                 "success": False,
                 "feature": "history_summary",
                 "output": "Không tìm thấy thông tin xe trong hệ thống.",
-                "model_used": "None"
+                "model_used": "None",
             }
 
-        # Query past repair orders
         past_orders = (
             db.query(RepairOrder)
-            .filter(RepairOrder.vehicle_id == vehicle_id)
-            .order_by(RepairOrder.created_at.desc())
+            .filter(
+                RepairOrder.vehicle_id == vehicle_id
+            )
+            .order_by(
+                RepairOrder.created_at.desc()
+            )
             .limit(5)
             .all()
         )
 
         if not past_orders:
-            history_details = "Xe chưa có lịch sử sửa chữa trước đây tại garage (Xe mới tiếp nhận lần đầu)."
+            history_details = (
+                "Xe chưa có lịch sử sửa chữa tại garage."
+            )
         else:
-            history_list = []
+            history_lines = []
+
             for ro in past_orders:
-                items_str = ", ".join([f"{item.name} (SL: {item.quantity})" for item in ro.items]) if ro.items else "Kiểm tra tổng quát"
-                history_list.append(
-                    f"+ Mã phiếu {ro.code} ({ro.created_at.strftime('%d/%m/%Y')} - Km: {ro.mileage_at_reception}): "
-                    f"Triệu chứng: {ro.initial_symptoms or 'N/A'}. Chẩn đoán: {ro.technical_diagnosis or 'N/A'}. Hạng mục: {items_str}"
+                if ro.items:
+                    item_names = ", ".join(
+                        str(
+                            getattr(
+                                item,
+                                "name",
+                                "Hạng mục",
+                            )
+                        )
+                        for item in ro.items
+                    )
+                else:
+                    item_names = (
+                        "Không có hạng mục chi tiết"
+                    )
+
+                created_date = (
+                    ro.created_at.strftime("%d/%m/%Y")
+                    if ro.created_at
+                    else "Không rõ"
                 )
-            history_details = "\n".join(history_list)
+
+                mileage = (
+                    cls._safe_int(
+                        ro.mileage_at_reception,
+                        0,
+                    )
+                )
+
+                mileage_text = (
+                    f"{mileage:,} km"
+                    if mileage > 0
+                    else "Không ghi nhận"
+                )
+
+                history_lines.append(
+                    f"- Phiếu {ro.code} "
+                    f"({created_date}, Km: {mileage_text})\n"
+                    f"  Triệu chứng: "
+                    f"{ro.initial_symptoms or 'Không ghi nhận'}\n"
+                    f"  Chẩn đoán: "
+                    f"{ro.technical_diagnosis or 'Chưa có'}\n"
+                    f"  Hạng mục: {item_names}"
+                )
+
+            history_details = "\n".join(
+                history_lines
+            )
 
         user_prompt = PROMPT_HISTORY_SUMMARY.format(
             license_plate=vehicle.license_plate,
             brand=vehicle.brand,
             model=vehicle.model,
             year=vehicle.year or "N/A",
-            history_details=history_details
+            history_details=history_details,
         )
 
-        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, user_prompt)
+        output_text, model_used = cls._call_llm(
+            SYSTEM_GARAGE_ASSISTANT,
+            user_prompt,
+        )
 
-        # Log AI interaction
-        log_entry = AILog(
+        cls._save_ai_log(
+            db=db,
             feature="history_summary",
             prompt_input=user_prompt,
             response_output=output_text,
-            model_used=model_used
+            model_used=model_used,
         )
-        db.add(log_entry)
-        db.commit()
 
         return {
             "success": True,
             "feature": "history_summary",
             "output": output_text,
             "model_used": model_used,
-            "metadata": {"vehicle_id": vehicle_id, "license_plate": vehicle.license_plate}
+            "metadata": {
+                "vehicle_id": vehicle_id,
+                "license_plate": vehicle.license_plate,
+                "orders_analyzed": len(past_orders),
+            },
         }
 
+    # ============================================================
+    # SERVICE EXPLANATION
+    # ============================================================
+
     @classmethod
-    def generate_service_explanation(cls, db: Session, repair_order_id: int) -> Dict[str, Any]:
-        """AI Giải thích dịch vụ sửa chữa cho khách bằng ngôn ngữ dễ hiểu"""
-        ro = db.query(RepairOrder).filter(RepairOrder.id == repair_order_id).first()
+    def generate_service_explanation(
+        cls,
+        db: Session,
+        repair_order_id: int,
+    ) -> Dict[str, Any]:
+        """Giải thích phiếu sửa chữa bằng ngôn ngữ dễ hiểu."""
+
+        ro = (
+            db.query(RepairOrder)
+            .filter(RepairOrder.id == repair_order_id)
+            .first()
+        )
+
         if not ro:
             return {
                 "success": False,
                 "feature": "service_explainer",
                 "output": "Không tìm thấy phiếu sửa chữa trong hệ thống.",
-                "model_used": "None"
+                "model_used": "None",
             }
 
-        # Build repair order data string
-        items_summary = []
-        total_estimate = 0.0
-        if ro.items:
-            for item in ro.items:
-                items_summary.append(f"- {item.name}: {item.quantity} x {item.unit_price:,.0f} VNĐ (Công: {item.labor_cost:,.0f} VNĐ)")
-                total_estimate += item.total_price
-        else:
-            items_summary.append("- Kiểm tra chẩn đoán kỹ thuật tổng thể xe")
+        (
+            items_str,
+            total_parts,
+            total_labor,
+            subtotal,
+        ) = cls._build_items_summary(ro.items)
 
-        items_str = "\n".join(items_summary)
+        vat = subtotal * cls.VAT_RATE
+        grand_total = subtotal + vat
+
+        vehicle = ro.vehicle
+
         repair_order_data = (
-            f"Mã phiếu: {ro.code} | Xe: {ro.vehicle.license_plate} ({ro.vehicle.brand} {ro.vehicle.model})\n"
-            f"Tình trạng nhận xe: {ro.initial_symptoms or 'Không ghi nhận'}\n"
-            f"Chẩn đoán KTV: {ro.technical_diagnosis or 'Đang chẩn đoán'}\n"
-            f"Danh sách hạng mục làm:\n{items_str}\n"
-            f"Tổng chi phí dự kiến: {total_estimate:,.0f} VNĐ"
+            f"Mã phiếu: {ro.code}\n"
+            f"Xe: {vehicle.license_plate} "
+            f"({vehicle.brand} {vehicle.model})\n"
+            f"Tình trạng nhận xe: "
+            f"{ro.initial_symptoms or 'Không ghi nhận'}\n"
+            f"Chẩn đoán KTV: "
+            f"{ro.technical_diagnosis or 'Đang chẩn đoán'}\n\n"
+            f"Danh sách hạng mục:\n"
+            f"{items_str}\n\n"
+            f"Tiền phụ tùng: "
+            f"{cls._format_money(total_parts)}\n"
+            f"Tiền công: "
+            f"{cls._format_money(total_labor)}\n"
+            f"Tổng trước VAT: "
+            f"{cls._format_money(subtotal)}\n"
+            f"VAT 8%: "
+            f"{cls._format_money(vat)}\n"
+            f"Tổng dự kiến: "
+            f"{cls._format_money(grand_total)}"
         )
 
-        user_prompt = PROMPT_SERVICE_EXPLAINER.format(repair_order=repair_order_data)
-        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, user_prompt)
+        user_prompt = PROMPT_SERVICE_EXPLAINER.format(
+            repair_order=repair_order_data
+        )
 
-        # Save output into repair order
+        output_text, model_used = cls._call_llm(
+            SYSTEM_GARAGE_ASSISTANT,
+            user_prompt,
+        )
+
+        # Lưu kết quả AI
         ro.ai_service_explanation = output_text
-        
-        log_entry = AILog(
-            feature="service_explainer",
-            prompt_input=user_prompt,
-            response_output=output_text,
-            model_used=model_used
-        )
-        db.add(log_entry)
-        db.commit()
+
+        # Không commit riêng log nếu muốn transaction đồng nhất.
+        try:
+            log_entry = AILog(
+                feature="service_explainer",
+                prompt_input=user_prompt,
+                response_output=output_text,
+                model_used=model_used,
+            )
+
+            db.add(log_entry)
+            db.commit()
+
+        except Exception:
+            db.rollback()
+            logger.exception(
+                "Không thể lưu service explanation."
+            )
 
         return {
             "success": True,
             "feature": "service_explainer",
             "output": output_text,
             "model_used": model_used,
-            "metadata": {"repair_order_id": repair_order_id, "code": ro.code}
+            "metadata": {
+                "repair_order_id": repair_order_id,
+                "code": ro.code,
+                "total_parts": total_parts,
+                "total_labor": total_labor,
+                "subtotal": subtotal,
+                "vat": vat,
+                "grand_total": grand_total,
+            },
         }
 
+    # ============================================================
+    # DRAFT QUOTATION
+    # ============================================================
+
     @classmethod
-    def generate_draft_quotation(cls, db: Session, repair_order_id: int) -> Dict[str, Any]:
-        """AI Sinh báo giá nháp dựa trên dịch vụ và phụ tùng đã chọn"""
-        ro = db.query(RepairOrder).filter(RepairOrder.id == repair_order_id).first()
+    def generate_draft_quotation(
+        cls,
+        db: Session,
+        repair_order_id: int,
+    ) -> Dict[str, Any]:
+        """
+        Tạo báo giá nháp.
+
+        Python chịu trách nhiệm tính tiền.
+        AI chỉ chịu trách nhiệm trình bày/giải thích.
+        """
+
+        ro = (
+            db.query(RepairOrder)
+            .filter(RepairOrder.id == repair_order_id)
+            .first()
+        )
+
         if not ro:
             return {
                 "success": False,
                 "feature": "draft_quotation",
                 "output": "Không tìm thấy phiếu sửa chữa.",
-                "model_used": "None"
+                "model_used": "None",
             }
 
-        items_summary = []
-        total_parts = 0.0
-        total_labor = 0.0
-        
-        if ro.items:
-            for idx, item in enumerate(ro.items, 1):
-                part_cost = item.unit_price * item.quantity
-                total_parts += part_cost
-                total_labor += item.labor_cost
-                items_summary.append(
-                    f"{idx}. {item.name} | SL: {item.quantity} | Giá vật tư: {part_cost:,.0f} VNĐ | Tiền công: {item.labor_cost:,.0f} VNĐ | Thành tiền: {item.total_price:,.0f} VNĐ"
-                )
-        else:
-            items_summary.append("1. Gói kiểm tra chẩn đoán hệ thống điện & động cơ | Thành tiền: 200,000 VNĐ")
-            total_labor = 200000.0
+        (
+            items_str,
+            total_parts,
+            total_labor,
+            subtotal,
+        ) = cls._build_items_summary(ro.items)
 
-        items_str = "\n".join(items_summary)
-        subtotal = total_parts + total_labor
-        vat = subtotal * 0.08
+        vat = subtotal * cls.VAT_RATE
         grand_total = subtotal + vat
+
+        # --------------------------------------------------------
+        # Prompt gửi AI
+        # --------------------------------------------------------
 
         user_prompt = PROMPT_DRAFT_QUOTATION.format(
             license_plate=ro.vehicle.license_plate,
-            technical_diagnosis=ro.technical_diagnosis or "Kiểm tra bảo dưỡng định kỳ",
-            items_details=items_str
+            technical_diagnosis=(
+                ro.technical_diagnosis
+                or "Chưa có chẩn đoán kỹ thuật"
+            ),
+            items_details=items_str,
         )
 
-        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, user_prompt)
+        # Bổ sung số liệu đã tính bằng Python
+        user_prompt += (
+            "\n\n--- SỐ LIỆU TÀI CHÍNH ĐÃ TÍNH BỞI HỆ THỐNG ---\n"
+            f"Tiền phụ tùng: {cls._format_money(total_parts)}\n"
+            f"Tiền công: {cls._format_money(total_labor)}\n"
+            f"Tổng trước VAT: {cls._format_money(subtotal)}\n"
+            f"VAT ({cls.VAT_RATE * 100:.0f}%): "
+            f"{cls._format_money(vat)}\n"
+            f"Tổng chi phí dự kiến: "
+            f"{cls._format_money(grand_total)}\n\n"
+            "QUAN TRỌNG: Không tự thay đổi các số tiền trên. "
+            "Không tự thêm phụ tùng hoặc dịch vụ chưa có trong dữ liệu."
+        )
 
-        # Update repair order estimated cost & notes
+        output_text, model_used = cls._call_llm(
+            SYSTEM_GARAGE_ASSISTANT,
+            user_prompt,
+        )
+
+        # --------------------------------------------------------
+        # Update DB
+        # --------------------------------------------------------
+
         ro.estimated_cost = grand_total
         ro.ai_draft_quotation_notes = output_text
 
-        log_entry = AILog(
-            feature="draft_quotation",
-            prompt_input=user_prompt,
-            response_output=output_text,
-            model_used=model_used
-        )
-        db.add(log_entry)
-        db.commit()
+        try:
+            log_entry = AILog(
+                feature="draft_quotation",
+                prompt_input=user_prompt,
+                response_output=output_text,
+                model_used=model_used,
+            )
+
+            db.add(log_entry)
+            db.commit()
+
+        except Exception:
+            db.rollback()
+            logger.exception(
+                "Không thể lưu draft quotation."
+            )
 
         return {
             "success": True,
@@ -346,10 +806,17 @@ class AIService:
             "metadata": {
                 "repair_order_id": repair_order_id,
                 "subtotal": subtotal,
+                "vat_rate": cls.VAT_RATE,
                 "vat": vat,
-                "grand_total": grand_total
-            }
+                "grand_total": grand_total,
+                "total_parts": total_parts,
+                "total_labor": total_labor,
+            },
         }
+
+    # ============================================================
+    # GENERAL AI ASSISTANT
+    # ============================================================
 
     @classmethod
     def ask_assistant(
@@ -357,66 +824,154 @@ class AIService:
         db: Session,
         question: str,
         repair_order_id: Optional[int] = None,
-        vehicle_id: Optional[int] = None
+        vehicle_id: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
-        Trợ Lý AI Garage Hợp Nhất: Giải đáp mọi thắc mắc tự do về dịch vụ xe, báo giá nháp, giải thích quy trình sửa chữa...
+        Trợ lý AI Garage tổng quát.
+
+        Có thể trả lời:
+        - Tư vấn kỹ thuật
+        - Chẩn đoán sơ bộ
+        - Giải thích dịch vụ
+        - Giải thích chi phí
+        - Tư vấn bảo dưỡng
         """
+
+        question = (question or "").strip()
+
+        if not question:
+            return {
+                "success": False,
+                "feature": "ai_assistant",
+                "output": "Vui lòng nhập câu hỏi.",
+                "model_used": "None",
+            }
+
         context_parts = []
+
         ro = None
         vehicle = None
 
+        # --------------------------------------------------------
+        # Repair Order context
+        # --------------------------------------------------------
+
         if repair_order_id:
-            ro = db.query(RepairOrder).filter(RepairOrder.id == repair_order_id).first()
+            ro = (
+                db.query(RepairOrder)
+                .filter(
+                    RepairOrder.id == repair_order_id
+                )
+                .first()
+            )
+
             if ro:
                 vehicle = ro.vehicle
-                items_summary = []
-                total_estimate = 0.0
-                if ro.items:
-                    for item in ro.items:
-                        items_summary.append(f"- {item.name}: SL {item.quantity}, Giá vật tư: {item.unit_price:,.0f} VNĐ, Tiền công: {item.labor_cost:,.0f} VNĐ, Thành tiền: {item.total_price:,.0f} VNĐ")
-                        total_estimate += item.total_price
-                else:
-                    items_summary.append("- Chưa có hạng mục chi tiết")
-                items_str = "\n".join(items_summary)
 
-                context_parts.append(
-                    f"--- DỮ LIỆU PHIẾU SỬA CHỮA HOẠT ĐỘNG (RO #{ro.code}) ---\n"
-                    f"Mã phiếu: {ro.code}\n"
-                    f"Biển số xe: {ro.vehicle.license_plate} ({ro.vehicle.brand} {ro.vehicle.model})\n"
-                    f"Số Km nhận xe: {ro.mileage_at_reception:,} km\n"
-                    f"Triệu chứng ban đầu: {ro.initial_symptoms or 'Chưa ghi nhận'}\n"
-                    f"Chẩn đoán KTV: {ro.technical_diagnosis or 'Đang chẩn đoán'}\n"
-                    f"Danh sách dịch vụ/phụ tùng đã chọn:\n{items_str}\n"
-                    f"Tổng chi phí dự kiến: {total_estimate:,.0f} VNĐ\n"
+                (
+                    items_str,
+                    total_parts,
+                    total_labor,
+                    subtotal,
+                ) = cls._build_items_summary(
+                    ro.items
                 )
 
+                vat = subtotal * cls.VAT_RATE
+                grand_total = subtotal + vat
+
+                mileage = cls._safe_int(
+                    ro.mileage_at_reception,
+                    0,
+                )
+
+                context_parts.append(
+                    "--- DỮ LIỆU PHIẾU SỬA CHỮA ---\n"
+                    f"Mã phiếu: {ro.code}\n"
+                    f"Biển số xe: "
+                    f"{ro.vehicle.license_plate}\n"
+                    f"Hãng/Dòng: "
+                    f"{ro.vehicle.brand} "
+                    f"{ro.vehicle.model}\n"
+                    f"Số Km nhận xe: "
+                    f"{mileage:,} km\n"
+                    f"Triệu chứng ban đầu: "
+                    f"{ro.initial_symptoms or 'Chưa ghi nhận'}\n"
+                    f"Chẩn đoán KTV: "
+                    f"{ro.technical_diagnosis or 'Đang chẩn đoán'}\n"
+                    f"Danh sách dịch vụ/phụ tùng:\n"
+                    f"{items_str}\n"
+                    f"Tiền phụ tùng: "
+                    f"{cls._format_money(total_parts)}\n"
+                    f"Tiền công: "
+                    f"{cls._format_money(total_labor)}\n"
+                    f"Tổng trước VAT: "
+                    f"{cls._format_money(subtotal)}\n"
+                    f"VAT 8%: "
+                    f"{cls._format_money(vat)}\n"
+                    f"Tổng dự kiến: "
+                    f"{cls._format_money(grand_total)}"
+                )
+
+        # --------------------------------------------------------
+        # Vehicle context
+        # --------------------------------------------------------
+
         if not vehicle and vehicle_id:
-            vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+            vehicle = (
+                db.query(Vehicle)
+                .filter(Vehicle.id == vehicle_id)
+                .first()
+            )
 
         if vehicle:
             context_parts.append(
-                f"--- THÔNG TIN XE ---\n"
-                f"Biển số: {vehicle.license_plate} | Hãng/Dòng: {vehicle.brand} {vehicle.model} ({vehicle.year or 'N/A'})\n"
+                "--- THÔNG TIN XE ---\n"
+                f"Biển số: {vehicle.license_plate}\n"
+                f"Hãng: {vehicle.brand}\n"
+                f"Dòng xe: {vehicle.model}\n"
+                f"Năm sản xuất: "
+                f"{vehicle.year or 'Không rõ'}"
             )
 
-        context_info = "\n".join(context_parts) if context_parts else "Không có thông tin xe/phiếu sửa chữa cụ thể kèm theo."
+        # --------------------------------------------------------
+        # Context
+        # --------------------------------------------------------
+
+        context_info = (
+            "\n\n".join(context_parts)
+            if context_parts
+            else (
+                "Không có thông tin xe hoặc phiếu "
+                "sửa chữa cụ thể."
+            )
+        )
+
+        # --------------------------------------------------------
+        # Prompt
+        # --------------------------------------------------------
 
         user_prompt = PROMPT_AI_ASSISTANT.format(
             question=question,
-            context_info=context_info
+            context_info=context_info,
         )
 
-        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, user_prompt)
+        output_text, model_used = cls._call_llm(
+            SYSTEM_GARAGE_ASSISTANT,
+            user_prompt,
+        )
 
-        log_entry = AILog(
+        # --------------------------------------------------------
+        # Log
+        # --------------------------------------------------------
+
+        cls._save_ai_log(
+            db=db,
             feature="ai_assistant",
             prompt_input=user_prompt,
             response_output=output_text,
-            model_used=model_used
+            model_used=model_used,
         )
-        db.add(log_entry)
-        db.commit()
 
         return {
             "success": True,
@@ -426,7 +981,6 @@ class AIService:
             "metadata": {
                 "question": question,
                 "repair_order_id": repair_order_id,
-                "vehicle_id": vehicle_id
-            }
+                "vehicle_id": vehicle_id,
+            },
         }
-
