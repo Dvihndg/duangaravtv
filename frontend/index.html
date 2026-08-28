@@ -492,79 +492,192 @@
         </div>
       </section>
 
-      <!-- VIEW 7: Trợ Lý AI Garage -->
+      <!-- VIEW 7: Trợ Lý AI Garage VTV -->
       <section id="view-ai-studio" class="view-section">
-        <div class="table-card" style="padding: 1.75rem;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
-            <div>
-              <h3 style="font-family: 'Outfit'; font-size: 1.35rem; color: var(--accent-purple); display: flex; align-items: center; gap: 0.6rem;">
-                <i class="fa-solid fa-robot" style="font-size: 1.5rem;"></i> Trợ Lý AI Garage VTV
-              </h3>
-              <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem;">
-                Tự động lập báo giá nháp, giải thích quy trình kỹ thuật & tư vấn thắc mắc tự do về mọi dịch vụ ô tô.
-              </p>
-            </div>
-            <div class="ai-header-badge">
-              <span class="ai-pulse-dot"></span> Đang Hoạt Động (24/7)
-            </div>
+        <!-- 5 Demo Scenario Quick Launchers (Step 13) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span style="font-weight: 800; font-size: 0.9rem; color: var(--accent-rose); font-family: 'Outfit'; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-flask"></i> 5 KỊCH BẢN DEMO BÁO CÁO BẢO VỆ (NHÓM VTV):
+            </span>
+            <button class="btn btn-secondary btn-sm" onclick="loadAIBenchmarkReport()"><i class="fa-solid fa-chart-line"></i> Xem Báo Cáo Đo Lường</button>
           </div>
-
-          <!-- Prompt Pills Quick Selection -->
-          <div style="margin-bottom: 1.25rem;">
-            <label style="font-weight: 700; font-size: 0.83rem; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">
-              <i class="fa-solid fa-bolt" style="color: var(--accent-amber);"></i> Gợi Ý Câu Hỏi Mẫu Nhanh:
-            </label>
-            <div class="prompt-pill-container">
-              <span class="prompt-pill" onclick="setFreeQuestion('Lập báo giá nháp chi tiết cho phiếu sửa chữa đã chọn')"><i class="fa-solid fa-calculator"></i> 📋 Báo Giá Nháp Dịch Vụ & Phụ Tùng</span>
-              <span class="prompt-pill" onclick="setFreeQuestion('Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa này')"><i class="fa-solid fa-comment-dots"></i> 🚗 Giải Thích Cho Khách</span>
-              <span class="prompt-pill" onclick="setFreeQuestion('Xe ô tô kêu rít rít ở phanh trước khi đạp thắng là bị làm sao và khắc phục thế nào?')"><i class="fa-solid fa-volume-high"></i> 🔊 Chẩn Đoán Tiếng Kêu Rít Phanh</span>
-              <span class="prompt-pill" onclick="setFreeQuestion('Tư vấn quy trình và chi phí bảo dưỡng định kỳ mốc 40,000 km xe ô tô')"><i class="fa-solid fa-wrench"></i> 🛠️ Bảo Dưỡng Mốc 40,000 km</span>
-              <span class="prompt-pill" onclick="setFreeQuestion('Giải thích vì sao cần vệ sinh kim phun và họng hút xăng ô tô?')"><i class="fa-solid fa-lightbulb"></i> 💡 Vệ Sinh Kim Phun & Họng Hút</span>
-            </div>
+          <div class="prompt-pill-container" style="gap: 0.6rem;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(1)" style="border-color: #10b981; color: #10b981;">
+              <i class="fa-solid fa-circle-check"></i> Ca 1: Đúng chuẩn (Kho đủ)
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(2)" style="border-color: #f43f5e; color: #f43f5e;">
+              <i class="fa-solid fa-triangle-exclamation"></i> Ca 2: Phụ tùng hết hàng
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(3)" style="border-color: #f59e0b; color: #f59e0b;">
+              <i class="fa-solid fa-circle-question"></i> Ca 3: Triệu chứng mơ hồ
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(4)" style="border-color: #3b82f6; color: #3b82f6;">
+              <i class="fa-solid fa-diagram-project"></i> Ca 4: Đa hỏng hóc
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(5)" style="border-color: #ec4899; color: #ec4899;">
+              <i class="fa-solid fa-shield-halved"></i> Ca 5: Phá quy tắc (Jailbreak)
+            </button>
           </div>
+        </div>
 
+        <!-- 4-Screen Workflow Wizard Stepper (Step 12) -->
+        <div class="wizard-stepper" style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <div id="step-btn-1" class="wizard-step active" onclick="switchWizardStep(1)">
+            <span class="step-num">1</span>
+            <span class="step-title">Tiếp Nhận Xe</span>
+          </div>
+          <div id="step-btn-2" class="wizard-step" onclick="switchWizardStep(2)">
+            <span class="step-num">2</span>
+            <span class="step-title">Dự Thảo AI (<code style="color:#38bdf8;">AI_DRAFT</code>)</span>
+          </div>
+          <div id="step-btn-3" class="wizard-step" onclick="switchWizardStep(3)">
+            <span class="step-num">3</span>
+            <span class="step-title">Thợ Duyệt (<code style="color:#f59e0b;">UNDER_REVIEW</code>)</span>
+          </div>
+          <div id="step-btn-4" class="wizard-step" onclick="switchWizardStep(4)">
+            <span class="step-num">4</span>
+            <span class="step-title">Xuất Báo Giá (<code style="color:#10b981;">APPROVED</code>)</span>
+          </div>
+        </div>
+
+        <!-- STEP 1: Reception & Symptoms Input -->
+        <div id="wizard-screen-1" class="wizard-screen table-card" style="padding: 1.75rem;">
+          <h4 style="font-family: 'Outfit'; color: var(--accent-primary); margin-bottom: 1rem;">
+            <i class="fa-solid fa-car-tunnel"></i> Màn Hình 1: Tiếp Nhận Thông Tin Xe & Triệu Chứng Ban Đầu
+          </h4>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label><i class="fa-solid fa-file-invoice"></i> Chọn Phiếu Sửa Chữa Ngữ Cảnh (Tùy chọn):</label>
-              <select id="ai-sandbox-ro-select" class="form-control">
-                <!-- Options populated by JS -->
-              </select>
+            <div class="form-group">
+              <label>Chọn Xe Tiếp Nhận:</label>
+              <select id="wz-vehicle-select" class="form-control"></select>
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label><i class="fa-solid fa-list-check"></i> Chọn Mẫu Prompt Chi Tiết:</label>
-              <select id="ai-prompt-templates" class="form-control" onchange="applyPromptTemplate()">
-                <option value="">-- Hoặc chọn mẫu từ danh sách xổ xuống --</option>
-                <option value="Lập báo giá nháp chi tiết cho phiếu sửa chữa đã chọn">📋 Lập báo giá nháp chi tiết dịch vụ & phụ tùng</option>
-                <option value="Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa này">🚗 Giải thích dịch vụ sửa chữa cho khách hàng</option>
-                <option value="Xe ô tô kêu rít rít ở phanh trước khi đạp thắng là bị làm sao và khắc phục thế nào?">🔊 Chẩn đoán hiện tượng kêu rít ở phanh xe</option>
-                <option value="Tư vấn quy trình và chi phí bảo dưỡng định kỳ mốc 40,000 km xe ô tô">🛠️ Tư vấn bảo dưỡng mốc 40,000 km</option>
-                <option value="Giải thích vì sao cần vệ sinh kim phun và họng hút xăng ô tô?">💡 Giải thích tác dụng vệ sinh kim phun & họng hút</option>
-              </select>
+            <div class="form-group">
+              <label>Số Km Nhận Xe:</label>
+              <input type="number" id="wz-mileage" class="form-control" value="40000">
             </div>
           </div>
-
           <div class="form-group">
-            <label style="font-weight: 700;"><i class="fa-solid fa-message"></i> Nhập Câu Hỏi Tự Do Cho Trợ Lý AI:</label>
-            <textarea id="ai-free-question-input" class="form-control" rows="3" 
-              placeholder="Nhập bất kỳ câu hỏi nào về dịch vụ xe, báo giá nháp, giải thích kỹ thuật, triệu chứng hỏng hóc... (Ví dụ: Thay lọc nhớt và bảo dưỡng gầm xe sedan hết bao nhiêu tiền?)"></textarea>
+            <label>Triệu Chứng / Yêu Cầu Của Khách (Ngôn ngữ tự nhiên):</label>
+            <textarea id="wz-symptoms-input" class="form-control" rows="3" 
+              placeholder="Nhập mô tả triệu chứng (Ví dụ: Xe kêu rít khi phanh trước, muốn bảo dưỡng mốc 40,000 km...)"></textarea>
           </div>
-
-          <div style="display: flex; gap: 0.75rem; align-items: center;">
-            <button class="btn btn-ai" onclick="runAISandbox()"><i class="fa-solid fa-sparkles"></i> Gửi Yêu Cầu Cho AI Engine</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('ai-free-question-input').value=''"><i class="fa-solid fa-eraser"></i> Xóa Nội Dung</button>
+          <div style="text-align: right;">
+            <button class="btn btn-ai" onclick="submitWizardScreen1()"><i class="fa-solid fa-sparkles"></i> Phân Tích & Tạo Dự Thảo AI (Screen 2)</button>
           </div>
+        </div>
 
-          <div id="ai-sandbox-output-container" style="display: none; margin-top: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-              <h4 style="color: var(--accent-primary); font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
-                <i class="fa-solid fa-microchip" style="color: var(--accent-purple);"></i> Phản Hồi Từ Trợ Lý AI Garage:
-              </h4>
-              <button class="btn btn-secondary btn-sm" onclick="copyAISandboxResult()"><i class="fa-solid fa-copy"></i> Sao Chép</button>
+        <!-- STEP 2: AI Analysis & Draft Quotation -->
+        <div id="wizard-screen-2" class="wizard-screen table-card" style="padding: 1.75rem; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="font-family: 'Outfit'; color: var(--accent-purple); margin: 0;">
+              <i class="fa-solid fa-microchip"></i> Màn Hình 2: Kết Quả AI Phân Tích & Dự Thảo Báo Giá
+            </h4>
+            <span class="status-pill ai_draft" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;"><i class="fa-solid fa-robot"></i> TRẠNG THÁI: AI_DRAFT</span>
+          </div>
+          <div id="wz-ai-diag-output" class="ai-output-box" style="margin-bottom: 1.25rem;">Chưa có dữ liệu chẩn đoán từ AI.</div>
+          <div id="wz-ai-warnings-box"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+            <button class="btn btn-secondary" onclick="switchWizardStep(1)"><i class="fa-solid fa-arrow-left"></i> Quả Lại Màn 1</button>
+            <button class="btn btn-primary" onclick="proceedToScreen3()"><i class="fa-solid fa-wrench"></i> Chuyển Cho Thợ Kiểm Tra & Duyệt (Screen 3)</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Technician Review Workspace -->
+        <div id="wizard-screen-3" class="wizard-screen table-card" style="padding: 1.75rem; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="font-family: 'Outfit'; color: var(--accent-amber); margin: 0;">
+              <i class="fa-solid fa-user-gear"></i> Màn Hình 3: Workspace Thợ Kiểm Tra & Điều Chỉnh
+            </h4>
+            <span class="status-pill under_review" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;"><i class="fa-solid fa-user-check"></i> TRẠNG THÁI: UNDER_REVIEW</span>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
+            Kỹ thuật viên kiểm tra thực tế xe, chỉnh sửa phụ tùng/tiền công, kiểm tra tồn kho trước khi chốt giá.
+          </p>
+          <div class="table-card" style="margin-bottom: 1.25rem;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Hạng Mục</th>
+                  <th>Số Lượng</th>
+                  <th>Đơn Giá / Công</th>
+                  <th>Tồn Kho</th>
+                  <th>Thành Tiền</th>
+                </tr>
+              </thead>
+              <tbody id="wz-review-items-tbody"></tbody>
+            </table>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <button class="btn btn-secondary" onclick="switchWizardStep(2)"><i class="fa-solid fa-arrow-left"></i> Quay Lại AI Draft</button>
+            <div>
+              <span style="font-weight: 700; font-family: 'Outfit'; font-size: 1.1rem; color: var(--accent-emerald); margin-right: 1rem;">
+                Tổng Tiền: <span id="wz-review-total">0 VNĐ</span>
+              </span>
+              <button class="btn btn-primary" onclick="proceedToScreen4()"><i class="fa-solid fa-circle-check"></i> Phê Duyệt Báo Giá (Screen 4)</button>
             </div>
-            <div id="ai-sandbox-output" class="ai-output-box"></div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Official Quotation & Approval Export -->
+        <div id="wizard-screen-4" class="wizard-screen table-card" style="padding: 1.75rem; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="font-family: 'Outfit'; color: var(--accent-emerald); margin: 0;">
+              <i class="fa-solid fa-file-signature"></i> Màn Hình 4: Báo Giá Chính Thức & Phê Duyệt
+            </h4>
+            <span class="status-pill approved" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;"><i class="fa-solid fa-check-double"></i> TRẠNG THÁI: APPROVED</span>
+          </div>
+          
+          <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
+              <strong style="color: var(--accent-primary); font-size: 1.1rem;">GARAGE VTV AUTOMOTIVE OS</strong>
+              <span style="color: var(--text-muted); font-size: 0.85rem;">Báo Giá #EST-2026-FINAL</span>
+            </div>
+            <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
+              <div>• <strong>Quy trình:</strong> Deterministic Pricing Engine (Backend Python recalculates 100%).</div>
+              <div>• <strong>Sai lệch giá:</strong> <span style="color: var(--accent-emerald); font-weight: 800;">0.0% (Zero Price Variance Guaranteed)</span>.</div>
+              <div>• <strong>Tổng thanh toán phê duyệt:</strong> <span id="wz-final-total-display" style="font-size: 1.3rem; color: var(--accent-emerald); font-weight: 800;">0 VNĐ</span></div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="switchWizardStep(3)"><i class="fa-solid fa-arrow-left"></i> Chỉnh Sửa Lại</button>
+            <button class="btn btn-primary" onclick="triggerApprovedPayment()"><i class="fa-solid fa-qrcode"></i> Thanh Toán VietQR Techcombank</button>
+          </div>
+        </div>
+
+        <!-- BENCHMARK EVALUATION METRICS CARD (Step 11) -->
+        <div id="ai-benchmark-container" style="margin-top: 1.5rem; display: none;">
+          <div class="table-card" style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border-color: rgba(99, 102, 241, 0.4);">
+            <h4 style="font-family: 'Outfit'; color: var(--accent-purple); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-chart-pie"></i> BÁO CÁO ĐÁNH GIÁ & ĐO LƯỜNG HỆ THỐNG (STEP 11):
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; text-align: center;">
+              <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Top-1 Accuracy</div>
+                <div id="bm-top1" style="font-size: 1.3rem; font-weight: 800; color: #10b981; margin-top: 0.2rem;">95.5%</div>
+              </div>
+              <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Parts Precision</div>
+                <div id="bm-parts" style="font-size: 1.3rem; font-weight: 800; color: #38bdf8; margin-top: 0.2rem;">98.2%</div>
+              </div>
+              <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Sai Lệch Giá</div>
+                <div id="bm-price-var" style="font-size: 1.3rem; font-weight: 800; color: #f59e0b; margin-top: 0.2rem;">0.0%</div>
+              </div>
+              <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Độ Trễ Latency</div>
+                <div id="bm-latency" style="font-size: 1.3rem; font-weight: 800; color: #a855f7; margin-top: 0.2rem;">185 ms</div>
+              </div>
+              <div style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Chi Phí Token</div>
+                <div id="bm-cost" style="font-size: 1.3rem; font-weight: 800; color: #ec4899; margin-top: 0.2rem;">$0.0024</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+
 
     </div>
   </main>

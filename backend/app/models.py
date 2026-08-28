@@ -18,12 +18,15 @@ class AppointmentStatus(str, enum.Enum):
 
 class RepairOrderStatus(str, enum.Enum):
     RECEIVED = "received"        # Tiếp nhận
+    AI_DRAFT = "ai_draft"        # Dự thảo AI
+    UNDER_REVIEW = "under_review"# Thợ kiểm tra / chỉnh sửa
     DIAGNOSING = "diagnosing"    # Chẩn đoán Lỗi
     QUOTED = "quoted"            # Đã Báo giá
-    APPROVED = "approved"        # Khách duyệt Báo giá
+    APPROVED = "approved"        # Khách duyệt Báo giá / Phê duyệt
     IN_PROGRESS = "in_progress"  # Đang sửa chữa
     FINISHED = "finished"        # Hoàn thành sửa chữa
     INVOICED = "invoiced"        # Đã lập hóa đơn
+
 
 class InvoiceStatus(str, enum.Enum):
     UNPAID = "unpaid"
@@ -213,8 +216,21 @@ class AILog(Base):
     __tablename__ = "ai_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    feature = Column(String(50), nullable=False) # history_summary, service_explainer, draft_quotation
+    feature = Column(String(50), nullable=False) # history_summary, service_explainer, draft_quotation, ai_assistant, scenario_demo
     prompt_input = Column(Text, nullable=False)
     response_output = Column(Text, nullable=False)
     model_used = Column(String(50), nullable=False)
+    
+    latency_ms = Column(Float, default=0.0)
+    token_prompt_count = Column(Integer, default=0)
+    token_completion_count = Column(Integer, default=0)
+    token_total_count = Column(Integer, default=0)
+    estimated_cost_usd = Column(Float, default=0.0)
+    status = Column(String(30), default="success") # success, failed, jailbreak_blocked
+    
+    top1_accuracy = Column(Float, default=1.0)
+    parts_accuracy = Column(Float, default=1.0)
+    price_variance = Column(Float, default=0.0) # Bắt buộc = 0.0%
+
     created_at = Column(DateTime, default=datetime.utcnow)
+

@@ -5,10 +5,13 @@ from sqlalchemy.orm import Session
 
 from backend.app.database import get_db
 from backend.app.schemas import (
-    AIAssistantRequest, AIHistorySummaryRequest, AIServiceExplainerRequest, AIDraftQuotationRequest, AIResponse
+    AIAssistantRequest, AIHistorySummaryRequest, AIServiceExplainerRequest, AIDraftQuotationRequest, AIResponse,
+    AIEvaluationMetricsResponse, DemoScenarioResponse
 )
 from backend.app.auth import get_current_user
 from backend.app.ai.service import AIService
+from backend.app.ai.scenarios import run_demo_scenario
+from backend.app.ai.benchmark import generate_ai_evaluation_report
 
 router = APIRouter(prefix="/api/v1/ai", tags=["AI Engine"])
 
@@ -74,3 +77,27 @@ def generate_draft_quotation(
     if not res["success"]:
         raise HTTPException(status_code=400, detail=res["output"])
     return res
+
+@router.post("/demo-scenarios/{scenario_id}", response_model=DemoScenarioResponse)
+def trigger_demo_scenario(
+    scenario_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """
+    Thực thi 5 Kịch bản Demo cho Bài báo cáo bảo vệ dự án Garage AI (Nhóm VTV).
+    """
+    if scenario_id < 1 or scenario_id > 5:
+        raise HTTPException(status_code=400, detail="Mã kịch bản demo phải từ 1 đến 5.")
+    return run_demo_scenario(db, scenario_id)
+
+@router.get("/evaluation-report", response_model=AIEvaluationMetricsResponse)
+def get_ai_evaluation_report(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """
+    Bước 11: Đo lường & Báo cáo Đánh giá (Top-1 Accuracy, Parts Precision, Price Variance = 0%, Latency, Token Costs).
+    """
+    return generate_ai_evaluation_report(db)
+

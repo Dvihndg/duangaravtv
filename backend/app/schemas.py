@@ -237,3 +237,27 @@ class AIResponse(BaseModel):
     model_used: str
     metadata: Optional[dict] = None
 
+class AIEvaluationMetricsResponse(BaseModel):
+    total_interactions: int
+    top1_accuracy_percent: float
+    parts_accuracy_percent: float
+    price_variance_percent: float
+    average_latency_ms: float
+    total_token_count: int
+    total_estimated_cost_usd: float
+    status_summary: dict
+
+class DemoScenarioResponse(BaseModel):
+    scenario_id: int
+    scenario_title: str
+    scenario_description: str
+    status: str
+    symptoms: str
+    diagnosis: str
+    suggested_parts: List[dict]
+    suggested_services: List[dict]
+    estimated_total: float
+    warnings: List[str]
+    ai_raw_output: str
+
+

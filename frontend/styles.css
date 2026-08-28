@@ -928,4 +928,66 @@ body {
   color: white;
 }
 
+/* 4-Step Wizard Stepper CSS */
+.wizard-step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+.wizard-step.active {
+  opacity: 1;
+  background: var(--bg-primary);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+}
+.wizard-step .step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.wizard-step.active .step-num {
+  background: var(--accent-primary);
+  color: white;
+  border-color: transparent;
+}
+.wizard-step .step-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Workflow Status Badges */
+.status-pill.ai_draft {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.status-pill.under_review {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.status-pill.approved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+
 

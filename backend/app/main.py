@@ -10,14 +10,43 @@ from backend.app.routers import (
     auth, customers, appointments, inventory, repair_orders, invoices, ai, analytics
 )
 
+from sqlalchemy import inspect, text
+
 # Create database tables automatically
 Base.metadata.create_all(bind=engine)
+
+def ensure_db_columns():
+    try:
+        inspector = inspect(engine)
+        if "ai_logs" in inspector.get_table_names():
+            columns = [c["name"] for c in inspector.get_columns("ai_logs")]
+            with engine.connect() as conn:
+                new_cols = [
+                    ("latency_ms", "FLOAT DEFAULT 0.0"),
+                    ("token_prompt_count", "INTEGER DEFAULT 0"),
+                    ("token_completion_count", "INTEGER DEFAULT 0"),
+                    ("token_total_count", "INTEGER DEFAULT 0"),
+                    ("estimated_cost_usd", "FLOAT DEFAULT 0.0"),
+                    ("status", "VARCHAR(30) DEFAULT 'success'"),
+                    ("top1_accuracy", "FLOAT DEFAULT 1.0"),
+                    ("parts_accuracy", "FLOAT DEFAULT 1.0"),
+                    ("price_variance", "FLOAT DEFAULT 0.0"),
+                ]
+                for name, d_type in new_cols:
+                    if name not in columns:
+                        conn.execute(text(f"ALTER TABLE ai_logs ADD COLUMN {name} {d_type}"))
+                conn.commit()
+    except Exception as e:
+        print(f"Migration notice: {e}")
+
+ensure_db_columns()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
     description="Hệ thống Quản lý Garage Ô tô Tích hợp AI (FastAPI + Modern SPA + Gemini AI)"
 )
+
 
 # CORS Middleware
 app.add_middleware(

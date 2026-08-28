@@ -934,9 +934,11 @@ function formatStatus(status) {
     pending: "Chờ xử lý",
     confirmed: "Đã xác nhận",
     received: "Tiếp nhận",
+    ai_draft: "Dự thảo AI (AI_DRAFT)",
+    under_review: "Thợ kiểm tra (UNDER_REVIEW)",
     diagnosing: "Chẩn đoán",
     quoted: "Đã báo giá",
-    approved: "Khách duyệt",
+    approved: "Phê duyệt (APPROVED)",
     in_progress: "Đang sửa chữa",
     finished: "Hoàn thành",
     invoiced: "Đã lập hóa đơn",
@@ -946,3 +948,171 @@ function formatStatus(status) {
   };
   return map[status] || status;
 }
+
+// Step 12: 4-Screen Wizard & State Machine Logic
+let wizardState = {
+  currentStep: 1,
+  activeData: null
+};
+
+function switchWizardStep(stepNum) {
+  wizardState.currentStep = stepNum;
+  for (let i = 1; i <= 4; i++) {
+    const btn = document.getElementById(`step-btn-${i}`);
+    const screen = document.getElementById(`wizard-screen-${i}`);
+    if (btn) btn.classList.toggle("active", i === stepNum);
+    if (screen) screen.style.display = (i === stepNum) ? "block" : "none";
+  }
+}
+
+async function submitWizardScreen1() {
+  const symptoms = document.getElementById("wz-symptoms-input").value;
+  if (!symptoms.trim()) {
+    showToast("Vui lòng nhập mô tả triệu chứng xe!");
+    return;
+  }
+  showToast("AI Engine đang phân tích dữ liệu triệu chứng...");
+  try {
+    const res = await apiFetch("/ai/assistant", {
+      method: "POST",
+      body: JSON.stringify({ question: `Lập dự thảo báo giá nháp cho triệu chứng: ${symptoms}` })
+    });
+    
+    renderFormattedAIOutput("wz-ai-diag-output", res.output);
+    switchWizardStep(2);
+  } catch (err) {
+    showToast(`Lỗi phân tích AI: ${err.message}`);
+  }
+}
+
+function proceedToScreen3() {
+  switchWizardStep(3);
+  renderWizardReviewTable();
+}
+
+function proceedToScreen4() {
+  switchWizardStep(4);
+}
+
+function renderWizardReviewTable() {
+  const tbody = document.getElementById("wz-review-items-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = `
+    <tr>
+      <td><code>PAR-OIL-001</code></td>
+      <td>Dầu nhớt động cơ Synthetic 4L</td>
+      <td>4</td>
+      <td>250,000 VNĐ</td>
+      <td><span style="color: #10b981; font-weight:700;">25 (Đủ tồn kho)</span></td>
+      <td style="color: #34d399; font-weight:700;">1,000,000 VNĐ</td>
+    </tr>
+    <tr>
+      <td><code>PAR-FIL-001</code></td>
+      <td>Lọc nhớt động cơ chính hãng</td>
+      <td>1</td>
+      <td>150,000 VNĐ</td>
+      <td><span style="color: #10b981; font-weight:700;">18 (Đủ tồn kho)</span></td>
+      <td style="color: #34d399; font-weight:700;">150,000 VNĐ</td>
+    </tr>
+    <tr>
+      <td><code>SER-002</code></td>
+      <td>Công láng đĩa phanh & Bảo dưỡng heo phanh</td>
+      <td>1</td>
+      <td>400,000 VNĐ</td>
+      <td>-</td>
+      <td style="color: #34d399; font-weight:700;">400,000 VNĐ</td>
+    </tr>
+  `;
+  document.getElementById("wz-review-total").innerText = "1,550,000 VNĐ";
+  document.getElementById("wz-final-total-display").innerText = "1,550,000 VNĐ";
+}
+
+// Step 13: 5 Demo Scenario Launchers
+async function triggerDemoScenarioUI(scenarioId) {
+  showToast(`Đang thực thi Kịch bản Demo ${scenarioId}...`);
+  try {
+    const res = await apiFetch(`/ai/demo-scenarios/${scenarioId}`, { method: "POST" });
+    wizardState.activeData = res;
+    
+    // Auto-fill Screen 1 symptoms
+    document.getElementById("wz-symptoms-input").value = res.symptoms;
+    
+    // Render Screen 2 AI Output
+    const warnHtml = res.warnings.length > 0 ? 
+      `<div style="background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3); padding: 0.85rem; border-radius: var(--radius-md); margin-top: 1rem; color: #f43f5e; font-weight: 700;">
+        ${res.warnings.join('<br>')}
+      </div>` : '';
+      
+    document.getElementById("wz-ai-diag-output").innerHTML = `
+      <div style="font-weight:700; color: var(--accent-purple); margin-bottom: 0.5rem;">[${res.scenario_title}]</div>
+      <div><strong>Chẩn đoán:</strong> ${res.diagnosis}</div>
+      <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">${res.ai_raw_output}</div>
+    `;
+    document.getElementById("wz-ai-warnings-box").innerHTML = warnHtml;
+
+    // Render Review Table
+    const tbody = document.getElementById("wz-review-items-tbody");
+    if (tbody) {
+      tbody.innerHTML = "";
+      res.suggested_parts.forEach(p => {
+        const stockCol = p.stock === 0 ? 
+          `<span style="color: #f43f5e; font-weight:800;">0 (⚠️ HẾT HÀNG KHO)</span>` : 
+          `<span style="color: #10b981; font-weight:700;">${p.stock} (Còn hàng)</span>`;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><code>${p.code}</code></td>
+          <td>${p.name}</td>
+          <td>${p.qty}</td>
+          <td>${p.price.toLocaleString()} VNĐ</td>
+          <td>${stockCol}</td>
+          <td style="color: #34d399; font-weight:700;">${p.total.toLocaleString()} VNĐ</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      res.suggested_services.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><code>${s.code}</code></td>
+          <td>${s.name} (Dịch vụ)</td>
+          <td>1</td>
+          <td>${s.cost.toLocaleString()} VNĐ</td>
+          <td>-</td>
+          <td style="color: #34d399; font-weight:700;">${s.cost.toLocaleString()} VNĐ</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    const fmtTotal = `${res.estimated_total.toLocaleString('vi-VN')} VNĐ`;
+    document.getElementById("wz-review-total").innerText = fmtTotal;
+    document.getElementById("wz-final-total-display").innerText = fmtTotal;
+
+    switchWizardStep(2);
+    showToast(`Đã tải Kịch bản ${scenarioId}: ${res.scenario_title}`);
+  } catch (err) {
+    showToast(`Lỗi chạy kịch bản: ${err.message}`);
+  }
+}
+
+// Step 11: Load Evaluation Report
+async function loadAIBenchmarkReport() {
+  const container = document.getElementById("ai-benchmark-container");
+  if (container) container.style.display = "block";
+  try {
+    const data = await apiFetch("/ai/evaluation-report");
+    document.getElementById("bm-top1").innerText = `${data.top1_accuracy_percent}%`;
+    document.getElementById("bm-parts").innerText = `${data.parts_accuracy_percent}%`;
+    document.getElementById("bm-price-var").innerText = `${data.price_variance_percent}%`;
+    document.getElementById("bm-latency").innerText = `${data.average_latency_ms} ms`;
+    document.getElementById("bm-cost").innerText = `$${data.total_estimated_cost_usd}`;
+    showToast("Đã tải Báo cáo Đo lường & Đánh giá AI Engine!");
+  } catch (err) {
+    showToast(`Lỗi tải báo cáo: ${err.message}`);
+  }
+}
+
+function triggerApprovedPayment() {
+  openPaymentModal(999, "INV-2026-FINAL", 1550000);
+}
+
