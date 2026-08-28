@@ -1060,7 +1060,7 @@ body {
   }
 }
 
-/* 2. Laptops & Small Desktops (1025px - 1400px) */
+/* 2. Laptops & Standard Desktops (1025px - 1400px) */
 @media (max-width: 1400px) and (min-width: 1025px) {
   .kpi-grid {
     grid-template-columns: repeat(4, 1fr);
@@ -1068,63 +1068,49 @@ body {
   }
 }
 
-/* 3. Tablets / iPads (769px - 1024px) */
-@media (max-width: 1024px) and (min-width: 769px) {
-  .sidebar {
-    width: 220px;
-    padding: 1.25rem 0.85rem;
-  }
-  .brand-name { font-size: 1.05rem; }
-  .nav-item { font-size: 0.85rem; padding: 0.65rem 0.75rem; }
-  
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-  .grid-split-dashboard,
-  .grid-split-appointments,
-  .grid-2col {
-    grid-template-columns: 1fr !important;
-    gap: 1.25rem !important;
-  }
-  .grid-5col-benchmark {
-    grid-template-columns: repeat(3, 1fr) !important;
-  }
-}
-
-/* 4. Mobile / Smartphones (<= 768px) */
-@media (max-width: 768px) {
+/* 3. Tablets, iPads & All Mobile Devices (<= 1024px) */
+@media (max-width: 1024px) {
   body {
-    flex-direction: column;
+    flex-direction: column !important;
+  }
+
+  /* Off-Canvas Mobile Drawer Sidebar */
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: -320px !important;
+    bottom: 0 !important;
+    width: 280px !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  .sidebar.mobile-open {
+    left: 0 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Main Wrapper - Takes 100% Screen Width */
+  .main-wrapper {
+    width: 100% !important;
+    max-width: 100vw !important;
+    flex: 1 1 100% !important;
+    min-height: 100vh;
+    padding-bottom: 80px !important;
+    overflow-x: hidden !important;
   }
 
   .mobile-menu-btn {
-    display: inline-flex;
-  }
-
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: -280px;
-    bottom: 0;
-    width: 270px;
-    height: 100vh;
-    z-index: 1000;
-    transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-  }
-  .sidebar.mobile-open {
-    left: 0;
-  }
-
-  .main-wrapper {
-    height: auto;
-    min-height: 100vh;
-    padding-bottom: 75px;
+    display: inline-flex !important;
   }
 
   .top-bar {
-    padding: 0.85rem 1rem;
+    padding: 0.85rem 1rem !important;
   }
   .top-bar h2 {
     font-size: 1.05rem !important;
@@ -1134,32 +1120,35 @@ body {
     gap: 0.5rem;
   }
   .role-switcher-container span:first-child {
-    display: none;
+    display: none !important;
   }
 
   .content-container {
-    padding: 1rem 0.85rem;
+    padding: 1rem 0.85rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
+  /* Responsive Grid Adaptations */
   .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+    margin-bottom: 1.25rem !important;
   }
   .kpi-card {
-    padding: 1rem;
+    padding: 0.85rem 1rem !important;
   }
   .kpi-info .val {
-    font-size: 1.35rem;
+    font-size: 1.3rem !important;
   }
 
-  /* Grid 2-column to 1-column responsive layout */
   .grid-split-dashboard,
   .grid-split-appointments,
   .grid-2col {
     grid-template-columns: 1fr !important;
     gap: 1.0rem !important;
   }
+
   .grid-5col-benchmark {
     grid-template-columns: repeat(2, 1fr) !important;
   }
@@ -1196,7 +1185,7 @@ body {
 
   /* Mobile Bottom Navigation Bar */
   .mobile-bottom-nav {
-    display: flex;
+    display: flex !important;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -1205,7 +1194,7 @@ body {
     background: rgba(15, 23, 42, 0.96);
     backdrop-filter: blur(12px);
     border-top: 1px solid var(--border-color);
-    z-index: 999;
+    z-index: 9990;
     justify-content: space-around;
     align-items: center;
     padding: 0 0.5rem;
@@ -1237,7 +1226,7 @@ body {
   }
 }
 
-/* 5. Extra Small Phones (< 480px) */
+/* 4. Extra Small Phones (< 480px) */
 @media (max-width: 480px) {
   .kpi-grid {
     grid-template-columns: 1fr !important;
@@ -1249,18 +1238,21 @@ body {
     flex: 1 1 100% !important;
   }
   .top-bar {
-    padding: 0.75rem 0.5rem;
+    padding: 0.65rem 0.75rem !important;
   }
-  .header-controls select {
-    font-size: 0.75rem !important;
-    padding: 0.2rem 0.3rem !important;
+  .top-bar h2 {
+    font-size: 0.95rem !important;
+  }
+  .role-switcher-container {
+    padding: 0.2rem 0.4rem !important;
   }
   .role-badge {
-    display: none;
+    display: none !important;
   }
   .btn {
-    padding: 0.5rem 0.85rem;
-    font-size: 0.8rem;
+    padding: 0.45rem 0.75rem !important;
+    font-size: 0.78rem !important;
   }
 }
+
 
