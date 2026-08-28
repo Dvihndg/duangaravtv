@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ thống Quản lý Garage Ô tô Tích hợp AI (Manus AI Garage Engine)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand-header">
+      <div class="brand-logo"><i class="fa-solid fa-car-wrench"></i></div>
+      <div>
+        <div class="brand-name">GARAGE VTV</div>
+        </div>
+      </div>
+
+      <div class="nav-section-title">Tổng quan</div>
+      <ul class="nav-list">
+        <li class="nav-item active" data-view="dashboard">
+          <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </li>
+        <li class="nav-item" data-view="appointments">
+          <i class="fa-solid fa-calendar-check"></i> Lịch Hẹn & Tiếp Nhận
+        </li>
+        <li class="nav-item" data-view="repair-orders">
+          <i class="fa-solid fa-file-invoice-dollar"></i> Phiếu Sửa Chữa
+        </li>
+      </ul>
+
+      <div class="nav-section-title">Danh mục & Khách</div>
+      <ul class="nav-list">
+        <li class="nav-item" data-view="customers">
+          <i class="fa-solid fa-users"></i> Khách Hàng & Xe
+        </li>
+        <li class="nav-item" data-view="inventory">
+          <i class="fa-solid fa-boxes-stacked"></i> Kho Phụ Tùng & Dịch Vụ
+        </li>
+        <li class="nav-item" data-view="invoices">
+          <i class="fa-solid fa-receipt"></i> Hóa Đơn & Thanh Toán
+        </li>
+      </ul>
+
+      <div class="nav-section-title">Công cụ AI</div>
+      <ul class="nav-list">
+        <li class="nav-item ai-tab" data-view="ai-studio">
+          <i class="fa-solid fa-robot"></i> Trợ Lý AI Garage
+        </li>
+      </ul>
+
+  </aside>
+
+  <!-- Main Area -->
+  <main class="main-wrapper">
+    <!-- Top Header Bar -->
+    <header class="top-bar">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <h2 id="page-title" style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700;">Tổng Quan
+          Garage</h2>
+      </div>
+
+      <!-- Controls: Theme Toggle & Role Switcher -->
+      <div class="header-controls">
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle" class="theme-toggle-btn" title="Chuyển chế độ Sáng/Tối" onclick="toggleTheme()">
+          <i class="fa-solid fa-sun" id="theme-icon"></i>
+        </button>
+
+        <!-- Role Switcher -->
+        <div class="role-switcher-container">
+          <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;"><i
+              class="fa-solid fa-user-gear"></i> Vai trò:</span>
+          <select id="role-select" class="form-control"
+            style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.82rem; font-weight: 600;">
+            <option value="manager">Quản Lý (Admin)</option>
+            <option value="receptionist" selected>Lễ Tân (Receptionist)</option>
+            <option value="technician">Kỹ Thuật Viên (Tech)</option>
+            <option value="cashier">Thu Ngân (Cashier)</option>
+          </select>
+          <span id="role-badge" class="role-badge receptionist">Lễ Tân</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="content-container">
+
+      <!-- VIEW 1: Dashboard -->
+      <section id="view-dashboard" class="view-section active">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <h4>Doanh Thu Thực Thu</h4>
+              <div class="val" id="kpi-revenue">0 VNĐ</div>
+              <div class="kpi-trend up"><i class="fa-solid fa-arrow-trend-up"></i> +12.5% so với tháng trước</div>
+            </div>
+            <div class="kpi-icon emerald"><i class="fa-solid fa-sack-dollar"></i></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <h4>Xe Đang Sửa Chữa</h4>
+              <div class="val" id="kpi-active-orders">0</div>
+              <div class="kpi-trend up"><i class="fa-solid fa-car-side"></i> Đang vận hành</div>
+            </div>
+            <div class="kpi-icon blue"><i class="fa-solid fa-car-burst"></i></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <h4>Lịch Hẹn Chờ Tiếp Nhận</h4>
+              <div class="val" id="kpi-pending-apts">0</div>
+              <div class="kpi-trend neutral"><i class="fa-solid fa-clock"></i> Cần xử lý sớm</div>
+            </div>
+            <div class="kpi-icon amber"><i class="fa-solid fa-clock"></i></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <h4>Cảnh Báo Tồn Kho</h4>
+              <div class="val" id="kpi-low-stock">0</div>
+              <div class="kpi-trend neutral"><i class="fa-solid fa-triangle-exclamation"></i> Phụ tùng cần nhập</div>
+            </div>
+            <div class="kpi-icon purple"><i class="fa-solid fa-boxes-stacked"></i></div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+          <div class="table-card">
+            <div class="table-header">
+              <h3 style="font-family: 'Outfit'; font-size: 1.05rem;"><i class="fa-solid fa-list-check"></i> Phiếu Sửa
+                Chữa Mới Nhất</h3>
+              <button class="btn btn-primary btn-sm" onclick="switchView('repair-orders')">Xem Tất Cả</button>
+            </div>
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã Phiếu</th>
+                  <th>Biển Số Xe</th>
+                  <th>Km Nhận</th>
+                  <th>Trạng Thái</th>
+                  <th>Chi Phí Dự Kiến</th>
+                </tr>
+              </thead>
+              <tbody id="dash-orders-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-card" style="padding: 1.5rem;">
+            <h3 style="font-family: 'Outfit'; font-size: 1.05rem; margin-bottom: 1rem;"><i class="fa-solid fa-fire"
+                style="color: var(--accent-rose);"></i> Dịch Vụ Phổ Biến</h3>
+            <div id="top-services-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: Appointments & Vehicle Reception -->
+      <section id="view-appointments" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-calendar-days"></i> Quản Lý Lịch Hẹn & Tiếp Nhận Xe
+          </h3>
+          <button class="btn btn-primary" onclick="openModal('modal-new-appointment')"><i class="fa-solid fa-plus"></i>
+            Đặt Lịch Mới</button>
+        </div>
+
+        <div class="table-card">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Biển Số Xe</th>
+                <th>Tên / Dòng Xe</th>
+                <th>Thời Gian Hẹn</th>
+                <th>Ghi Chú Yêu Cầu</th>
+                <th>Trạng Thái</th>
+                <th>Thao Tác AI & Tiếp Nhận</th>
+              </tr>
+            </thead>
+            <tbody id="appointments-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 3: Repair Orders (Phiếu Sửa Chữa) -->
+      <section id="view-repair-orders" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-wrench"></i> Phiếu Sửa Chữa & Chẩn Đoán Kỹ Thuật</h3>
+          <button class="btn btn-primary" onclick="openModal('modal-new-ro')"><i class="fa-solid fa-folder-plus"></i>
+            Tiếp Nhận & Lập Phiếu</button>
+        </div>
+
+        <div class="table-card">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Mã Phiếu</th>
+                <th>Biển Số Xe</th>
+                <th>Triệu Chứng / Chẩn Đoán</th>
+                <th>Trạng Thái</th>
+                <th>Tổng Chi Phí</th>
+                <th>Chức Năng AI Engine</th>
+                <th>Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="repair-orders-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 4: Customers & Vehicles -->
+      <section id="view-customers" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-address-book"></i> Danh Sách Khách Hàng & Xe</h3>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="customer-search-input" class="form-control" placeholder="Tìm theo tên/SĐT/Biển số..."
+              style="width: 250px;">
+            <button class="btn btn-primary" onclick="openModal('modal-new-customer')"><i
+                class="fa-solid fa-user-plus"></i> Thêm Khách Hàng</button>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Khách Hàng</th>
+                <th>Số Điện Thoại</th>
+                <th>Địa Chỉ</th>
+                <th>Danh Sách Xe</th>
+                <th>Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 5: Inventory & Services -->
+      <section id="view-inventory" class="view-section">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <!-- Services catalog -->
+          <div class="table-card">
+            <div class="table-header">
+              <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-list"></i> Danh Mục Dịch Vụ</h3>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-service')">+ Thêm Dịch Vụ</button>
+            </div>
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Tên Dịch Vụ</th>
+                  <th>Tiền Công</th>
+                </tr>
+              </thead>
+              <tbody id="services-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Parts Inventory -->
+          <div class="table-card">
+            <div class="table-header">
+              <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-box"></i> Kho Phụ Tùng</h3>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-part')">+ Nhập Phụ Tùng</button>
+            </div>
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Tên Phụ Tùng</th>
+                  <th>Đơn Giá Bán</th>
+                  <th>Tồn Kho</th>
+                </tr>
+              </thead>
+              <tbody id="parts-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 6: Invoices & Payments -->
+      <section id="view-invoices" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-file-invoice"></i> Hóa Đơn Sửa Chữa & Thanh Toán</h3>
+        </div>
+
+        <div class="table-card">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Số Hóa Đơn</th>
+                <th>Mã Phiếu Sửa Chữa</th>
+                <th>Tiền Trước Thuế</th>
+                <th>VAT (8%)</th>
+                <th>Tổng Tiền</th>
+                <th>Đã Thanh Toán</th>
+                <th>Trạng Thái</th>
+                <th>Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="invoices-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 7: Trợ Lý AI Garage -->
+      <section id="view-ai-studio" class="view-section">
+        <div class="table-card" style="padding: 1.75rem;">
+          <h3 style="font-family: 'Outfit'; font-size: 1.25rem; color: var(--accent-purple); margin-bottom: 0.5rem;">
+            <i class="fa-solid fa-robot"></i> Trợ Lý AI Garage VTV (Car Service Assistant)
+          </h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            Trợ lý AI hợp nhất tự động lập báo giá nháp, giải thích quy trình kỹ thuật và hỗ trợ người dùng đặt câu hỏi tự do liên quan đến tất cả dịch vụ xe ô tô.
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Chọn Phiếu Sửa Chữa Ngữ Cảnh (Tùy chọn):</label>
+              <select id="ai-sandbox-ro-select" class="form-control">
+                <!-- Options populated by JS -->
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Gợi Ý Câu Hỏi Mẫu Nhanh:</label>
+              <select id="ai-prompt-templates" class="form-control" onchange="applyPromptTemplate()">
+                <option value="">-- Chọn câu hỏi mẫu hoặc tự gõ bên dưới --</option>
+                <option value="Lập báo giá nháp chi tiết cho phiếu sửa chữa đã chọn">📋 Lập báo giá nháp chi tiết dịch vụ & phụ tùng</option>
+                <option value="Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa này">🚗 Giải thích dịch vụ sửa chữa cho khách hàng</option>
+                <option value="Xe ô tô kêu rít rít ở phanh trước khi đạp thắng là bị làm sao và khắc phục thế nào?">🔊 Chẩn đoán hiện tượng kêu rít ở phanh xe</option>
+                <option value="Tư vấn quy trình và chi phí bảo dưỡng định kỳ mốc 40,000 km xe ô tô">🛠️ Tư vấn bảo dưỡng mốc 40,000 km</option>
+                <option value="Giải thích vì sao cần vệ sinh kim phun và họng hút xăng ô tô?">💡 Giải thích tác dụng vệ sinh kim phun & họng hút</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label style="font-weight: 600;">Nhập Câu Hỏi Tự Do Cho Trợ Lý AI:</label>
+            <textarea id="ai-free-question-input" class="form-control" rows="3" 
+              placeholder="Nhập bất kỳ câu hỏi nào về dịch vụ xe, báo giá nháp, giải thích kỹ thuật, triệu chứng hỏng hóc... (Ví dụ: Thay lọc nhớt và bảo dưỡng gầm xe sedan hết bao nhiêu tiền?)"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <button class="btn btn-ai" onclick="runAISandbox()"><i class="fa-solid fa-sparkles"></i> Hỏi Trợ Lý AI Engine</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('ai-free-question-input').value=''"><i class="fa-solid fa-eraser"></i> Xóa Ô Nhập</button>
+          </div>
+
+          <div id="ai-sandbox-output-container" style="display: none; margin-top: 1.5rem;">
+            <h4 style="color: var(--accent-primary); font-size: 0.95rem; margin-bottom: 0.5rem;"><i
+                class="fa-solid fa-terminal"></i> Phản Hồi Từ Trợ Lý AI Garage:</h4>
+            <div id="ai-sandbox-output" class="ai-output-box"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MODALS SECTION -->
+
+  <!-- Modal AI Result -->
+  <div id="modal-ai-result" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 id="modal-ai-title" style="font-family: 'Outfit'; color: var(--accent-purple);"><i
+            class="fa-solid fa-robot"></i> Trợ Lý AI Garage VTV</h3>
+        <button class="close-btn" onclick="closeModal('modal-ai-result')">&times;</button>
+      </div>
+
+      <!-- Interactive Question Input Box inside Modal -->
+      <div style="margin-bottom: 1rem; background: var(--bg-main); padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color);">
+        <label style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.4rem; display: block; color: var(--text-main);">
+          <i class="fa-solid fa-comments"></i> Đặt câu hỏi tự do cho Trợ lý AI (báo giá, giải thích dịch vụ, chẩn đoán lỗi...):
+        </label>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="modal-ai-question-input" class="form-control" 
+            placeholder="Ví dụ: Lập báo giá nháp / Giải thích cho khách / Xe bị rơ vô lăng..."
+            onkeydown="if(event.key === 'Enter') submitModalAIQuestion()">
+          <button class="btn btn-ai" onclick="submitModalAIQuestion()"><i class="fa-solid fa-paper-plane"></i> Gửi</button>
+        </div>
+
+        <!-- Quick Prompt Shortcuts -->
+        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem;">
+          <button class="btn btn-secondary btn-sm" style="font-size: 0.78rem;" onclick="setModalAIQuestion('Lập báo giá nháp chi tiết cho phiếu sửa chữa này')">📋 Báo Giá Nháp</button>
+          <button class="btn btn-secondary btn-sm" style="font-size: 0.78rem;" onclick="setModalAIQuestion('Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa')">🚗 Giải Thích Khách</button>
+          <button class="btn btn-secondary btn-sm" style="font-size: 0.78rem;" onclick="setModalAIQuestion('Tóm tắt lịch sử sửa chữa và cảnh báo kỹ thuật cho xe này')">📌 Lịch Sử Xe</button>
+          <button class="btn btn-secondary btn-sm" style="font-size: 0.78rem;" onclick="setModalAIQuestion('Tư vấn mốc bảo dưỡng 40,000 km gồm những gì và chi phí bao nhiêu?')">💡 Bảo Dưỡng 40k km</button>
+        </div>
+      </div>
+
+      <div id="modal-ai-body" class="ai-output-box" style="max-height: 320px; overflow-y: auto;">Đang xử lý...</div>
+      
+      <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+        <span id="modal-ai-model-badge" style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-microchip"></i> Engine: Trợ Lý AI Garage VTV</span>
+        <div>
+          <button class="btn btn-secondary" onclick="closeModal('modal-ai-result')">Đóng</button>
+          <button class="btn btn-primary" onclick="copyAIResult()"><i class="fa-solid fa-copy"></i> Sao Chép Kết Quả</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal New Appointment -->
+  <div id="modal-new-appointment" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-calendar-plus"></i> Tạo Lịch Hẹn Mới</h3>
+        <button class="close-btn" onclick="closeModal('modal-new-appointment')">&times;</button>
+      </div>
+      <form id="form-new-appointment" onsubmit="submitNewAppointment(event)">
+        <div class="form-group">
+          <label>Chọn Xe Hẹn Sửa:</label>
+          <select id="apt-vehicle-id" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label>Thời Gian Hẹn:</label>
+          <input type="datetime-local" id="apt-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Ghi Chú Yêu Cầu Của Khách:</label>
+          <textarea id="apt-notes" class="form-control" rows="3"
+            placeholder="Ví dụ: Xe kêu tiếng lạ ở phanh trước, muốn bảo dưỡng mốc 40,000 km..."></textarea>
+        </div>
+        <div style="text-align: right; margin-top: 1rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-appointment')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Xác Nhận Đặt Lịch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal New Repair Order -->
+  <div id="modal-new-ro" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-car"></i> Tiếp Nhận Xe & Tạo Phiếu Sửa Chữa</h3>
+        <button class="close-btn" onclick="closeModal('modal-new-ro')">&times;</button>
+      </div>
+      <form id="form-new-ro" onsubmit="submitNewRO(event)">
+        <div class="form-group">
+          <label>Chọn Xe Tiếp Nhận:</label>
+          <select id="ro-vehicle-id" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label>Số Km Nhận Xe:</label>
+          <input type="number" id="ro-mileage" class="form-control" value="45000" required>
+        </div>
+        <div class="form-group">
+          <label>Triệu Chứng Ban Đầu Khi Khách Bàn Giao:</label>
+          <textarea id="ro-symptoms" class="form-control" rows="3"
+            placeholder="Mô tả lại hiện trạng xe do khách báo..."></textarea>
+        </div>
+        <div style="text-align: right; margin-top: 1rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-ro')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Tạo Phiếu Tiếp Nhận</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal RO Detail & Items Management -->
+  <div id="modal-ro-detail" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3 id="ro-detail-title" style="font-family: 'Outfit';"><i class="fa-solid fa-wrench"></i> Chi Tiết Phiếu Sửa
+          Chữa</h3>
+        <button class="close-btn" onclick="closeModal('modal-ro-detail')">&times;</button>
+      </div>
+
+      <div id="ro-detail-info" style="margin-bottom: 1rem; line-height: 1.6; font-size: 0.93rem;"></div>
+
+      <div class="form-group">
+        <label>Chẩn Đoán Kỹ Thuật (KTV Điền):</label>
+        <textarea id="ro-tech-diagnosis" class="form-control" rows="2"
+          placeholder="Ghi chú chẩn đoán kỹ thuật..."></textarea>
+        <button class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;" onclick="saveTechDiagnosis()">Lưu Ghi Chú
+          Kỹ Thuật</button>
+      </div>
+
+      <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
+
+      <h4 style="font-family: 'Outfit'; margin-bottom: 0.75rem;">Thêm Hạng Mục (Dịch Vụ & Phụ Tùng):</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 100px 100px; gap: 0.5rem; margin-bottom: 1rem;">
+        <select id="item-type-select" class="form-control" onchange="toggleItemSelectType()">
+          <option value="service">Dịch Vụ</option>
+          <option value="part">Phụ Tùng Kho</option>
+        </select>
+        <select id="item-catalog-select" class="form-control"></select>
+        <input type="number" id="item-qty" class="form-control" value="1" min="1" placeholder="SL">
+        <button class="btn btn-primary" onclick="addItemToRO()"><i class="fa-solid fa-plus"></i> Thêm</button>
+      </div>
+
+      <table class="custom-table" style="margin-bottom: 1.5rem;">
+        <thead>
+          <tr>
+            <th>Hạng Mục</th>
+            <th>Loại</th>
+            <th>SL</th>
+            <th>Đơn Giá / Tiền Công</th>
+            <th>Thành Tiền</th>
+            <th>Xóa</th>
+          </tr>
+        </thead>
+        <tbody id="ro-items-tbody"></tbody>
+      </table>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div><strong>Tổng Chi Phí: </strong><span id="ro-detail-total"
+            style="font-family: 'Outfit'; font-size: 1.3rem; color: var(--accent-emerald); font-weight: 800;">0
+            VNĐ</span></div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-ai" onclick="triggerAIFromRODetail('assistant')"><i
+              class="fa-solid fa-robot"></i> Trợ Lý AI Garage</button>
+          <button class="btn btn-primary" onclick="createInvoiceFromRODetail()"><i class="fa-solid fa-file-invoice"></i>
+            Lập Hóa Đơn</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal New Customer -->
+  <div id="modal-new-customer" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-user-plus"></i> Thêm Khách Hàng & Đăng Ký Xe</h3>
+        <button class="close-btn" onclick="closeModal('modal-new-customer')">&times;</button>
+      </div>
+      <form id="form-new-customer" onsubmit="submitNewCustomer(event)">
+        <div class="form-group">
+          <label>Họ và Tên Khách Hàng:</label>
+          <input type="text" id="cust-name" class="form-control" required placeholder="Nguyễn Văn A">
+        </div>
+        <div class="form-group">
+          <label>Số Điện Thoại:</label>
+          <input type="text" id="cust-phone" class="form-control" required placeholder="0901234567">
+        </div>
+        <div class="form-group">
+          <label>Địa Chỉ:</label>
+          <input type="text" id="cust-address" class="form-control" placeholder="Số 123 Đường XYZ...">
+        </div>
+        <hr style="border-color: var(--border-color); margin: 1rem 0;">
+        <h4 style="font-family: 'Outfit';">Thông Tin Xe Ban Đầu:</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+          <input type="text" id="cust-veh-plate" class="form-control" required placeholder="Biển số (VD: 51H-999.99)">
+          <input type="text" id="cust-veh-brand" class="form-control" required placeholder="Hãng (VD: Toyota)">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+          <input type="text" id="cust-veh-model" class="form-control" required placeholder="Dòng xe (VD: Camry)">
+          <input type="number" id="cust-veh-year" class="form-control" value="2022" placeholder="Năm sản xuất">
+        </div>
+        <div style="text-align: right; margin-top: 1.25rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-customer')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Lưu Khách Hàng & Xe</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Payment Checkout -->
+  <div id="modal-payment" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-family: 'Outfit';"><i class="fa-solid fa-credit-card"></i> Ghi Nhận Thanh Toán Hóa Đơn</h3>
+        <button class="close-btn" onclick="closeModal('modal-payment')">&times;</button>
+      </div>
+      <form id="form-payment" onsubmit="submitPayment(event)">
+        <input type="hidden" id="pay-inv-id">
+        <div class="form-group">
+          <label>Số Hóa Đơn:</label>
+          <input type="text" id="pay-inv-number" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+          <label>Tổng Tiền Cần Thanh Toán:</label>
+          <input type="text" id="pay-total-amount" class="form-control" readonly
+            style="font-family: 'Outfit'; color: var(--accent-emerald); font-size: 1.2rem; font-weight: 800;">
+        </div>
+        <div class="form-group">
+          <label>Phương Thức Thanh Toán:</label>
+          <select id="pay-method" class="form-control">
+            <option value="cash">Tiền Mặt</option>
+            <option value="bank_transfer">Chuyển Khoản Ngân Hàng</option>
+            <option value="credit_card">Thẻ Tín Dụng</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Số Tiền Khách Đưa / Chuyển:</label>
+          <input type="number" id="pay-amount" class="form-control" required>
+        </div>
+        <div style="text-align: right; margin-top: 1.25rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-payment')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Xác Nhận Đã Thu Tiền</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+
+</html>
