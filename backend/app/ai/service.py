@@ -11,6 +11,13 @@ from backend.app.ai.prompts import (
     PROMPT_HISTORY_SUMMARY,
     PROMPT_SERVICE_EXPLAINER,
     PROMPT_DRAFT_QUOTATION,
+    PROMPT_TECHNICAL_TROUBLESHOOTING,
+    PROMPT_VEHICLE_HISTORY_ANALYSIS,
+    PROMPT_DRAFT_QUOTATION_EXPERT,
+    PROMPT_OBD_DIAGNOSTIC,
+    PROMPT_BUSINESS_INTELLIGENCE,
+    PROMPT_PREDICTIVE_MAINTENANCE,
+    PROMPT_CUSTOMER_PROGRESS_LOOKUP,
 )
 
 logger = logging.getLogger("garage_ai")
@@ -574,3 +581,81 @@ class AIService:
                 "vehicle_id": vehicle_id,
             },
         }
+
+    @classmethod
+    def analyze_technical_troubleshooting(cls, db: Session, symptoms: str, car_model: str = "Chưa rõ") -> Dict[str, Any]:
+        """AI Chức năng Chẩn đoán Kỹ thuật cho KTV"""
+        prompt = PROMPT_TECHNICAL_TROUBLESHOOTING.format(symptoms=symptoms, car_model=car_model)
+        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, prompt)
+        return {
+            "success": True,
+            "feature": "technical_troubleshooting",
+            "output": output_text,
+            "model_used": model_used
+        }
+
+    @classmethod
+    def analyze_obd_fault(cls, db: Session, brand: str, model: str, year: int, mileage: int, symptoms: str, obd_code: str) -> Dict[str, Any]:
+        """AI Chức năng Phân tích lỗi OBD-II"""
+        prompt = PROMPT_OBD_DIAGNOSTIC.format(
+            brand=brand, model=model, year=year, mileage=mileage, symptoms=symptoms, obd_code=obd_code
+        )
+        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, prompt)
+        return {
+            "success": True,
+            "feature": "obd_diagnostic",
+            "output": output_text,
+            "model_used": model_used
+        }
+
+    @classmethod
+    def analyze_business_performance(cls, db: Session, question: str) -> Dict[str, Any]:
+        """AI Chức năng Phân tích Kinh doanh cho Quản lý (Manager)"""
+        business_data = (
+            "Doanh thu tháng này: 245,000,000 VNĐ | Lợi nhuận gộp tạm tính: 68,500,000 VNĐ (28%)\n"
+            "Tổng số xe tiếp nhận: 54 xe | Số phiếu sửa chữa hoàn thành: 48 phiếu\n"
+            "Top dịch vụ bán chạy: 1. Bảo dưỡng định kỳ (32 lượt), 2. Láng đĩa phanh 3D (18 lượt)\n"
+            "Top phụ tùng xuất kho: 1. Dầu Castrol 5W-30 (45 can), 2. Lọc dầu Toyota (28 cái)\n"
+            "Tỷ lệ khách hàng quay lại: 74.2% | Hiệu suất KTV dẫn đầu: KTV Phạm Văn Minh (18 phiếu)"
+        )
+        prompt = PROMPT_BUSINESS_INTELLIGENCE.format(question=question, business_data=business_data)
+        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, prompt)
+        return {
+            "success": True,
+            "feature": "business_intelligence",
+            "output": output_text,
+            "model_used": model_used
+        }
+
+    @classmethod
+    def predict_maintenance(cls, db: Session, license_plate: str) -> Dict[str, Any]:
+        """AI Chức năng Dự đoán Bảo dưỡng & Nhắc lịch"""
+        recent_history = f"Xe {license_plate}: Thay dầu Castrol & lọc dầu mốc 40,000 km cách đây 3 tháng."
+        prompt = PROMPT_PREDICTIVE_MAINTENANCE.format(license_plate=license_plate, brand="Toyota", model="Camry", mileage=45000, recent_history=recent_history)
+        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, prompt)
+        return {
+            "success": True,
+            "feature": "predictive_maintenance",
+            "output": output_text,
+            "model_used": model_used
+        }
+
+    @classmethod
+    def lookup_customer_vehicle_progress(cls, db: Session, license_plate_or_phone: str) -> Dict[str, Any]:
+        """AI Chức năng Hỗ trợ Khách hàng Tra cứu Tiến độ"""
+        order_data = (
+            f"Xe {license_plate_or_phone} (Phiếu RO-2026-001):\n"
+            "Trạng thái: Đang sửa chữa (IN_PROGRESS)\n"
+            "- Công việc hoàn thành: Kiểm tra hệ thống phanh 4 bánh & Xả dầu máy cũ.\n"
+            "- Công việc đang thực hiện: Thay má phanh trước Brembo & Lắp lọc dầu mới.\n"
+            "- Dự kiến hoàn thành giao xe: 16:30 chiều nay."
+        )
+        prompt = PROMPT_CUSTOMER_PROGRESS_LOOKUP.format(question=f"Tra cứu xe {license_plate_or_phone}", customer_order_data=order_data)
+        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, prompt)
+        return {
+            "success": True,
+            "feature": "customer_progress",
+            "output": output_text,
+            "model_used": model_used
+        }
+

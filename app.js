@@ -201,10 +201,39 @@ function getOfflineMockResponse(endpoint, options) {
     };
   }
   if (endpoint === "/ai/assistant") {
+    const body = JSON.parse(options.body || "{}");
+    const q = (body.question || "").toLowerCase();
+    
+    let output = "";
+    if (q.includes("rung") || q.includes("vios")) {
+      output = `### 🛠️ Phân Tích Chẩn Đoán: Toyota Vios 2018 bị rung không tải\n\n1. 🔍 **Các nguyên nhân có khả năng nhất**:\n   - Cao su chân máy / chân hộp số bị lão hóa, xẹp rách làm rung giật cabin.\n   - Bugi đánh lửa yếu hoặc cổ hút muội than carbon làm bỏ máy chập chờn.\n   - Kim phun nhiên liệu bị bẩn clog không tơi dầu.\n\n2. 🛠️ **Các bước kiểm tra đề xuất**:\n   - Bước 1: Kiểm tra độ sụt giảm cao su chân máy.\n   - Bước 2: Đo điện áp bugi & súc rửa cổ hút ga sinh học.\n   - Bước 3: Đọc mã lỗi ECU bằng máy OBD-II.\n\n3. ⚠️ **Mức độ ưu tiên**: **Trung Bình** (Cần xử lý sớm để tránh hỏng chân máy).\n\n4. 🔩 **Bộ phận cần kiểm tra**: Cao su chân máy (PAR-005), Bugi NGK Iridium, Dung dịch súc cổ hút.\n\n🛡️ *Lưu ý: Đây là nhận định sơ bộ của AI hỗ trợ KTV, không thay thế cho quy trình kiểm tra trực tiếp tại garage.*`;
+    } else if (q.includes("lịch sử") || q.includes("51h-888.88")) {
+      output = `### 📜 Phân Tích Lịch Sử Sửa Chữa Xe 51H-888.88 (Toyota Camry 2.5Q)\n\n- **Odometer hiện tại**: 40,000 km | **Số phiếu đã lập**: 3 phiếu\n\n1. 🔄 **Các lỗi lặp lại**: Tiếng rít má phanh xuất hiện 2 lần ở mốc 25,000 km và 40,000 km.\n2. ⚠️ **Bộ phận có dấu hiệu bất thường**: Má phanh trước mòn vẹt không đều, mâm đĩa phanh bị gợn sóng.\n3. 🛠️ **Hạng mục khuyến nghị lần này**: Láng đĩa phanh 3D Laser & Thay bộ má phanh Brembo cao cấp.\n4. 📅 **Lịch bảo dưỡng đề xuất**: Bảo dưỡng định kỳ mốc 50,000 km sau 6 tháng.`;
+    } else if (q.includes("báo giá") || q.includes("mazda")) {
+      output = `### 📝 Dự Thảo Báo Giá Nháp: Xe Mazda 3\n\n- **Dịch vụ 1**: Thay dầu động cơ Synthetic 4L (Công: 150,000 VNĐ | Vật tư: 750,000 VNĐ)\n- **Dịch vụ 2**: Thay lọc dầu động cơ chính hãng (Công: 50,000 VNĐ | Vật tư: 180,000 VNĐ)\n- **Dịch vụ 3**: Bảo dưỡng & Căn chỉnh 4 bánh phanh (Công: 300,000 VNĐ | Vật tư: 0 VNĐ)\n\n💰 **Tổng chi phí tạm tính**: **1,430,000 VNĐ** (Chưa VAT)\n\n⚠️ *LƯU Ý BẮT BỘC: AI KHÔNG tự ý chốt giá cuối cùng. Nhân viên kỹ thuật/Lễ tân phải kiểm tra thực tế và xác nhận trước khi gửi khách hàng.*`;
+    } else if (q.includes("doanh thu") || q.includes("tháng này") || q.includes("manager")) {
+      output = `### 📊 Báo Cáo Kinh Doanh AI (Dành cho Manager)\n\n- 📈 **Doanh thu tháng này**: **245,000,000 VNĐ** (Đạt 108% chỉ tiêu tháng)\n- 💵 **Lợi nhuận gộp tạm tính**: **68,500,000 VNĐ** (Tỷ suất 28%)\n- 🚗 **Tổng xe tiếp nhận**: 54 xe | **Phiếu sửa hoàn thành**: 48 phiếu\n- 🥇 **Top Dịch vụ hot**: Bảo dưỡng 40k km (32 lượt), Cân chỉnh thước lái 3D (18 lượt)\n- 🔩 **Phụ tùng bán chạy**: Dầu Castrol 5W-30 (45 can), Lọc dầu Toyota (28 cái)\n- 👥 **Tỷ lệ khách quay lại**: **74.2%** | **KTV xuất sắc**: Phạm Văn Minh (18 phiếu)\n\n💡 *Đánh giá: Doanh thu tăng trưởng tốt nhờ chiến dịch bảo dưỡng định kỳ mốc 40k km.*`;
+    } else if (q.includes("dự đoán") || q.includes("bảo dưỡng")) {
+      output = `### 🔮 Dự Đoán Bảo DƯỡng Định Kỳ: Xe 51H-888.88\n\n- **Đợt bảo dưỡng tiếp theo**: Mốc **50,000 km** (Dự kiến: Tháng 02/2027 hoặc sau 10,000 km).\n- **Hạng mục bắt buộc kiểm tra**:\n  1. Thay dầu nhớt Synthetic & Lọc dầu động cơ\n  2. Vệ sinh lọc gió điều hòa Carbon (PAR-AC-FIL-MAX)\n  3. Đảo lốp & Cân bằng động 4 bánh\n\n📲 *Mẫu tin nhắn Reminder: "Garage VTV xin nhắc quý khách xe 51H-888.88 sắp đến mốc bảo dưỡng 50k km. Vui lòng đặt lịch để nhận ưu đãi 10%!"*`;
+    } else if (q.includes("tiến độ") || q.includes("đâu rồi")) {
+      output = `### 🔍 Tra Cứu Tiến Độ Sửa Chữa Xe 51H-888.88\n\n- **Trạng thái phiếu RO-2026-001**: <span style="color:#38bdf8; font-weight:700;">ĐANG SỬA CHỮA (IN_PROGRESS)</span>\n- ✅ **Đã hoàn thành**: Kiểm tra hệ thống phanh 4 bánh & Xả dầu máy cũ.\n- 🔄 **Đang thực hiện**: Thay má phanh đĩa trước Brembo & Láng đĩa phanh.\n- ⏰ **Thời gian dự kiến hoàn thành**: **16:30 chiều nay**.\n\n*Cảm ơn quý khách đã tin tưởng dịch vụ của Garage VTV!*`;
+    } else {
+      output = `### 🤖 Trợ Lý AI Garage VTV\n\nTôi đã ghi nhận câu hỏi: "*${q}*".\n\n- **Tư vấn Kỹ thuật**: Hệ thống khuyến nghị KTV kiểm tra áp suất nén buồng đốt và đọc máy chẩn đoán OBD-II.\n- **Bảo đảm an toàn**: Đơn giá và phụ tùng được liên kết trực tiếp với Database chuẩn niêm yết (Sai lệch giá = 0%).`;
+    }
+
     return {
       success: true,
       feature: "ai_assistant",
-      output: "### Trợ Lý AI Garage VTV\n\n- **Chẩn đoán sơ bộ:** Đã phân tích triệu chứng xe.\n- **Đề xuất:** Thay dầu nhớt Synthetic 4L và lọc nhớt chính hãng.\n- **Lưu ý:** Đơn giá và tổng tiền được bảo đảm tính chính xác 100% bởi Deterministic Engine.",
+      output: output,
+      model_used: "gemini-2.5-flash-garage-vtv"
+    };
+  }
+  if (endpoint === "/ai/obd-diagnostic") {
+    const body = JSON.parse(options.body || "{}");
+    return {
+      success: true,
+      feature: "obd_diagnostic",
+      output: `### 🚗 Phân Tích Mã Lỗi OBD-II: ${body.obd_code || 'P0300'}\n\n- **Thông tin xe**: ${body.brand || 'Toyota'} ${body.model || 'Camry'} (${body.year || 2022}) - Odometer: ${body.mileage || 40000} km\n- 🚨 **Mức độ ưu tiên**: <span style="color:#f43f5e; font-weight:800;">CAO (Cần xử lý ngay)</span>\n- 💡 **Khả năng nguyên nhân**: Bỏ lửa ngẫu nhiên nhiều xi-lanh (Random/Multiple Cylinder Misfire Detected). Do bugi mòn (PAR-005) hoặc cuộn dây đánh lửa Bô-bin hỏng.\n- 🔧 **Các bước kiểm tra**: 1. Quét dữ liệu Freeze Frame ECU | 2. Đo điện trở bô-bin | 3. Kiểm tra áp suất nhiên liệu bơm xăng.\n- 🔩 **Phụ tùng liên quan**: Bugi NGK Iridium (PAR-005), Bô-bin đánh lửa, Lọc nhiên liệu.\n- 🛡️ **Lưu ý an toàn**: Tránh rồ ga mạnh để không gây hư hại bộ chuyển đổi khí thải Catalytic Converter.\n- 📊 **Độ tin cậy nhận định**: **94.5%**`,
       model_used: "gemini-2.5-flash-garage-vtv"
     };
   }
@@ -1398,3 +1427,150 @@ async function loadAIBenchmarkReport() {
 function triggerApprovedPayment() {
   openPaymentModal(999, "INV-2026-FINAL", 1550000);
 }
+
+// ============================================================
+// CHÁT BOT INTERACTIVE UI & OBD DIAGNOSTIC FORM HANDLERS
+// ============================================================
+
+async function sendAIChatMessage() {
+  const inputEl = document.getElementById("ai-chat-input");
+  const text = (inputEl.value || "").trim();
+  if (!text) return;
+
+  appendChatMessage("user", text);
+  inputEl.value = "";
+
+  const typingId = appendChatMessage("ai", "<em>AI Assistant đang phân tích dữ liệu...</em>");
+
+  try {
+    const res = await apiFetch("/ai/assistant", {
+      method: "POST",
+      body: JSON.stringify({ question: text })
+    });
+
+    const streamEl = document.getElementById("ai-chat-stream");
+    const typingBubble = document.getElementById(typingId);
+    if (typingBubble) streamEl.removeChild(typingBubble);
+
+    appendChatMessage("ai", res.output || "AI không thể đưa ra phản hồi.");
+  } catch (err) {
+    appendChatMessage("ai", `❌ Lỗi kết nối AI Engine: ${err.message}`);
+  }
+}
+
+function triggerQuickPrompt(promptKey) {
+  const promptsMap = {
+    vios_vibration: "Xe Toyota Vios 2018 bị rung khi chạy không tải thì có thể do đâu?",
+    history_analysis: "Phân tích lịch sử sửa chữa xe 51H-888.88",
+    draft_mazda: "Xe Mazda 3 cần thay dầu máy, lọc dầu và kiểm tra phanh.",
+    business_analysis: "Doanh thu tháng này thế nào?",
+    predict_maintenance: "Dự đoán bảo dưỡng đợt tiếp theo cho xe 51H-888.88",
+    customer_progress: "Xe của tôi đang sửa đến đâu rồi?"
+  };
+
+  const text = promptsMap[promptKey] || promptKey;
+  const inputEl = document.getElementById("ai-chat-input");
+  if (inputEl) {
+    inputEl.value = text;
+    sendAIChatMessage();
+  }
+}
+
+function appendChatMessage(sender, htmlContent) {
+  const stream = document.getElementById("ai-chat-stream");
+  if (!stream) return;
+
+  const msgId = `chat-msg-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+  const div = document.createElement("div");
+  div.id = msgId;
+  div.className = `chat-msg ${sender}-msg`;
+  div.style.display = "flex";
+  div.style.gap = "0.75rem";
+  div.style.alignItems = "flex-start";
+
+  if (sender === "user") {
+    div.style.justifyContent = "flex-end";
+    div.innerHTML = `
+      <div style="background: var(--accent-primary); color: white; padding: 0.75rem 1rem; border-radius: 14px; border-top-right-radius: 2px; max-width: 80%; font-size: 0.9rem; line-height: 1.5;">
+        ${escapeHTML(htmlContent)}
+      </div>
+      <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-card-hover); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-main); font-size: 0.85rem; flex-shrink: 0;">
+        <i class="fa-solid fa-user"></i>
+      </div>
+    `;
+  } else {
+    let formatted = htmlContent
+      .replace(/### (.*?)\n/g, '<strong style="color:var(--accent-cyan); font-size: 1rem; display:block; margin-bottom:0.4rem;">$1</strong>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+
+    div.innerHTML = `
+      <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-purple); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; flex-shrink: 0;">
+        <i class="fa-solid fa-robot"></i>
+      </div>
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.85rem 1.1rem; border-radius: 14px; border-top-left-radius: 2px; max-width: 85%; font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
+        ${formatted}
+      </div>
+    `;
+  }
+
+  stream.appendChild(div);
+  stream.scrollTop = stream.scrollHeight;
+  return msgId;
+}
+
+function clearAIChatHistory() {
+  const stream = document.getElementById("ai-chat-stream");
+  if (stream) {
+    stream.innerHTML = `
+      <div class="chat-msg ai-msg" style="display: flex; gap: 0.75rem; align-items: flex-start;">
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-purple); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; flex-shrink: 0;">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.85rem 1.1rem; border-radius: 14px; border-top-left-radius: 2px; max-width: 85%; font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
+          Lịch sử cuộc trò chuyện đã được làm sạch. Bạn cần AI hỗ trợ thêm thông tin gì?
+        </div>
+      </div>
+    `;
+  }
+}
+
+async function submitOBDDiagnosticForm(event) {
+  event.preventDefault();
+  const brand = document.getElementById("obd-brand").value;
+  const model = document.getElementById("obd-model").value;
+  const year = parseInt(document.getElementById("obd-year").value) || 2022;
+  const mileage = parseInt(document.getElementById("obd-mileage").value) || 40000;
+  const obd_code = document.getElementById("obd-code").value;
+  const symptoms = document.getElementById("obd-symptoms").value;
+
+  const card = document.getElementById("obd-output-card");
+  const content = document.getElementById("obd-output-content");
+  card.style.display = "block";
+  content.innerHTML = `<em style="color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> AI Engine đang phân tích mã lỗi OBD-II ${obd_code}...</em>`;
+
+  try {
+    const res = await apiFetch("/ai/obd-diagnostic", {
+      method: "POST",
+      body: JSON.stringify({ brand, model, year, mileage, obd_code, symptoms })
+    });
+
+    let formatted = (res.output || "")
+      .replace(/### (.*?)\n/g, '<h5 style="color:var(--accent-cyan); margin-bottom:0.5rem;">$1</h5>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+
+    content.innerHTML = formatted;
+    showToast(`Đã hoàn tất phân tích mã lỗi OBD: ${obd_code}`);
+  } catch (err) {
+    content.innerHTML = `<span style="color: var(--accent-rose);">❌ Lỗi phân tích OBD: ${err.message}</span>`;
+  }
+}
+
+function escapeHTML(str) {
+  return str.replace(/[&<>'"]/g, 
+    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+  );
+}
+

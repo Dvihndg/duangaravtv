@@ -230,6 +230,27 @@ class AIServiceExplainerRequest(BaseModel):
 class AIDraftQuotationRequest(BaseModel):
     repair_order_id: int
 
+class AITechnicalTroubleshootRequest(BaseModel):
+    symptoms: str
+    car_model: Optional[str] = "Chưa rõ"
+
+class AIOBDDiagnosticRequest(BaseModel):
+    brand: str
+    model: str
+    year: Optional[int] = 2022
+    mileage: Optional[int] = 40000
+    symptoms: str
+    obd_code: str
+
+class AIBusinessAnalysisRequest(BaseModel):
+    question: str = "Doanh thu tháng này thế nào?"
+
+class AIPredictiveMaintenanceRequest(BaseModel):
+    license_plate: str
+
+class AICustomerProgressRequest(BaseModel):
+    license_plate_or_phone: str
+
 class AIResponse(BaseModel):
     success: bool
     feature: str
@@ -259,5 +280,6 @@ class DemoScenarioResponse(BaseModel):
     estimated_total: float
     warnings: List[str]
     ai_raw_output: str
+
 
 

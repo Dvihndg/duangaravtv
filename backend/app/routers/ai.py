@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from backend.app.database import get_db
 from backend.app.schemas import (
     AIAssistantRequest, AIHistorySummaryRequest, AIServiceExplainerRequest, AIDraftQuotationRequest, AIResponse,
-    AIEvaluationMetricsResponse, DemoScenarioResponse
+    AIEvaluationMetricsResponse, DemoScenarioResponse, AITechnicalTroubleshootRequest, AIOBDDiagnosticRequest,
+    AIBusinessAnalysisRequest, AIPredictiveMaintenanceRequest, AICustomerProgressRequest
 )
 from backend.app.auth import get_current_user
 from backend.app.ai.service import AIService
@@ -100,4 +101,45 @@ def get_ai_evaluation_report(
     Bước 11: Đo lường & Báo cáo Đánh giá (Top-1 Accuracy, Parts Precision, Price Variance = 0%, Latency, Token Costs).
     """
     return generate_ai_evaluation_report(db)
+
+@router.post("/technical-troubleshoot", response_model=AIResponse)
+def analyze_technical_troubleshoot(
+    req: AITechnicalTroubleshootRequest,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return AIService.analyze_technical_troubleshooting(db, req.symptoms, req.car_model)
+
+@router.post("/obd-diagnostic", response_model=AIResponse)
+def analyze_obd_diagnostic(
+    req: AIOBDDiagnosticRequest,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return AIService.analyze_obd_fault(db, req.brand, req.model, req.year, req.mileage, req.symptoms, req.obd_code)
+
+@router.post("/business-intelligence", response_model=AIResponse)
+def analyze_business_intelligence(
+    req: AIBusinessAnalysisRequest,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return AIService.analyze_business_performance(db, req.question)
+
+@router.post("/predictive-maintenance", response_model=AIResponse)
+def predict_vehicle_maintenance(
+    req: AIPredictiveMaintenanceRequest,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return AIService.predict_maintenance(db, req.license_plate)
+
+@router.post("/customer-progress", response_model=AIResponse)
+def lookup_customer_progress(
+    req: AICustomerProgressRequest,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return AIService.lookup_customer_vehicle_progress(db, req.license_plate_or_phone)
+
 

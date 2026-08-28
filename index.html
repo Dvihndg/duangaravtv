@@ -6,8 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Hệ thống Quản lý Garage Ô tô Tích hợp AI (Manus AI Garage Engine)</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css?v=2.5">
+  <link rel="stylesheet" href="styles.css?v=3.0">
 </head>
+
 
 
 
@@ -531,6 +532,128 @@
 
       <!-- VIEW 7: Trợ Lý AI Garage VTV -->
       <section id="view-ai-studio" class="view-section">
+
+        <!-- INTERACTIVE CHATBOT MODULE: AI GARAGE ASSISTANT -->
+        <div class="table-card" style="padding: 1.5rem; margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%); border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: var(--shadow-lg);">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="width: 42px; height: 42px; border-radius: 50%; background: var(--gradient-ai); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);">
+                <i class="fa-solid fa-robot"></i>
+              </div>
+              <div>
+                <h4 style="font-family: 'Outfit'; margin: 0; color: var(--text-main); font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                  AI GARAGE ASSISTANT <span style="font-size: 0.75rem; background: rgba(139, 92, 246, 0.2); color: #a78bfa; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.4);">Pro Active Engine</span>
+                </h4>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Trợ lý AI chuyên sâu chẩn đoán kỹ thuật, báo giá nháp, phân tích kinh doanh & tra cứu tiến độ</div>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="clearAIChatHistory()"><i class="fa-solid fa-rotate-left"></i> Xóa Chat</button>
+          </div>
+
+          <!-- Quick Action Prompt Chips -->
+          <div style="margin-bottom: 1rem;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;">⚡ CHỌN NHANH CÂU HỎI MẪU CHO AI ASSISTANT:</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('vios_vibration')" style="font-size: 0.78rem; border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;">
+                🛠️ Toyota Vios 2018 bị rung không tải
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('history_analysis')" style="font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                📜 Phân tích lịch sử xe 51H-888.88
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('draft_mazda')" style="font-size: 0.78rem; border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+                📝 Báo giá nháp Mazda 3 thay dầu & phanh
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('business_analysis')" style="font-size: 0.78rem; border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">
+                📊 Phân tích kinh doanh tháng này (Manager)
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('predict_maintenance')" style="font-size: 0.78rem; border-color: rgba(6, 182, 212, 0.4); color: #22d3ee;">
+                🔮 Dự đoán bảo dưỡng đợt tiếp theo
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('customer_progress')" style="font-size: 0.78rem; border-color: rgba(244, 63, 94, 0.4); color: #fb7185;">
+                🔍 Xe của tôi đang sửa đến đâu rồi? (Khách)
+              </button>
+            </div>
+          </div>
+
+          <!-- Chat Window Message Stream -->
+          <div id="ai-chat-stream" style="min-height: 220px; max-height: 380px; overflow-y: auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
+            <!-- Initial AI Welcome Message -->
+            <div class="chat-msg ai-msg" style="display: flex; gap: 0.75rem; align-items: flex-start;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-purple); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; flex-shrink: 0;">
+                <i class="fa-solid fa-robot"></i>
+              </div>
+              <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.85rem 1.1rem; border-radius: 14px; border-top-left-radius: 2px; max-width: 85%; font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
+                Xin chào! Tôi là <strong>AI GARAGE ASSISTANT</strong>. Tôi có thể giúp bạn:
+                <ul style="margin-left: 1.25rem; margin-top: 0.4rem;">
+                  <li>Chẩn đoán sự cố kỹ thuật ô tô & gợi ý linh kiện</li>
+                  <li>Phân tích lịch sử sửa chữa & lỗi lặp lại</li>
+                  <li>Tạo dự thảo báo giá linh kiện & tiền công</li>
+                  <li>Báo cáo doanh thu & chỉ số kinh doanh cho Quản lý</li>
+                  <li>Dự đoán bảo dưỡng định kỳ & tra cứu tiến độ xe</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input Bar -->
+          <div style="display: flex; gap: 0.75rem;">
+            <input type="text" id="ai-chat-input" class="form-control" placeholder="Nhập câu hỏi kỹ thuật, yêu cầu báo giá hoặc tra cứu tiến độ..." onkeypress="if(event.key==='Enter') sendAIChatMessage()">
+            <button class="btn btn-ai" onclick="sendAIChatMessage()" style="padding: 0 1.25rem; flex-shrink: 0;">
+              <i class="fa-solid fa-paper-plane"></i> Gửi AI
+            </button>
+          </div>
+        </div>
+
+        <!-- SPECIALIZED FORM: OBD DIAGNOSTIC ANALYSIS (Mục 10) -->
+        <div class="table-card" style="padding: 1.5rem; margin-bottom: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color);">
+          <h4 style="font-family: 'Outfit'; color: var(--accent-cyan); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-microchip"></i> 10. AI PHÂN TÍCH LỖI KỸ THUẬT & MÃ LỖI OBD-II
+          </h4>
+          <form onsubmit="submitOBDDiagnosticForm(event)">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; margin-bottom: 1rem;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Hãng Xe:</label>
+                <input type="text" id="obd-brand" class="form-control" value="Toyota" required>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Model Xe:</label>
+                <input type="text" id="obd-model" class="form-control" value="Camry 2.5Q" required>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Năm Sản Xuất:</label>
+                <input type="number" id="obd-year" class="form-control" value="2022" required>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Số Km Odometer:</label>
+                <input type="number" id="obd-mileage" class="form-control" value="40000" required>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1rem;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Mã Lỗi OBD-II (VD: P0300, P0171...):</label>
+                <input type="text" id="obd-code" class="form-control" value="P0300" placeholder="Nhập mã lỗi OBD..." required>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Mô Tả Triệu Chứng Thực Tế:</label>
+                <input type="text" id="obd-symptoms" class="form-control" value="Báo đèn Check Engine, xe giật cục khi tăng tốc" required>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-wand-magic-sparkles"></i> Phân Tích Lỗi OBD Bằng AI</button>
+            </div>
+          </form>
+
+          <!-- OBD Analysis Output Box -->
+          <div id="obd-output-card" style="display: none; margin-top: 1.25rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div id="obd-output-content"></div>
+            <!-- Mandatory Warning Box -->
+            <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: var(--radius-sm); color: #f59e0b; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>CẢNH BÁO BẮT BỘC: AI chỉ hỗ trợ kỹ thuật viên, không thay thế quy trình chẩn đoán và kiểm tra thực tế.</span>
+            </div>
+          </div>
+        </div>
+
         <!-- 5 Demo Scenario Quick Launchers (Step 13) -->
         <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
@@ -1044,8 +1167,9 @@
     </div>
   </nav>
 
-  <script src="app.js?v=2.5"></script>
+  <script src="app.js?v=3.0"></script>
 </body>
+
 
 
 
