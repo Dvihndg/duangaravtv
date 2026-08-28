@@ -360,8 +360,87 @@ async function loadInvoices() {
   });
 }
 
+// Markdown to HTML Formatter for AI Output
+function renderFormattedAIOutput(elementId, text) {
+  const container = document.getElementById(elementId);
+  if (!container) return;
+
+  if (!text) {
+    container.innerHTML = "<em>Chưa có dữ liệu phản hồi.</em>";
+    return;
+  }
+
+  // Handle loading state
+  if (text.startsWith("⏳")) {
+    container.innerHTML = `
+      <div class="ai-loader">
+        <i class="fa-solid fa-spinner fa-spin"></i> ${escapeHTML(text)}
+        <span></span><span></span><span></span>
+      </div>
+    `;
+    return;
+  }
+
+  // Parse lines into formatted HTML
+  const lines = text.split("\n");
+  let html = "";
+  let inList = false;
+
+  lines.forEach(line => {
+    let trimmed = line.trim();
+    if (!trimmed) {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += "<br>";
+      return;
+    }
+
+    // Bold formatting replacement
+    let formattedLine = escapeHTML(trimmed).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    // Headers or Bullet Points
+    if (trimmed.startsWith("•") || trimmed.startsWith("- ") || trimmed.startsWith("+ ")) {
+      if (!inList) { html += "<ul>"; inList = true; }
+      const content = formattedLine.replace(/^[•\-+]\s*/, "");
+      html += `<li>${content}</li>`;
+    } else if (trimmed.startsWith("📌") || trimmed.startsWith("🚗") || trimmed.startsWith("📋") || trimmed.startsWith("🔍") || trimmed.startsWith("🛠️") || trimmed.startsWith("🤖")) {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<h4 style="margin-top: 0.75rem; color: var(--accent-purple);">${formattedLine}</h4>`;
+    } else {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<p style="margin-bottom: 0.4rem;">${formattedLine}</p>`;
+    }
+  });
+
+  if (inList) html += "</ul>";
+  container.innerHTML = html;
+}
+
+function escapeHTML(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function showToast(message) {
+  let container = document.querySelector(".toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> ${message}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
 // AI Functions Implementation
-// AI Assistant Unified Engine Functions
 async function askAIAssistant(question, repairOrderId = null, vehicleId = null) {
   return await apiFetch("/ai/assistant", {
     method: "POST",
@@ -379,7 +458,7 @@ async function openAIAssistantModal(title, initialQuestion, repairOrderId = null
   const questionInput = document.getElementById("modal-ai-question-input");
   if (questionInput) questionInput.value = initialQuestion || "";
 
-  showAIModal(title || "Trợ Lý AI Garage VTV", "⏳ Trợ lý AI đang xử lý câu hỏi của bạn...");
+  showAIModal(title || "Trợ Lý AI Garage VTV", "⏳ Trợ lý AI đang phân tích dữ liệu & xử lý câu hỏi...");
 
   try {
     const q = initialQuestion || "Hãy tư vấn các dịch vụ xe và lập báo giá nháp dự kiến";
@@ -423,23 +502,30 @@ function setModalAIQuestion(questionText) {
   }
 }
 
+function setFreeQuestion(questionText) {
+  const input = document.getElementById("ai-free-question-input");
+  if (input) {
+    input.value = questionText;
+    runAISandbox();
+  }
+}
+
 async function submitModalAIQuestion() {
   const input = document.getElementById("modal-ai-question-input");
   if (!input || !input.value.trim()) return;
 
   const question = input.value.trim();
   const ctx = currentState.activeAIContext || {};
-  const outputBox = document.getElementById("modal-ai-body");
 
-  if (outputBox) outputBox.textContent = `⏳ Đang gửi câu hỏi: "${question}" đến Trợ Lý AI...`;
+  renderFormattedAIOutput("modal-ai-body", `⏳ Đang gửi câu hỏi: "${question}"...`);
 
   try {
     const res = await askAIAssistant(question, ctx.repair_order_id, ctx.vehicle_id);
-    if (outputBox) outputBox.textContent = res.output;
+    renderFormattedAIOutput("modal-ai-body", res.output);
     const badge = document.getElementById("modal-ai-model-badge");
     if (badge) badge.innerHTML = `<i class="fa-solid fa-microchip"></i> Engine: ${res.model_used}`;
   } catch (err) {
-    if (outputBox) outputBox.textContent = `❌ Lỗi: ${err.message}`;
+    renderFormattedAIOutput("modal-ai-body", `❌ Lỗi: ${err.message}`);
   }
 }
 
@@ -466,7 +552,8 @@ function applyPromptTemplate() {
 }
 
 async function runAISandbox() {
-  const roIdVal = document.getElementById("ai-sandbox-ro-select").value;
+  const selectEl = document.getElementById("ai-sandbox-ro-select");
+  const roIdVal = selectEl ? selectEl.value : "";
   const roId = roIdVal ? parseInt(roIdVal) : null;
   const questionInput = document.getElementById("ai-free-question-input");
   let question = questionInput ? questionInput.value.trim() : "";
@@ -476,33 +563,38 @@ async function runAISandbox() {
   }
 
   const container = document.getElementById("ai-sandbox-output-container");
-  const output = document.getElementById("ai-sandbox-output");
   container.style.display = "block";
-  output.textContent = "⏳ Trợ lý AI Engine đang xử lý câu hỏi của bạn...";
+  renderFormattedAIOutput("ai-sandbox-output", "⏳ Trợ lý AI Engine đang phân tích câu hỏi...");
 
   try {
     const res = await askAIAssistant(question, roId);
-    output.textContent = res.output;
+    renderFormattedAIOutput("ai-sandbox-output", res.output);
   } catch (err) {
-    output.textContent = `❌ Lỗi: ${err.message}`;
+    renderFormattedAIOutput("ai-sandbox-output", `❌ Lỗi: ${err.message}`);
   }
+}
+
+function copyAISandboxResult() {
+  const text = document.getElementById("ai-sandbox-output").innerText;
+  navigator.clipboard.writeText(text);
+  showToast("Đã sao chép phản hồi AI vào bộ nhớ tạm!");
 }
 
 // Modal Helpers
 function showAIModal(title, bodyText, modelUsed = "Trợ Lý AI Garage VTV") {
   document.getElementById("modal-ai-title").innerHTML = `<i class="fa-solid fa-robot"></i> ${title}`;
-  document.getElementById("modal-ai-body").textContent = bodyText;
+  renderFormattedAIOutput("modal-ai-body", bodyText);
   const badge = document.getElementById("modal-ai-model-badge");
   if (badge) badge.innerHTML = `<i class="fa-solid fa-microchip"></i> Engine: ${modelUsed}`;
   openModal("modal-ai-result");
 }
 
-
 function copyAIResult() {
-  const text = document.getElementById("modal-ai-body").textContent;
+  const text = document.getElementById("modal-ai-body").innerText;
   navigator.clipboard.writeText(text);
-  alert("Đã sao chép nội dung AI vào bộ nhớ tạm!");
+  showToast("Đã sao chép phản hồi AI vào bộ nhớ tạm!");
 }
+
 
 function openModal(modalId) {
   document.getElementById(modalId).classList.add("active");

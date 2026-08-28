@@ -323,24 +323,45 @@
       <!-- VIEW 7: Trợ Lý AI Garage -->
       <section id="view-ai-studio" class="view-section">
         <div class="table-card" style="padding: 1.75rem;">
-          <h3 style="font-family: 'Outfit'; font-size: 1.25rem; color: var(--accent-purple); margin-bottom: 0.5rem;">
-            <i class="fa-solid fa-robot"></i> Trợ Lý AI Garage VTV (Car Service Assistant)
-          </h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
-            Trợ lý AI hợp nhất tự động lập báo giá nháp, giải thích quy trình kỹ thuật và hỗ trợ người dùng đặt câu hỏi tự do liên quan đến tất cả dịch vụ xe ô tô.
-          </p>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+            <div>
+              <h3 style="font-family: 'Outfit'; font-size: 1.35rem; color: var(--accent-purple); display: flex; align-items: center; gap: 0.6rem;">
+                <i class="fa-solid fa-robot" style="font-size: 1.5rem;"></i> Trợ Lý AI Garage VTV
+              </h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem;">
+                Tự động lập báo giá nháp, giải thích quy trình kỹ thuật & tư vấn thắc mắc tự do về mọi dịch vụ ô tô.
+              </p>
+            </div>
+            <div class="ai-header-badge">
+              <span class="ai-pulse-dot"></span> Đang Hoạt Động (24/7)
+            </div>
+          </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <!-- Prompt Pills Quick Selection -->
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.83rem; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">
+              <i class="fa-solid fa-bolt" style="color: var(--accent-amber);"></i> Gợi Ý Câu Hỏi Mẫu Nhanh:
+            </label>
+            <div class="prompt-pill-container">
+              <span class="prompt-pill" onclick="setFreeQuestion('Lập báo giá nháp chi tiết cho phiếu sửa chữa đã chọn')"><i class="fa-solid fa-calculator"></i> 📋 Báo Giá Nháp Dịch Vụ & Phụ Tùng</span>
+              <span class="prompt-pill" onclick="setFreeQuestion('Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa này')"><i class="fa-solid fa-comment-dots"></i> 🚗 Giải Thích Cho Khách</span>
+              <span class="prompt-pill" onclick="setFreeQuestion('Xe ô tô kêu rít rít ở phanh trước khi đạp thắng là bị làm sao và khắc phục thế nào?')"><i class="fa-solid fa-volume-high"></i> 🔊 Chẩn Đoán Tiếng Kêu Rít Phanh</span>
+              <span class="prompt-pill" onclick="setFreeQuestion('Tư vấn quy trình và chi phí bảo dưỡng định kỳ mốc 40,000 km xe ô tô')"><i class="fa-solid fa-wrench"></i> 🛠️ Bảo Dưỡng Mốc 40,000 km</span>
+              <span class="prompt-pill" onclick="setFreeQuestion('Giải thích vì sao cần vệ sinh kim phun và họng hút xăng ô tô?')"><i class="fa-solid fa-lightbulb"></i> 💡 Vệ Sinh Kim Phun & Họng Hút</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
             <div class="form-group" style="margin-bottom: 0;">
-              <label>Chọn Phiếu Sửa Chữa Ngữ Cảnh (Tùy chọn):</label>
+              <label><i class="fa-solid fa-file-invoice"></i> Chọn Phiếu Sửa Chữa Ngữ Cảnh (Tùy chọn):</label>
               <select id="ai-sandbox-ro-select" class="form-control">
                 <!-- Options populated by JS -->
               </select>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-              <label>Gợi Ý Câu Hỏi Mẫu Nhanh:</label>
+              <label><i class="fa-solid fa-list-check"></i> Chọn Mẫu Prompt Chi Tiết:</label>
               <select id="ai-prompt-templates" class="form-control" onchange="applyPromptTemplate()">
-                <option value="">-- Chọn câu hỏi mẫu hoặc tự gõ bên dưới --</option>
+                <option value="">-- Hoặc chọn mẫu từ danh sách xổ xuống --</option>
                 <option value="Lập báo giá nháp chi tiết cho phiếu sửa chữa đã chọn">📋 Lập báo giá nháp chi tiết dịch vụ & phụ tùng</option>
                 <option value="Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa này">🚗 Giải thích dịch vụ sửa chữa cho khách hàng</option>
                 <option value="Xe ô tô kêu rít rít ở phanh trước khi đạp thắng là bị làm sao và khắc phục thế nào?">🔊 Chẩn đoán hiện tượng kêu rít ở phanh xe</option>
@@ -351,19 +372,23 @@
           </div>
 
           <div class="form-group">
-            <label style="font-weight: 600;">Nhập Câu Hỏi Tự Do Cho Trợ Lý AI:</label>
+            <label style="font-weight: 700;"><i class="fa-solid fa-message"></i> Nhập Câu Hỏi Tự Do Cho Trợ Lý AI:</label>
             <textarea id="ai-free-question-input" class="form-control" rows="3" 
               placeholder="Nhập bất kỳ câu hỏi nào về dịch vụ xe, báo giá nháp, giải thích kỹ thuật, triệu chứng hỏng hóc... (Ví dụ: Thay lọc nhớt và bảo dưỡng gầm xe sedan hết bao nhiêu tiền?)"></textarea>
           </div>
 
           <div style="display: flex; gap: 0.75rem; align-items: center;">
-            <button class="btn btn-ai" onclick="runAISandbox()"><i class="fa-solid fa-sparkles"></i> Hỏi Trợ Lý AI Engine</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('ai-free-question-input').value=''"><i class="fa-solid fa-eraser"></i> Xóa Ô Nhập</button>
+            <button class="btn btn-ai" onclick="runAISandbox()"><i class="fa-solid fa-sparkles"></i> Gửi Yêu Cầu Cho AI Engine</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('ai-free-question-input').value=''"><i class="fa-solid fa-eraser"></i> Xóa Nội Dung</button>
           </div>
 
           <div id="ai-sandbox-output-container" style="display: none; margin-top: 1.5rem;">
-            <h4 style="color: var(--accent-primary); font-size: 0.95rem; margin-bottom: 0.5rem;"><i
-                class="fa-solid fa-terminal"></i> Phản Hồi Từ Trợ Lý AI Garage:</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <h4 style="color: var(--accent-primary); font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-microchip" style="color: var(--accent-purple);"></i> Phản Hồi Từ Trợ Lý AI Garage:
+              </h4>
+              <button class="btn btn-secondary btn-sm" onclick="copyAISandboxResult()"><i class="fa-solid fa-copy"></i> Sao Chép</button>
+            </div>
             <div id="ai-sandbox-output" class="ai-output-box"></div>
           </div>
         </div>
@@ -376,35 +401,42 @@
 
   <!-- Modal AI Result -->
   <div id="modal-ai-result" class="modal-backdrop">
-    <div class="modal-card" style="max-width: 700px;">
+    <div class="modal-card" style="max-width: 720px;">
       <div class="modal-header">
-        <h3 id="modal-ai-title" style="font-family: 'Outfit'; color: var(--accent-purple);"><i
-            class="fa-solid fa-robot"></i> Trợ Lý AI Garage VTV</h3>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--gradient-ai); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem;">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <div>
+            <h3 id="modal-ai-title" style="font-family: 'Outfit'; color: var(--accent-purple); font-size: 1.15rem; margin: 0;">Trợ Lý AI Garage VTV</h3>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Tư vấn kỹ thuật, báo giá nháp & giải thích quy trình</span>
+          </div>
+        </div>
         <button class="close-btn" onclick="closeModal('modal-ai-result')">&times;</button>
       </div>
 
       <!-- Interactive Question Input Box inside Modal -->
-      <div style="margin-bottom: 1rem; background: var(--bg-main); padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color);">
-        <label style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.4rem; display: block; color: var(--text-main);">
-          <i class="fa-solid fa-comments"></i> Đặt câu hỏi tự do cho Trợ lý AI (báo giá, giải thích dịch vụ, chẩn đoán lỗi...):
+      <div style="margin-bottom: 1rem; background: var(--bg-primary); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <label style="font-weight: 700; font-size: 0.83rem; margin-bottom: 0.5rem; display: block; color: var(--text-main);">
+          <i class="fa-solid fa-comments" style="color: var(--accent-purple);"></i> Đặt câu hỏi tự do cho Trợ lý AI:
         </label>
         <div style="display: flex; gap: 0.5rem;">
           <input type="text" id="modal-ai-question-input" class="form-control" 
-            placeholder="Ví dụ: Lập báo giá nháp / Giải thích cho khách / Xe bị rơ vô lăng..."
+            placeholder="Nhập câu hỏi (VD: Báo giá nháp / Giải thích cho khách / Kêu gầm xe...)"
             onkeydown="if(event.key === 'Enter') submitModalAIQuestion()">
           <button class="btn btn-ai" onclick="submitModalAIQuestion()"><i class="fa-solid fa-paper-plane"></i> Gửi</button>
         </div>
 
         <!-- Quick Prompt Shortcuts -->
-        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem;">
-          <button class="btn btn-secondary btn-sm" style="font-size: 0.78rem;" onclick="setModalAIQuestion('Lập báo giá nháp chi tiết cho phiếu sửa chữa này')">📋 Báo Giá Nháp</button>
-          <button class="btn btn-secondary btn-sm" style="font-size: 0.78rem;" onclick="setModalAIQuestion('Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa')">🚗 Giải Thích Khách</button>
-          <button class="btn btn-secondary btn-sm" style="font-size: 0.78rem;" onclick="setModalAIQuestion('Tóm tắt lịch sử sửa chữa và cảnh báo kỹ thuật cho xe này')">📌 Lịch Sử Xe</button>
-          <button class="btn btn-secondary btn-sm" style="font-size: 0.78rem;" onclick="setModalAIQuestion('Tư vấn mốc bảo dưỡng 40,000 km gồm những gì và chi phí bao nhiêu?')">💡 Bảo Dưỡng 40k km</button>
+        <div class="prompt-pill-container">
+          <span class="prompt-pill" onclick="setModalAIQuestion('Lập báo giá nháp chi tiết cho phiếu sửa chữa này')"><i class="fa-solid fa-calculator"></i> 📋 Báo Giá Nháp</span>
+          <span class="prompt-pill" onclick="setModalAIQuestion('Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa')"><i class="fa-solid fa-user-check"></i> 🚗 Giải Thích Khách</span>
+          <span class="prompt-pill" onclick="setModalAIQuestion('Tóm tắt lịch sử sửa chữa và cảnh báo kỹ thuật cho xe này')"><i class="fa-solid fa-clock-rotate-left"></i> 📌 Lịch Sử Xe</span>
+          <span class="prompt-pill" onclick="setModalAIQuestion('Tư vấn mốc bảo dưỡng 40,000 km gồm những gì và chi phí bao nhiêu?')"><i class="fa-solid fa-wrench"></i> 💡 Bảo Dưỡng 40k km</span>
         </div>
       </div>
 
-      <div id="modal-ai-body" class="ai-output-box" style="max-height: 320px; overflow-y: auto;">Đang xử lý...</div>
+      <div id="modal-ai-body" class="ai-output-box" style="max-height: 340px; overflow-y: auto;">Đang xử lý...</div>
       
       <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
         <span id="modal-ai-model-badge" style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-microchip"></i> Engine: Trợ Lý AI Garage VTV</span>
@@ -415,6 +447,7 @@
       </div>
     </div>
   </div>
+
 
 
   <!-- Modal New Appointment -->
