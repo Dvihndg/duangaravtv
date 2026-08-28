@@ -851,18 +851,36 @@ function openPaymentModal(invId, invNumber, balanceDue) {
     `;
   }
 
-  const qrImg = document.getElementById("qr-bank-image");
-  if (qrImg) {
-    qrImg.src = `https://img.vietqr.io/image/TCB-4443338386-compact2.png?amount=${balanceDue}&addInfo=${encodeURIComponent(memo)}&accountName=DUONG%20CONG%20VINH`;
-  }
-
+  updateQRAmountLive();
   togglePaymentMethodFields();
   openModal("modal-payment");
+}
+
+function updateQRAmountLive() {
+  const amountInput = document.getElementById("pay-amount");
+  const amount = amountInput ? (parseFloat(amountInput.value) || 0) : 0;
+  
+  const qrAmountVal = document.getElementById("qr-amount-val");
+  if (qrAmountVal) {
+    qrAmountVal.innerHTML = `
+      ${amount.toLocaleString('vi-VN')} VNĐ
+      <button type="button" class="copy-chip" onclick="copyTextToClipboard('${amount}', 'Số tiền chuyển khoản')"><i class="fa-solid fa-copy"></i></button>
+    `;
+  }
+
+  const memoTextEl = document.getElementById("qr-memo-text");
+  const memo = memoTextEl ? memoTextEl.innerText : "THANHTOAN HOADON";
+
+  const qrImg = document.getElementById("qr-bank-image");
+  if (qrImg) {
+    qrImg.src = `https://img.vietqr.io/image/TCB-4443338386-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(memo)}&accountName=DUONG%20CONG%20VINH`;
+  }
 }
 
 function togglePaymentMethodFields() {
   const method = document.getElementById("pay-method").value;
   const qrContainer = document.getElementById("bank-qr-container");
+
   if (qrContainer) {
     qrContainer.style.display = (method === "bank_transfer") ? "block" : "none";
   }

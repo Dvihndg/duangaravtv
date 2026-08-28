@@ -836,6 +836,13 @@
               <span class="qr-info-val">Techcombank (TCB)</span>
             </div>
             <div class="qr-info-row">
+              <span class="qr-info-label">Số tiền chuyển khoản:</span>
+              <span class="qr-info-val" id="qr-amount-val" style="color: var(--accent-emerald); font-size: 1rem; font-weight: 800;">
+                0 VNĐ
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard(document.getElementById('pay-amount').value, 'Số tiền chuyển khoản')"><i class="fa-solid fa-copy"></i></button>
+              </span>
+            </div>
+            <div class="qr-info-row">
               <span class="qr-info-label">Nội dung CK:</span>
               <span class="qr-info-val" id="qr-memo-val">
                 THANHTOAN HOADON
@@ -848,8 +855,9 @@
 
         <div class="form-group" style="margin-top: 1rem;">
           <label>Số Tiền Khách Đưa / Chuyển Khoản:</label>
-          <input type="number" id="pay-amount" class="form-control" required>
+          <input type="number" id="pay-amount" class="form-control" required oninput="updateQRAmountLive()">
         </div>
+
         <div style="text-align: right; margin-top: 1.25rem;">
           <button type="button" class="btn btn-secondary" onclick="closeModal('modal-payment')">Hủy</button>
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-circle-check"></i> Xác Nhận Đã Thu Tiền</button>
