@@ -53,15 +53,21 @@ Chạy bộ test suite `pytest` kiểm thử tính năng Lịch hẹn, Phiếu s
 pytest backend/tests/ -v
 ```
 
-### 5. Khởi chạy Hệ thống Web Application
-Chạy FastAPI backend server:
+### 5. Khởi chạy Hệ thống Web & Streamlit Admin Dashboard
+- **Chạy Streamlit Admin Dashboard (Giao diện Quản trị & AI Analytics bằng Streamlit):**
+```powershell
+streamlit run streamlit_app.py
+```
+*Truy cập Streamlit Dashboard trên trình duyệt: `http://localhost:8501`*
 
+- **Chạy FastAPI Backend Server:**
 ```powershell
 python -m uvicorn backend.app.main:app --reload --port 8000
 ```
 
 Truy cập hệ thống trên trình duyệt:
-- 🌐 **Giao diện Web Dashboard**: `http://127.0.0.1:8000`
+- 🌐 **Giao diện Web Customer & Admin**: `https://duangaravtv.vercel.app/`
+- 📊 **Giao diện Streamlit Admin Dashboard**: `http://localhost:8501`
 - 📚 **Tài liệu API Swagger**: `http://127.0.0.1:8000/docs`
 
 ---
