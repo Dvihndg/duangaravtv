@@ -1,0 +1,110 @@
+@startuml
+skinparam backgroundColor #0f172a
+skinparam defaultFontColor #f8fafc
+skinparam classBackgroundColor #1e293b
+skinparam classBorderColor #38bdf8
+skinparam packageBackgroundColor #0d1322
+skinparam packageBorderColor #334155
+
+package "Domain Model (Garage Management & AI)" {
+
+    class Customer {
+        +int id
+        +string full_name
+        +string phone
+        +string address
+        +datetime created_at
+        +get_vehicles()
+    }
+
+    class Vehicle {
+        +int id
+        +int customer_id
+        +string license_plate
+        +string brand
+        +string model
+        +int year
+        +get_history()
+    }
+
+    class RepairOrder {
+        +int id
+        +int vehicle_id
+        +string code
+        +int mileage_at_reception
+        +string initial_symptoms
+        +string technical_diagnosis
+        +float final_cost
+        +string status
+        +calculate_total()
+    }
+
+    class RepairOrderItem {
+        +int id
+        +int repair_order_id
+        +int service_id
+        +int part_id
+        +string name
+        +string item_type
+        +float quantity
+        +float unit_price
+        +float labor_cost
+        +float total_price
+    }
+
+    class Service {
+        +int id
+        +string code
+        +string name
+        +float labor_cost
+    }
+
+    class Part {
+        +int id
+        +string code
+        +string name
+        +float unit_price
+        +int stock_quantity
+        +int min_stock_alert
+    }
+
+    class Invoice {
+        +int id
+        +string invoice_number
+        +int repair_order_id
+        +float total_amount
+        +float paid_amount
+        +string status
+        +generate_vietqr()
+    }
+
+    class Payment {
+        +int id
+        +int invoice_id
+        +string payment_method
+        +float amount
+        +datetime payment_date
+    }
+
+    class AILog {
+        +int id
+        +int user_id
+        +string feature_used
+        +string prompt
+        +string raw_response
+        +float price_variance
+        +datetime created_at
+    }
+
+}
+
+Customer "1" -- "0..*" Vehicle : owns >
+Vehicle "1" -- "0..*" RepairOrder : undergoes >
+RepairOrder "1" -- "0..*" RepairOrderItem : contains >
+Service "0..1" -- "0..*" RepairOrderItem : referenced by >
+Part "0..1" -- "0..*" RepairOrderItem : referenced by >
+RepairOrder "1" -- "0..1" Invoice : generates >
+Invoice "1" -- "0..*" Payment : settled by >
+RepairOrder "1" ..> AILog : audited by >
+
+@enduml

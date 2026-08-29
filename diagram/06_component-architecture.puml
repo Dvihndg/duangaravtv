@@ -1,0 +1,56 @@
+@startuml
+skinparam backgroundColor #0f172a
+skinparam defaultFontColor #f8fafc
+skinparam componentBackgroundColor #1e293b
+skinparam componentBorderColor #38bdf8
+skinparam interfaceBackgroundColor #0891b2
+skinparam packageBackgroundColor #0d1322
+skinparam packageBorderColor #334155
+
+package "Presentation Layer (Web Client)" {
+    [HTML5 Single Page App (index.html)] as HTML
+    [SaaS Styles System (styles.css)] as CSS
+    [Client State & Events Manager (app.js)] as AppJS
+    [GarageAI Floating & Modal Widget] as AIWidget
+}
+
+package "API Gateway & Router Layer (FastAPI)" {
+    [Auth & JWT Middleware] as Auth
+    [Customer & Vehicle Router] as CustRouter
+    [Repair Order Router] as RORouter
+    [Inventory & Catalog Router] as InvRouter
+    [AI Assistant Router] as AIRouter
+}
+
+package "Core Engine & Integration Layer" {
+    [Deterministic Pricing Engine (Python)] as PriceEngine
+    [Gemini 2.5 Flash AI Service] as AIService
+    [VietQR Napas 247 Payment Generator] as VietQR
+}
+
+package "Data Storage Layer" {
+    database "SQLite Database (garage.db)" as DB
+    [AI Audit Logs & Security Guardrails] as AuditLog
+}
+
+HTML --> AppJS
+CSS --> HTML
+AppJS --> AIWidget
+
+AppJS ..> Auth : HTTP REST / Bearer JWT
+AppJS ..> CustRouter : /api/v1/customers
+AppJS ..> RORouter : /api/v1/repair-orders
+AppJS ..> InvRouter : /api/v1/services, /parts
+AppJS ..> AIRouter : /api/v1/ai/assistant
+
+AIRouter --> AIService
+RORouter --> PriceEngine
+RORouter --> VietQR
+
+CustRouter --> DB
+RORouter --> DB
+InvRouter --> DB
+AIService --> AuditLog
+DB --> AuditLog
+
+@enduml

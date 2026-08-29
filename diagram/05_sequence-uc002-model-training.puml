@@ -1,0 +1,31 @@
+@startuml
+autonumber
+skinparam backgroundColor #0f172a
+skinparam defaultFontColor #f8fafc
+skinparam actorBorderColor #0891b2
+skinparam actorBackgroundColor #164e63
+skinparam participantBackgroundColor #1e293b
+skinparam participantBorderColor #38bdf8
+skinparam sequenceLifeLineBorderColor #475569
+
+actor "Kỹ Thuật Viên / Admin" as User
+participant "Giao Diện AI Studio" as UI
+participant "FastAPI Service (AIService)" as Backend
+participant "Pricing Engine (Python)" as Engine
+participant "Gemini AI Model" as AI
+database "SQLite Database" as DB
+
+User ->> UI: Yêu cầu chạy Báo Cáo Đo Lường Benchmark AI (UC002)
+UI ->> Backend: GET /api/v1/ai/evaluation-report
+Backend ->> DB: Query AI Audit Logs & Interaction metrics
+DB -->> Backend: Dữ liệu 42 ca tương tác & lịch sử chẩn đoán
+
+Backend ->> Engine: Đơn giá niêm yết DB x Số lượng linh kiện
+Engine -->> Backend: Tính toán Sai Lệch Giá = 0.0% (Zero Variance Guaranteed)
+
+Backend ->> AI: Tính toán Latency & Token Consumption Cost
+AI -->> Backend: Trả về Token Metrics ($0.0024 / 4850 Tokens)
+
+Backend -->> UI: JSON { top1_accuracy: 95.5%, parts_precision: 98.2%, price_variance: 0.0% }
+UI -->> User: Hiển thị Bảng Metrics Báo Cáo Đo Lường Hệ Thống
+@enduml

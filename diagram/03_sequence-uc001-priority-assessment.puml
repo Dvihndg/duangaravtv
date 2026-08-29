@@ -1,0 +1,34 @@
+@startuml
+autonumber
+skinparam backgroundColor #0f172a
+skinparam defaultFontColor #f8fafc
+skinparam actorBorderColor #0891b2
+skinparam actorBackgroundColor #164e63
+skinparam participantBackgroundColor #1e293b
+skinparam participantBorderColor #38bdf8
+skinparam sequenceLifeLineBorderColor #475569
+
+actor "Lễ Tân (Receptionist)" as User
+participant "Giao Diện Web (App.js)" as UI
+participant "API Gateway (FastAPI)" as API
+participant "AI Engine (Gemini 2.5)" as AI
+database "Database (SQLite)" as DB
+
+User ->> UI: Nhập biển số xe & triệu chứng ban đầu
+UI ->> API: GET /api/v1/vehicles?search={plate}
+API ->> DB: Query Vehicle & Customer records
+DB -->> API: Trả về kết quả đối soát
+API -->> UI: Thông tin xe & Lịch sử sửa chữa cũ
+
+UI ->> API: POST /api/v1/ai/assistant (Phân tích mức độ ưu tiên)
+API ->> AI: Gửi Prompt đánh giá triệu chứng + Odometer
+AI -->> API: Phản hồi nhận định kỹ thuật & Priority Score
+API -->> UI: Trả về gợi ý chẩn đoán & Priority pill
+
+User ->> UI: Nhấp "Tạo Phiếu Tiếp Nhận"
+UI ->> API: POST /api/v1/repair-orders { vehicle_id, mileage, symptoms }
+API ->> DB: INSERT INTO repair_orders (Status = 'received')
+DB -->> API: Thành công (RO Code: RO-2026-xxx)
+API -->> UI: Trả về dữ liệu Phiếu sửa chữa mới
+UI -->> User: Hiển thị thông báo đã tạo phiếu thành công!
+@enduml
