@@ -67,42 +67,24 @@
 <body>
 
   <div class="login-container">
+    <!-- Top Return Link -->
+    <div style="margin-bottom: 1.25rem;">
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 0.4rem; color: #38bdf8; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: color 0.2s;">
+        <i class="fa-solid fa-arrow-left"></i> Về Cổng Khách Hàng (Không Cần Đăng Nhập)
+      </a>
+    </div>
+
     <!-- Brand Header -->
-    <div style="text-align: center; margin-bottom: 1.25rem;">
-      <div style="width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg, #0891b2, #0284c7); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; margin: 0 auto 0.75rem auto; box-shadow: 0 8px 20px rgba(8, 145, 178, 0.4);">
-        <i class="fa-solid fa-car-wrench"></i>
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <div style="width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg, #4f46e5, #6366f1); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; margin: 0 auto 0.75rem auto; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);">
+        <i class="fa-solid fa-lock"></i>
       </div>
-      <h2 class="brand-title">GARAGE VTV</h2>
-      <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">HỆ THỐNG QUẢN LÝ OTO TÍCH HỢP AI</span>
-    </div>
-
-    <!-- Login Mode Tabs -->
-    <div class="login-tabs">
-      <button class="login-tab-btn active" id="tab-cust" onclick="switchLoginTab('customer')">
-        <i class="fa-solid fa-user"></i> Khách Hàng
-      </button>
-      <button class="login-tab-btn" id="tab-staff" onclick="switchLoginTab('staff')">
-        <i class="fa-solid fa-user-gear"></i> Nhân Viên Nội Bộ
-      </button>
-    </div>
-
-    <!-- Customer Access Form -->
-    <div id="form-login-cust">
-      <div style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; text-align: center;">
-        <i class="fa-solid fa-car-tunnel" style="font-size: 2rem; color: #38bdf8; margin-bottom: 0.5rem; display: block;"></i>
-        <h4 style="font-family: 'Outfit'; color: #ffffff; margin-bottom: 0.4rem;">Cổng Thông Tin Dịch Vụ Khách Hàng</h4>
-        <p style="font-size: 0.82rem; color: #94a3b8; line-height: 1.5; margin: 0;">
-          Đăng ký dịch vụ xe, tra cứu tiến độ sửa chữa & tư vấn trực tiếp cùng Trợ lý AI Garage VTV.
-        </p>
-      </div>
-
-      <button onclick="loginAsCustomer()" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(8, 145, 178, 0.4);">
-        <i class="fa-solid fa-right-to-bracket"></i> Truy Cập Cổng Khách Hàng
-      </button>
+      <h2 class="brand-title">ĐĂNG NHẬP NỘI BỘ</h2>
+      <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">DÀNH CHO NHÂN VIÊN GARAGE VTV</span>
     </div>
 
     <!-- Staff Login Form -->
-    <div id="form-login-staff" style="display: none;">
+    <div id="form-login-staff">
       <form onsubmit="submitStaffLogin(event)">
         <div class="form-group" style="margin-bottom: 1.15rem;">
           <label style="color: #cbd5e1;">Chọn Vai Trò Nội Bộ:</label>
@@ -120,11 +102,11 @@
         </div>
 
         <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 1.25rem; background: rgba(255, 255, 255, 0.03); padding: 0.65rem 0.85rem; border-radius: 8px;">
-          <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Demo Credential: <strong id="hint-creds" style="color: #38bdf8;">letan / letan123</strong>
+          <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Demo Credential: <strong id="hint-creds" style="color: #38bdf8;">receptionist / letan123</strong>
         </div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; background: linear-gradient(135deg, #4f46e5, #6366f1); border: none; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
-          <i class="fa-solid fa-lock"></i> Đăng Nhập Trang Nội Bộ
+          <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Trang Quản Trị
         </button>
       </form>
     </div>
