@@ -246,67 +246,27 @@ function getOfflineMockResponse(endpoint, options) {
   if (endpoint === "/analytics/dashboard") {
     return {
       kpi: {
-        total_revenue: 245000000,
-        active_repair_orders: 12,
-        pending_appointments: 8,
-        low_stock_parts_count: 34
+        total_revenue: 0,
+        active_repair_orders: 0,
+        pending_appointments: 0,
+        low_stock_parts_count: 2
       }
     };
   }
   if (endpoint === "/customers") {
-    return [
-      { id: 1, full_name: "Nguyễn Hoàng Nam", phone: "0988123456", address: "123 Lê Duẩn, Quận 1, TP.HCM", vehicles: [{ license_plate: "51H-888.88", brand: "Toyota", model: "Camry 2.5Q" }] },
-      { id: 2, full_name: "Đặng Thị Minh Anh", phone: "0977654321", address: "456 Nguyễn Thị Minh Khai, Quận 3, TP.HCM", vehicles: [{ license_plate: "51G-777.89", brand: "Honda", model: "Civic RS" }, { license_plate: "51K-123.45", brand: "Mercedes-Benz", model: "GLC 300" }] },
-      { id: 3, full_name: "Lê Quốc Bảo", phone: "0912345678", address: "789 Võ Văn Kiệt, Quận 5, TP.HCM", vehicles: [{ license_plate: "51F-999.99", brand: "BMW", model: "X5 xDrive40i" }] },
-      { id: 4, full_name: "Phạm Thu Thảo", phone: "0909998877", address: "12 Phạm Văn Đồng, Bình Thạnh, TP.HCM", vehicles: [{ license_plate: "51LD-555.66", brand: "VinFast", model: "VF8 Plus" }] },
-      { id: 5, full_name: "Trần Anh Tuấn", phone: "0933445566", address: "34 Nguyễn Hữu Thọ, Quận 7, TP.HCM", vehicles: [{ license_plate: "51C-444.33", brand: "Ford", model: "Ranger Wildtrak" }] }
-    ];
+    return [];
   }
   if (endpoint === "/vehicles") {
-    return [
-      { id: 1, license_plate: "51H-888.88", brand: "Toyota", model: "Camry 2.5Q", year: 2022, current_mileage: 40000 },
-      { id: 2, license_plate: "51G-777.89", brand: "Honda", model: "Civic RS", year: 2021, current_mileage: 65000 },
-      { id: 3, license_plate: "51K-123.45", brand: "Mercedes-Benz", model: "GLC 300 4MATIC", year: 2023, current_mileage: 18000 },
-      { id: 4, license_plate: "51F-999.99", brand: "BMW", model: "X5 xDrive40i", year: 2020, current_mileage: 82000 },
-      { id: 5, license_plate: "51LD-555.66", brand: "VinFast", model: "VF8 Plus", year: 2023, current_mileage: 15000 },
-      { id: 6, license_plate: "51C-444.33", brand: "Ford", model: "Ranger Wildtrak 2.0L", year: 2022, current_mileage: 45000 }
-    ];
+    return [];
   }
   if (endpoint === "/appointments") {
-    return [
-      { id: 101, appointment_code: "APT-888", customer_name: "Nguyễn Hoàng Nam", vehicle_plate: "51H-888.88", vehicle_info: "Toyota Camry 2.5Q", service_requested: "Bảo dưỡng định kỳ mốc 40.000 km", appointment_date: "2026-08-29T08:00:00", status: "received" },
-      { id: 102, appointment_code: "APT-777", customer_name: "Đặng Thị Minh Anh", vehicle_plate: "51G-777.89", vehicle_info: "Honda Civic RS", service_requested: "Thay má phanh & Căn chỉnh thước lái 3D", appointment_date: "2026-08-29T10:00:00", status: "in_progress" },
-      { id: 103, appointment_code: "APT-123", customer_name: "Đặng Thị Minh Anh", vehicle_plate: "51K-123.45", vehicle_info: "Mercedes GLC 300", service_requested: "Vệ sinh giàn lạnh & Phủ Ceramic cao cấp", appointment_date: "2026-08-29T13:30:00", status: "received" },
-      { id: 104, appointment_code: "APT-999", customer_name: "Lê Quốc Bảo", vehicle_plate: "51F-999.99", vehicle_info: "BMW X5 xDrive40i", service_requested: "Đại tu ly hợp & Bảo dưỡng mốc 80.000 km", appointment_date: "2026-08-29T15:00:00", status: "pending" }
-    ];
+    return [];
   }
   if (endpoint === "/repair-orders") {
-    return [
-      { id: 1, code: "RO-2026-001", vehicle_plate: "51H-888.88", vehicle: { license_plate: "51H-888.88", brand: "Toyota", model: "Camry 2.5Q", customer: { full_name: "Nguyễn Hoàng Nam" } }, initial_symptoms: "Bảo dưỡng định kỳ mốc 40,000 km, phanh kêu rít nhẹ khi đạp thắng", status: "in_progress", final_cost: 1550000, mileage_at_reception: 40000, technical_diagnosis: "Đĩa phanh mòn nhẹ. Khuyến nghị láng đĩa phanh 3D & thay dầu máy." },
-      { id: 2, code: "RO-2026-002", vehicle_plate: "51G-777.89", vehicle: { license_plate: "51G-777.89", brand: "Honda", model: "Civic RS", customer: { full_name: "Đặng Thị Minh Anh" } }, initial_symptoms: "Xe rung lắc vô lăng trên 80km/h & điều hòa gió yếu có mùi hôi", status: "ai_draft", final_cost: 850000, mileage_at_reception: 65000, technical_diagnosis: "Bẩn lọc gió điều hòa carbon, lệch thước lái bánh xe." },
-      { id: 3, code: "RO-2026-003", vehicle_plate: "51K-123.45", vehicle: { license_plate: "51K-123.45", brand: "Mercedes-Benz", model: "GLC 300", customer: { full_name: "Đặng Thị Minh Anh" } }, initial_symptoms: "Đèn Check Engine báo lỗi động cơ thỉnh thoảng giật cục", status: "under_review", final_cost: 1250000, mileage_at_reception: 18000, technical_diagnosis: "Bugi mòn lửa, bỏ máy tạm thời." },
-      { id: 4, code: "RO-2026-004", vehicle_plate: "51F-999.99", vehicle: { license_plate: "51F-999.99", brand: "BMW", model: "X5 xDrive40i", customer: { full_name: "Lê Quốc Bảo" } }, initial_symptoms: "Bảo dưỡng tổng thể 80,000km & Thay 4 lốp Michelin", status: "approved", final_cost: 15100000, mileage_at_reception: 82000, technical_diagnosis: "Đã hoàn thành bảo dưỡng mốc 80k km." }
-    ];
+    return [];
   }
   if (endpoint.startsWith("/repair-orders/")) {
-    const parts = endpoint.split("/");
-    const roId = parseInt(parts[2]);
-    return {
-      id: roId || 1,
-      code: `RO-2026-00${roId || 1}`,
-      vehicle_plate: "51H-888.88",
-      vehicle: { license_plate: "51H-888.88", brand: "Toyota", model: "Camry 2.5Q", customer: { full_name: "Nguyễn Hoàng Nam" } },
-      mileage_at_reception: 40000,
-      initial_symptoms: "Bảo dưỡng định kỳ mốc 40,000 km, phanh kêu rít nhẹ khi đạp thắng",
-      technical_diagnosis: "Đĩa phanh mòn rãnh nhẹ, cần láng đĩa phanh laser 3D & thay dầu máy Synthetic",
-      status: "in_progress",
-      final_cost: 1550000,
-      items: [
-        { id: 1, name: "Dầu nhớt Synthetic 4L (Castrol Edge)", item_type: "part", quantity: 1, unit_price: 750000, labor_cost: 0, total_price: 750000 },
-        { id: 2, name: "Lọc nhớt Toyota Genuine", item_type: "part", quantity: 1, unit_price: 180000, labor_cost: 0, total_price: 180000 },
-        { id: 3, name: "Công láng đĩa phanh 3D & bảo dưỡng heo phanh", item_type: "service", quantity: 1, unit_price: 0, labor_cost: 400000, total_price: 400000 }
-      ]
-    };
+    return null;
   }
   if (endpoint === "/services") {
     return [
@@ -337,11 +297,7 @@ function getOfflineMockResponse(endpoint, options) {
     ];
   }
   if (endpoint === "/invoices") {
-    return [
-      { id: 1, invoice_number: "INV-2026-001", repair_order_id: 1, subtotal: 1435185, tax_amount: 114815, total_amount: 1550000, paid_amount: 0, balance_due: 1550000, status: "unpaid" },
-      { id: 2, invoice_number: "INV-2026-002", repair_order_id: 2, subtotal: 787037, tax_amount: 62963, total_amount: 850000, paid_amount: 850000, balance_due: 0, status: "paid" },
-      { id: 3, invoice_number: "INV-2026-003", repair_order_id: 3, subtotal: 1157407, tax_amount: 92593, total_amount: 1250000, paid_amount: 500000, balance_due: 750000, status: "partial" }
-    ];
+    return [];
   }
   if (endpoint.startsWith("/ai/demo-scenarios/")) {
     const sId = parseInt(endpoint.split("/").pop()) || 1;
