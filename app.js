@@ -200,7 +200,9 @@ async function loginAsCurrentRole() {
   }
 }
 
-let isBackendAvailable = null;
+// Detect static hosting environment (GitHub Pages, Netlify, Vercel, HTTPS live deployment)
+const isLocalhostHost = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+let isBackendAvailable = isLocalhostHost ? null : false;
 
 // Helper fetch wrapper with Offline Mock Engine & Instant Abort Controller
 async function apiFetch(endpoint, options = {}) {
