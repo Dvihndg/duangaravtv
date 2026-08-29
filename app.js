@@ -76,19 +76,10 @@ function checkAuthPermission() {
 
   const path = window.location.pathname.toLowerCase();
   
-  // Enforce internal authorization check specifically when accessing admin.html
-  if (path.endsWith("admin.html")) {
+  // Enforce internal authorization check specifically when accessing admin.html or /admin
+  if (path.endsWith("admin.html") || path.endsWith("/admin")) {
     if (!isLoggedIn || !internalRoles.includes(role)) {
-      const sidebar = document.querySelector(".sidebar");
-      if (sidebar) sidebar.style.display = "none";
-
-      const topBar = document.querySelector(".top-bar");
-      if (topBar) topBar.style.display = "none";
-
-      const mainWrapper = document.querySelector(".main-wrapper");
-      if (mainWrapper) mainWrapper.style.marginLeft = "0";
-
-      switchView("404-error");
+      window.location.href = "login.html";
       return false;
     }
   }
