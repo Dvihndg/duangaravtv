@@ -1962,7 +1962,7 @@ async function lookupCustomerVehicleProgress() {
       `;
     }
   } catch (err) {
-    resContainer.innerHTML = `<div style="color: var(--accent-rose); text-align: center;">❌ Đã xảy ra lỗi khi tra cứu. Vui lòng liên hệ Hotline 090.123.4567.</div>`;
+    resContainer.innerHTML = `<div style="color: var(--accent-rose); text-align: center;">❌ Đã xảy ra lỗi khi tra cứu. Vui lòng liên hệ Hotline 033.344.2358.</div>`;
   }
 }
 

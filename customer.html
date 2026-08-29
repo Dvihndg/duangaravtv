@@ -18,6 +18,7 @@
       display: flex;
       flex-direction: column;
     }
+
     .customer-header {
       background: var(--bg-card);
       border-bottom: 1px solid var(--border-color);
@@ -30,6 +31,7 @@
       z-index: 100;
       backdrop-filter: blur(10px);
     }
+
     .customer-container {
       max-width: 1200px;
       margin: 2rem auto;
@@ -37,6 +39,7 @@
       flex: 1;
       width: 100%;
     }
+
     .hero-banner {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       border: 1px solid rgba(56, 189, 248, 0.3);
@@ -45,6 +48,7 @@
       margin-bottom: 2rem;
       box-shadow: var(--shadow-lg);
     }
+
     .status-search-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -52,6 +56,7 @@
       padding: 1.75rem;
       margin-bottom: 2rem;
     }
+
     .footer-bar {
       background: var(--bg-card);
       border-top: 1px solid var(--border-color);
@@ -69,18 +74,23 @@
   <!-- Customer Header Navigation -->
   <header class="customer-header">
     <div style="display: flex; align-items: center; gap: 1rem;">
-      <div class="brand-logo" style="background: var(--accent-primary); color: white; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+      <div class="brand-logo"
+        style="background: var(--accent-primary); color: white; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
         <i class="fa-solid fa-car-wrench"></i>
       </div>
       <div>
-        <div style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--text-main); letter-spacing: 0.05em;">GARAGE VTV</div>
-        <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600;">CỔNG DỊCH VỤ KHÁCH HÀNG (CUSTOMER PORTAL)</span>
+        <div
+          style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--text-main); letter-spacing: 0.05em;">
+          GARAGE VTV</div>
+        <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600;">CỔNG DỊCH VỤ KHÁCH HÀNG (CUSTOMER
+          PORTAL)</span>
       </div>
     </div>
 
     <div style="display: flex; align-items: center; gap: 1rem;">
-      <button class="btn btn-secondary btn-sm" onclick="openPhoneContactModal()" style="border-color: #0891b2; color: #38bdf8;">
-        <i class="fa-solid fa-phone"></i> Hotline: 090.123.4567
+      <button class="btn btn-secondary btn-sm" onclick="openPhoneContactModal()"
+        style="border-color: #0891b2; color: #38bdf8;">
+        <i class="fa-solid fa-phone"></i> Hotline: 033.344.2358
       </button>
 
       <button id="theme-toggle" class="theme-toggle-btn" title="Chuyển chế độ Sáng/Tối" onclick="toggleTheme()">
@@ -88,7 +98,8 @@
       </button>
 
       <!-- Switch to Internal Management Portal -->
-      <a href="index.html" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #4f46e5, #6366f1); border: none; font-weight: 700;">
+      <a href="index.html" class="btn btn-primary btn-sm"
+        style="background: linear-gradient(135deg, #4f46e5, #6366f1); border: none; font-weight: 700;">
         <i class="fa-solid fa-user-gear"></i> Trang Quản Trị Nội Bộ
       </a>
     </div>
@@ -101,28 +112,38 @@
     <div class="hero-banner">
       <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: center;">
         <div>
-          <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase;">⚡ Dịch vụ Bảo dưỡng & Chẩn đoán AI 24/7</span>
-          <h1 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; color: #ffffff; margin: 0.75rem 0; line-height: 1.25;">
+          <span
+            style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase;">⚡
+            Dịch vụ Bảo dưỡng & Chẩn đoán AI 24/7</span>
+          <h1
+            style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; color: #ffffff; margin: 0.75rem 0; line-height: 1.25;">
             Đăng Ký Kiểm Tra Xe & Nhận Tư Vấn Trực Tiếp
           </h1>
           <p style="color: #cbd5e1; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem;">
-            Garage VTV cung cấp quy trình bảo dưỡng chuẩn xác 100% không sai lệch giá, hỗ trợ chẩn đoán sự cố qua Trợ lý AI và đội ngũ Kỹ thuật viên giàu kinh nghiệm.
+            Garage VTV cung cấp quy trình bảo dưỡng chuẩn xác 100% không sai lệch giá, hỗ trợ chẩn đoán sự cố qua Trợ lý
+            AI và đội ngũ Kỹ thuật viên giàu kinh nghiệm.
           </p>
           <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <button class="btn btn-primary" onclick="openPhoneContactModal()" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700;">
+            <button class="btn btn-primary" onclick="openPhoneContactModal()"
+              style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700;">
               <i class="fa-solid fa-headset"></i> Gọi Hotline / Yêu Cầu Gọi Lại
             </button>
-            <button class="btn btn-ai" onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn mốc bảo dưỡng 5.000 km cho xe của tôi')" style="padding: 0.75rem 1.5rem; font-weight: 700;">
+            <button class="btn btn-ai"
+              onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn mốc bảo dưỡng 5.000 km cho xe của tôi')"
+              style="padding: 0.75rem 1.5rem; font-weight: 700;">
               <i class="fa-solid fa-robot"></i> Trò Chuyện Với Trợ Lý AI
             </button>
           </div>
         </div>
-        
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: var(--radius-md); padding: 1.5rem; text-align: center;">
-          <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); color: #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; font-size: 1.5rem;">
+
+        <div
+          style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: var(--radius-md); padding: 1.5rem; text-align: center;">
+          <div
+            style="width: 50px; height: 50px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); color: #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; font-size: 1.5rem;">
             <i class="fa-solid fa-circle-check"></i>
           </div>
-          <h3 style="font-family: 'Outfit'; font-size: 1.1rem; color: #ffffff; margin-bottom: 0.5rem;">Cam Kết Dịch Vụ</h3>
+          <h3 style="font-family: 'Outfit'; font-size: 1.1rem; color: #ffffff; margin-bottom: 0.5rem;">Cam Kết Dịch Vụ
+          </h3>
           <ul style="text-align: left; font-size: 0.85rem; color: #94a3b8; line-height: 1.8; margin-left: 1rem;">
             <li>Minh bạch bảng giá 100%</li>
             <li>Phụ tùng chính hãng bảo hành</li>
@@ -134,34 +155,45 @@
 
     <!-- Section 1: Search Vehicle Repair Status (Tra cứu tiến độ xe) -->
     <div class="status-search-card">
-      <h3 style="font-family: 'Outfit'; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-        <i class="fa-solid fa-magnifying-glass" style="color: var(--accent-cyan);"></i> Tra Cứu Tiến Độ Sửa Chữa Xe Trực Tuyến
+      <h3
+        style="font-family: 'Outfit'; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--accent-cyan);"></i> Tra Cứu Tiến Độ Sửa Chữa Xe Trực
+        Tuyến
       </h3>
       <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
-        <input type="text" id="cust-search-plate" class="form-control" placeholder="Nhập biển số xe (VD: 51H-888.88) hoặc Mã phiếu (VD: RO-2026-001)..." onkeydown="if(event.key==='Enter') lookupCustomerVehicleProgress()">
-        <button class="btn btn-primary" onclick="lookupCustomerVehicleProgress()" style="padding: 0 1.5rem; flex-shrink: 0;">
+        <input type="text" id="cust-search-plate" class="form-control"
+          placeholder="Nhập biển số xe (VD: 51H-888.88) hoặc Mã phiếu (VD: RO-2026-001)..."
+          onkeydown="if(event.key==='Enter') lookupCustomerVehicleProgress()">
+        <button class="btn btn-primary" onclick="lookupCustomerVehicleProgress()"
+          style="padding: 0 1.5rem; flex-shrink: 0;">
           <i class="fa-solid fa-search"></i> Tra Cứu
         </button>
       </div>
 
       <!-- Result Container -->
-      <div id="cust-progress-result" style="display: none; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-top: 1rem;">
+      <div id="cust-progress-result"
+        style="display: none; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-top: 1rem;">
         <!-- Populated dynamically by JS -->
       </div>
     </div>
 
     <!-- Section 2: Customer Registration & Service Booking Form -->
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
-      
+
       <!-- Registration Form -->
-      <div class="table-card" style="padding: 1.75rem; background: var(--bg-card); border: 1px solid var(--border-color);">
-        <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #3b82f6); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
+      <div class="table-card"
+        style="padding: 1.75rem; background: var(--bg-card); border: 1px solid var(--border-color);">
+        <div
+          style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+          <div
+            style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #3b82f6); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
             <i class="fa-solid fa-calendar-plus"></i>
           </div>
           <div>
-            <h3 style="font-family: 'Outfit'; margin: 0; font-size: 1.25rem; color: var(--text-main);">Đăng Ký Khách Hàng & Đặt Lịch Dịch Vụ</h3>
-            <span style="font-size: 0.82rem; color: var(--text-muted);">Gửi thông tin xe để Lễ tân xếp lịch kiểm tra và nhận tư vấn nhanh</span>
+            <h3 style="font-family: 'Outfit'; margin: 0; font-size: 1.25rem; color: var(--text-main);">Đăng Ký Khách
+              Hàng & Đặt Lịch Dịch Vụ</h3>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Gửi thông tin xe để Lễ tân xếp lịch kiểm tra và
+              nhận tư vấn nhanh</span>
           </div>
         </div>
 
@@ -176,11 +208,12 @@
             </div>
             <div class="form-group" style="margin-bottom: 0;">
               <label>Số Điện Thoại Liên Hệ (*):</label>
-              <input type="tel" id="cp-cust-phone" class="form-control" placeholder="0901234567" required>
+              <input type="tel" id="cp-cust-phone" class="form-control" placeholder="0333442358" required>
             </div>
           </div>
 
-          <h4 style="font-family: 'Outfit'; font-size: 1rem; color: var(--accent-cyan); margin-top: 1.25rem; margin-bottom: 0.85rem;">
+          <h4
+            style="font-family: 'Outfit'; font-size: 1rem; color: var(--accent-cyan); margin-top: 1.25rem; margin-bottom: 0.85rem;">
             <i class="fa-solid fa-car"></i> 2. Thông Tin Xe Cần Bảo Dưỡng / Sửa Chữa
           </h4>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
@@ -190,7 +223,8 @@
             </div>
             <div class="form-group" style="margin-bottom: 0;">
               <label>Hãng Xe & Dòng Xe (*):</label>
-              <input type="text" id="cp-veh-brandmodel" class="form-control" placeholder="VD: Toyota Camry 2.5Q" required>
+              <input type="text" id="cp-veh-brandmodel" class="form-control" placeholder="VD: Toyota Camry 2.5Q"
+                required>
             </div>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
@@ -204,15 +238,18 @@
             </div>
           </div>
 
-          <h4 style="font-family: 'Outfit'; font-size: 1rem; color: var(--accent-purple); margin-top: 1.25rem; margin-bottom: 0.85rem;">
+          <h4
+            style="font-family: 'Outfit'; font-size: 1rem; color: var(--accent-purple); margin-top: 1.25rem; margin-bottom: 0.85rem;">
             <i class="fa-solid fa-wrench"></i> 3. Yêu Cầu Dịch Vụ & Triệu Chứng Xe
           </h4>
           <div class="form-group">
-            <textarea id="cp-symptoms" class="form-control" rows="3" placeholder="Mô tả chi tiết triệu chứng xe hoặc dịch vụ cần làm (VD: Xe đi 5.000 km muốn thay nhớt máy, kiểm tra phanh trước...)"></textarea>
+            <textarea id="cp-symptoms" class="form-control" rows="3"
+              placeholder="Mô tả chi tiết triệu chứng xe hoặc dịch vụ cần làm (VD: Xe đi 5.000 km muốn thay nhớt máy, kiểm tra phanh trước...)"></textarea>
           </div>
 
           <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
-            <button type="button" class="btn btn-secondary" onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn các mốc bảo dưỡng và chi phí cho xe của tôi')">
+            <button type="button" class="btn btn-secondary"
+              onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn các mốc bảo dưỡng và chi phí cho xe của tôi')">
               <i class="fa-solid fa-sparkles" style="color: #38bdf8;"></i> Hỏi Trợ Lý AI Trước
             </button>
             <button type="submit" class="btn btn-primary" style="padding: 0.7rem 1.5rem;">
@@ -224,11 +261,13 @@
 
       <!-- Right Side Contact Cards -->
       <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-        
+
         <!-- Hotline Box -->
-        <div class="table-card" style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(8, 145, 178, 0.4);">
+        <div class="table-card"
+          style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(8, 145, 178, 0.4);">
           <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;">
-            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(8, 145, 178, 0.2); border: 1px solid rgba(8, 145, 178, 0.4); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.2rem;">
+            <div
+              style="width: 40px; height: 40px; border-radius: 12px; background: rgba(8, 145, 178, 0.2); border: 1px solid rgba(8, 145, 178, 0.4); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.2rem;">
               <i class="fa-solid fa-phone-volume"></i>
             </div>
             <div>
@@ -239,15 +278,18 @@
           <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 1rem;">
             Cần tư vấn gấp hoặc gọi cứu hộ gầm xe? Mở ngay popup liên hệ SĐT trực tiếp với Garage VTV!
           </p>
-          <button class="btn btn-primary" onclick="openPhoneContactModal()" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700; padding: 0.75rem;">
+          <button class="btn btn-primary" onclick="openPhoneContactModal()"
+            style="width: 100%; justify-content: center; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700; padding: 0.75rem;">
             <i class="fa-solid fa-headset"></i> Mở Pop-up Liên Hệ SĐT
           </button>
         </div>
 
         <!-- AI Assistant Box -->
-        <div class="table-card" style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 1px solid rgba(139, 92, 246, 0.4);">
+        <div class="table-card"
+          style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 1px solid rgba(139, 92, 246, 0.4);">
           <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;">
-            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); display: flex; align-items: center; justify-content: center; color: #c084fc; font-size: 1.2rem;">
+            <div
+              style="width: 40px; height: 40px; border-radius: 12px; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); display: flex; align-items: center; justify-content: center; color: #c084fc; font-size: 1.2rem;">
               <i class="fa-solid fa-sparkles"></i>
             </div>
             <div>
@@ -258,7 +300,8 @@
           <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 1rem;">
             Hỏi đáp về quy trình bảo dưỡng xe máy, ô tô, combo nhớt và dự toán chi phí tự động cùng AI!
           </p>
-          <button class="btn btn-ai" onclick="openAIAssistantModal()" style="width: 100%; justify-content: center; font-weight: 700; padding: 0.75rem;">
+          <button class="btn btn-ai" onclick="openAIAssistantModal()"
+            style="width: 100%; justify-content: center; font-weight: 700; padding: 0.75rem;">
             <i class="fa-solid fa-robot"></i> Trò Chuyện Với Trợ Lý AI
           </button>
         </div>
@@ -273,7 +316,7 @@
   <footer class="footer-bar">
     <div>© 2026 GARAGE VTV AUTOMOTIVE ENGINE. Tất cả quyền được bảo lưu.</div>
     <div style="margin-top: 0.4rem; font-size: 0.78rem; color: var(--text-muted);">
-      Địa chỉ: 123 Đường Điện Biên Phủ, Quận Bình Thạnh, TP. Hồ Chí Minh | Hotline: 090.123.4567
+      Địa chỉ: Đương Z115, Quyết Thắng, TP. Thái Nguyên | Hotline: 033.344.2358
     </div>
   </footer>
 
@@ -281,46 +324,63 @@
 
   <!-- Modal AI Garage Assistant (GarageAI) -->
   <div id="modal-ai-result" class="modal-backdrop">
-    <div class="modal-card garage-ai-modal" style="max-width: 580px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148, 163, 184, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
-      
+    <div class="modal-card garage-ai-modal"
+      style="max-width: 580px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148, 163, 184, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+
       <!-- Modal Header -->
-      <div class="garage-ai-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+      <div class="garage-ai-header"
+        style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
         <div style="display: flex; align-items: center; gap: 0.85rem;">
-          <div class="ai-header-icon" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #164e63 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);">
+          <div class="ai-header-icon"
+            style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #164e63 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);">
             <i class="fa-solid fa-sparkles"></i>
           </div>
           <div>
-            <h3 id="modal-ai-title" style="font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; color: #ffffff; font-size: 1.2rem; font-weight: 700; margin: 0; line-height: 1.2;">Trợ lý GarageAI</h3>
-            <span style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #64748b; text-transform: uppercase; margin-top: 3px; display: block;">TƯ VẤN TRƯỚC KHI ĐẾN GARAGE</span>
+            <h3 id="modal-ai-title"
+              style="font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; color: #ffffff; font-size: 1.2rem; font-weight: 700; margin: 0; line-height: 1.2;">
+              Trợ lý GarageAI</h3>
+            <span
+              style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #64748b; text-transform: uppercase; margin-top: 3px; display: block;">TƯ
+              VẤN TRƯỚC KHI ĐẾN GARAGE</span>
           </div>
         </div>
-        <button class="close-btn" onclick="closeModal('modal-ai-result')" style="color: #94a3b8; font-size: 1.35rem; background: transparent; border: none; cursor: pointer; padding: 0.2rem 0.5rem; transition: color 0.2s;" title="Đóng">
+        <button class="close-btn" onclick="closeModal('modal-ai-result')"
+          style="color: #94a3b8; font-size: 1.35rem; background: transparent; border: none; cursor: pointer; padding: 0.2rem 0.5rem; transition: color 0.2s;"
+          title="Đóng">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <!-- Security Notice Banner -->
-      <div class="garage-ai-banner" style="background: rgba(255, 255, 255, 0.03); padding: 0.75rem 1.35rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.82rem; color: #94a3b8; line-height: 1.45;">
-        Không nhập mật khẩu, mã OTP hoặc dữ liệu nhạy cảm. AI chỉ tư vấn sơ bộ, không thay thế kỹ thuật viên kiểm tra trực tiếp.
+      <div class="garage-ai-banner"
+        style="background: rgba(255, 255, 255, 0.03); padding: 0.75rem 1.35rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.82rem; color: #94a3b8; line-height: 1.45;">
+        Không nhập mật khẩu, mã OTP hoặc dữ liệu nhạy cảm. AI chỉ tư vấn sơ bộ, không thay thế kỹ thuật viên kiểm tra
+        trực tiếp.
       </div>
 
       <!-- Chat History Area -->
-      <div id="modal-ai-chat-body" class="garage-ai-body" style="padding: 1.35rem; max-height: 380px; min-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; background: #0f172a;">
-        
+      <div id="modal-ai-chat-body" class="garage-ai-body"
+        style="padding: 1.35rem; max-height: 380px; min-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; background: #0f172a;">
+
         <!-- Default AI Greeting Message matching screenshot -->
         <div class="garage-ai-msg-row ai-msg" style="display: flex; gap: 0.85rem; align-items: flex-start;">
-          <div class="ai-msg-avatar" style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0; margin-top: 2px;">
+          <div class="ai-msg-avatar"
+            style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0; margin-top: 2px;">
             <i class="fa-solid fa-sparkles"></i>
           </div>
-          <div class="ai-msg-bubble" style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem 1.25rem; color: #e2e8f0; font-size: 0.92rem; line-height: 1.6; max-width: 88%;">
-            Tôi có thể giải thích dịch vụ, combo bảo dưỡng và quy trình đặt lịch. Bạn có thể nêu loại xe và số km trong câu hỏi để tôi gợi ý sát hơn. Tôi không thể chẩn đoán xe hoặc xác nhận an toàn từ xa; với dấu hiệu bất thường, hãy liên hệ garage để được kiểm tra trực tiếp.
+          <div class="ai-msg-bubble"
+            style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem 1.25rem; color: #e2e8f0; font-size: 0.92rem; line-height: 1.6; max-width: 88%;">
+            Tôi có thể giải thích dịch vụ, combo bảo dưỡng và quy trình đặt lịch. Bạn có thể nêu loại xe và số km trong
+            câu hỏi để tôi gợi ý sát hơn. Tôi không thể chẩn đoán xe hoặc xác nhận an toàn từ xa; với dấu hiệu bất
+            thường, hãy liên hệ garage để được kiểm tra trực tiếp.
           </div>
         </div>
 
       </div>
 
       <!-- Footer Input Area -->
-      <div class="garage-ai-footer" style="padding: 1.15rem 1.35rem; background: #0f172a; border-top: 1px solid rgba(255, 255, 255, 0.06); display: flex; gap: 0.75rem; align-items: flex-end;">
+      <div class="garage-ai-footer"
+        style="padding: 1.15rem 1.35rem; background: #0f172a; border-top: 1px solid rgba(255, 255, 255, 0.06); display: flex; gap: 0.75rem; align-items: flex-end;">
         <div style="flex: 1;">
           <textarea id="modal-ai-question-input" class="garage-ai-input" rows="2"
             placeholder="Ví dụ: Xe máy đã đi 5.000 km nên bảo dưỡng gì?"
@@ -338,75 +398,100 @@
 
   <!-- Modal Phone Contact Popup (Liên Hệ SĐT & Hotline) -->
   <div id="modal-phone-contact" class="modal-backdrop">
-    <div class="modal-card phone-contact-card" style="max-width: 500px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148, 163, 184, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
-      
+    <div class="modal-card phone-contact-card"
+      style="max-width: 500px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148, 163, 184, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+
       <!-- Modal Header -->
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
         <div style="display: flex; align-items: center; gap: 0.85rem;">
-          <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #155e75 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);">
+          <div
+            style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #155e75 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);">
             <i class="fa-solid fa-phone-volume"></i>
           </div>
           <div>
-            <h3 style="font-family: 'Outfit', sans-serif; color: #ffffff; font-size: 1.15rem; font-weight: 700; margin: 0;">Hotline Liên Hệ Garage VTV</h3>
-            <span style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: #64748b; text-transform: uppercase;">TƯ VẤN TRỰC TIẾP QUÁ SỐ ĐIỆN THOẠI</span>
+            <h3
+              style="font-family: 'Outfit', sans-serif; color: #ffffff; font-size: 1.15rem; font-weight: 700; margin: 0;">
+              Hotline Liên Hệ Garage VTV</h3>
+            <span
+              style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: #64748b; text-transform: uppercase;">TƯ
+              VẤN TRỰC TIẾP QUÁ SỐ ĐIỆN THOẠI</span>
           </div>
         </div>
-        <button class="close-btn" onclick="closeModal('modal-phone-contact')" style="color: #94a3b8; font-size: 1.35rem; background: transparent; border: none; cursor: pointer; padding: 0.2rem 0.5rem;" title="Đóng">
+        <button class="close-btn" onclick="closeModal('modal-phone-contact')"
+          style="color: #94a3b8; font-size: 1.35rem; background: transparent; border: none; cursor: pointer; padding: 0.2rem 0.5rem;"
+          title="Đóng">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <!-- Phone Contact Body -->
       <div style="padding: 1.35rem; background: #0f172a; display: flex; flex-direction: column; gap: 1rem;">
-        
+
         <!-- Hotline Call Card 1 -->
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
+        <div
+          style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <div style="font-size: 0.78rem; color: #94a3b8; font-weight: 600;">📞 HOTLINE KĨ THUẬT & ĐẶT LỊCH (24/7):</div>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; font-family: 'Outfit', sans-serif; margin-top: 2px;">
-              090.123.4567
+            <div style="font-size: 0.78rem; color: #94a3b8; font-weight: 600;">📞 HOTLINE KĨ THUẬT & ĐẶT LỊCH (24/7):
+            </div>
+            <div
+              style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; font-family: 'Outfit', sans-serif; margin-top: 2px;">
+              033.344.2358
             </div>
             <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Lễ tân & KTV Trưởng trực cuộc gọi</div>
           </div>
           <div style="display: flex; gap: 0.5rem;">
-            <button class="btn btn-secondary btn-sm" onclick="copyTextToClipboard('0901234567', 'Số điện thoại Hotline')" title="Sao chép SĐT">
+            <button class="btn btn-secondary btn-sm"
+              onclick="copyTextToClipboard('0333442358', 'Số điện thoại Hotline')" title="Sao chép SĐT">
               <i class="fa-solid fa-copy"></i>
             </button>
-            <a href="tel:0901234567" class="btn btn-primary btn-sm" style="background: #0891b2; border: none; font-weight: 700;">
+            <a href="tel:0901234567" class="btn btn-primary btn-sm"
+              style="background: #0891b2; border: none; font-weight: 700;">
               <i class="fa-solid fa-phone"></i> Gọi Ngay
             </a>
           </div>
         </div>
 
         <!-- Hotline Call Card 2: Emergency Rescue -->
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(244, 63, 94, 0.25); border-radius: 14px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
+        <div
+          style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(244, 63, 94, 0.25); border-radius: 14px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <div style="font-size: 0.78rem; color: #f43f5e; font-weight: 600;">🚨 HOTLINE CỨU HỘ GẦM & SỬA LƯU ĐỘNG:</div>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #fb7185; font-family: 'Outfit', sans-serif; margin-top: 2px;">
+            <div style="font-size: 0.78rem; color: #f43f5e; font-weight: 600;">🚨 HOTLINE CỨU HỘ GẦM & SỬA LƯU ĐỘNG:
+            </div>
+            <div
+              style="font-size: 1.35rem; font-weight: 800; color: #fb7185; font-family: 'Outfit', sans-serif; margin-top: 2px;">
               1900.6868
             </div>
-            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Xe kéo cứu hộ & KTV cơ động đến tận nơi</div>
+            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Xe kéo cứu hộ & KTV cơ động đến tận nơi
+            </div>
           </div>
-          <a href="tel:19006868" class="btn btn-primary btn-sm" style="background: #e11d48; border: none; font-weight: 700;">
+          <a href="tel:19006868" class="btn btn-primary btn-sm"
+            style="background: #e11d48; border: none; font-weight: 700;">
             <i class="fa-solid fa-truck-medical"></i> Cứu Hộ
           </a>
         </div>
 
         <!-- Request Callback Form -->
-        <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem; margin-top: 0.25rem;">
-          <h4 style="font-family: 'Outfit'; font-size: 0.95rem; color: #ffffff; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8;"></i> Hoặc yêu cầu Garage gọi lại trong 5 phút:
+        <div
+          style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem; margin-top: 0.25rem;">
+          <h4
+            style="font-family: 'Outfit'; font-size: 0.95rem; color: #ffffff; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8;"></i> Hoặc yêu cầu Garage gọi lại trong 5
+            phút:
           </h4>
           <form onsubmit="submitCallbackRequest(event)">
             <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
-              <input type="tel" id="cb-phone" class="form-control" placeholder="Nhập SĐT của bạn..." required style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
-              <select id="cb-time" class="form-control" style="width: 140px; background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
+              <input type="tel" id="cb-phone" class="form-control" placeholder="Nhập SĐT của bạn..." required
+                style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
+              <select id="cb-time" class="form-control"
+                style="width: 140px; background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
                 <option value="immediate">Gọi ngay (5p)</option>
                 <option value="morning">Sáng (8h-11h)</option>
                 <option value="afternoon">Chiều (14h-17h)</option>
               </select>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #2563eb, #3b82f6); border: none;">
+            <button type="submit" class="btn btn-primary"
+              style="width: 100%; justify-content: center; background: linear-gradient(135deg, #2563eb, #3b82f6); border: none;">
               <i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu Gọi Lại
             </button>
           </form>
