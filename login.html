@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi" data-theme="dark">
 
 <head>
@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Đăng Nhập - Hệ Thống Garage VTV Automotive</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css?v=6.0">
+  <link rel="stylesheet" href="styles.css?v=7.0">
   <style>
     body {
       background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%);
@@ -36,31 +36,6 @@
       margin: 0;
       text-align: center;
     }
-    .login-tabs {
-      display: flex;
-      background: rgba(30, 41, 59, 0.7);
-      border-radius: 12px;
-      padding: 4px;
-      margin: 1.5rem 0;
-      border: 1px solid rgba(148, 163, 184, 0.15);
-    }
-    .login-tab-btn {
-      flex: 1;
-      padding: 0.65rem;
-      border: none;
-      background: transparent;
-      color: #94a3b8;
-      font-weight: 600;
-      font-size: 0.85rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .login-tab-btn.active {
-      background: var(--accent-primary);
-      color: #ffffff;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-    }
   </style>
 </head>
 
@@ -86,7 +61,7 @@
       <form onsubmit="submitStaffLogin(event)">
         <div class="form-group" style="margin-bottom: 1.15rem;">
           <label style="color: #cbd5e1;">Chọn Vai Trò Nội Bộ:</label>
-          <select id="staff-role-select" class="form-control" style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;" onchange="updateStaffCredentialsHint()">
+          <select id="staff-role-select" class="form-control" style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
             <option value="receptionist" selected>Lễ Tân (Receptionist)</option>
             <option value="manager">Quản Lý (Admin)</option>
             <option value="technician">Kỹ Thuật Viên (Tech)</option>
@@ -94,13 +69,14 @@
           </select>
         </div>
 
-        <div class="form-group" style="margin-bottom: 1.15rem;">
+        <div class="form-group" style="margin-bottom: 1.5rem;">
           <label style="color: #cbd5e1;">Mật Khẩu Xác Thực:</label>
-          <input type="password" id="staff-password" class="form-control" value="letan123" placeholder="Nhập mật khẩu..." required style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
-        </div>
-
-        <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 1.25rem; background: rgba(255, 255, 255, 0.03); padding: 0.65rem 0.85rem; border-radius: 8px;">
-          <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Demo Credential: <strong id="hint-creds" style="color: #38bdf8;">receptionist / letan123</strong>
+          <div style="position: relative;">
+            <input type="password" id="staff-password" class="form-control" value="" placeholder="Nhập mật khẩu..." required style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white; padding-right: 42px;">
+            <button type="button" onclick="togglePasswordVisibility()" title="Ẩn/Hiện mật khẩu" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px;">
+              <i class="fa-solid fa-eye" id="toggle-pwd-icon"></i>
+            </button>
+          </div>
         </div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; background: linear-gradient(135deg, #4f46e5, #6366f1); border: none; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
@@ -116,34 +92,16 @@
   </div>
 
   <script>
-    const DEMO_CREDS = {
-      manager: "admin123",
-      receptionist: "letan123",
-      technician: "tech123",
-      cashier: "cashier123"
-    };
-
-    function switchLoginTab(mode) {
-      document.getElementById("tab-cust").classList.toggle("active", mode === 'customer');
-      document.getElementById("tab-staff").classList.toggle("active", mode === 'staff');
-      document.getElementById("form-login-cust").style.display = mode === 'customer' ? 'block' : 'none';
-      document.getElementById("form-login-staff").style.display = mode === 'staff' ? 'block' : 'none';
-    }
-
-    function updateStaffCredentialsHint() {
-      const role = document.getElementById("staff-role-select").value;
-      const passInput = document.getElementById("staff-password");
-      const hintEl = document.getElementById("hint-creds");
-      
-      const pass = DEMO_CREDS[role] || "123456";
-      if (passInput) passInput.value = pass;
-      if (hintEl) hintEl.textContent = `${role} / ${pass}`;
-    }
-
-    function loginAsCustomer() {
-      localStorage.setItem("garage_user_role", "customer");
-      localStorage.setItem("garage_is_logged_in", "true");
-      window.location.href = "index.html";
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById("staff-password");
+      const icon = document.getElementById("toggle-pwd-icon");
+      if (pwdInput.type === "password") {
+        pwdInput.type = "text";
+        icon.className = "fa-solid fa-eye-slash";
+      } else {
+        pwdInput.type = "password";
+        icon.className = "fa-solid fa-eye";
+      }
     }
 
     function submitStaffLogin(e) {

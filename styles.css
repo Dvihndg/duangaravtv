@@ -72,8 +72,13 @@ body, input, button, select, textarea, h1, h2, h3, h4, h5, h6, p, a, label {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-i, .fa, .fa-solid, .fa-regular, .fa-brands, [class*="fa-"] {
+i, .fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands, [class^="fa-"], [class*=" fa-"] {
   font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+  font-style: normal !important;
+  font-weight: 900 !important;
+  display: inline-block;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
