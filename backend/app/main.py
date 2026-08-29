@@ -1,4 +1,11 @@
 import os
+import sys
+
+# Ensure root directory is in sys.path for relative imports on Vercel
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -12,8 +19,11 @@ from backend.app.routers import (
 
 from sqlalchemy import inspect, text
 
-# Create database tables automatically
-Base.metadata.create_all(bind=engine)
+# Create database tables automatically with fault safety
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"[DB Warning] Unable to auto-create tables on startup: {e}")
 
 def ensure_db_columns():
     try:

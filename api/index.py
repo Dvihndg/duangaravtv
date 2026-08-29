@@ -1,13 +1,14 @@
 import os
 import sys
 
-# Root path resolution
+# Root path resolution for Vercel Serverless environment
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-# Fix Vercel Read-Only Filesystem for SQLite
-if os.getenv("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+# Fix Vercel Read-Only Filesystem for SQLite fallback
+db_url = os.getenv("DATABASE_URL", "")
+if not db_url or "sqlite" in db_url:
     try:
         import shutil
         tmp_db = "/tmp/garage.db"

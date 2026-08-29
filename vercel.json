@@ -1,14 +1,9 @@
 {
-  "framework": null,
-  "cleanUrls": true,
-  "trailingSlash": false,
+  "version": 2,
   "builds": [
     {
-      "src": "backend/app/main.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
+      "src": "api/index.py",
+      "use": "@vercel/python"
     },
     {
       "src": "*.html",
@@ -30,11 +25,11 @@
   "routes": [
     {
       "src": "/api/v1/(.*)",
-      "dest": "backend/app/main.py"
+      "dest": "api/index.py"
     },
     {
       "src": "/health",
-      "dest": "backend/app/main.py"
+      "dest": "api/index.py"
     },
     {
       "src": "/admin",
