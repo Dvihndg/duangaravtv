@@ -290,7 +290,7 @@ elif menu == "📦 Kho Phụ Tùng & Dịch Vụ":
                     df_s = pd.DataFrame([{
                         "Mã": s.code, "Tên Dịch Vụ": s.name,
                         "Tiền Công": f"{s.labor_cost:,.0f} VNĐ"
-                    } for s.in srvs])
+                    } for s in srvs])
                     st.dataframe(df_s, use_container_width=True)
                 else:
                     st.info("Danh mục dịch vụ trống.")
