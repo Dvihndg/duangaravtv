@@ -1,0 +1,59 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/styles.css",
+      "dest": "/styles.css"
+    },
+    {
+      "src": "/app.js",
+      "dest": "/app.js"
+    },
+    {
+      "src": "/logo.png",
+      "dest": "/logo.png"
+    },
+    {
+      "src": "/admin",
+      "dest": "/admin.html"
+    },
+    {
+      "src": "/admin.html",
+      "dest": "/admin.html"
+    },
+    {
+      "src": "/login",
+      "dest": "/login.html"
+    },
+    {
+      "src": "/login.html",
+      "dest": "/login.html"
+    },
+    {
+      "src": "/customer",
+      "dest": "/customer.html"
+    },
+    {
+      "src": "/customer.html",
+      "dest": "/customer.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
-// Garage AI Management System - Frontend App Engine
-
-const API_BASE = "http://127.0.0.1:8000/api/v1";
+const API_BASE = (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")) 
+  ? "http://127.0.0.1:8000/api/v1" 
+  : "/api/v1";
 
 // Application State
 let currentState = {
