@@ -1,4 +1,4 @@
-﻿const API_BASE = (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")) 
+const API_BASE = (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")) 
   ? "http://127.0.0.1:8000/api/v1" 
   : "/api/v1";
 
@@ -147,9 +147,17 @@ function initDatepickers() {
   });
 }
 
-function openModal(modalId) {
+function openModal(modalId, title = null, content = null) {
   const modal = document.getElementById(modalId);
   if (modal) {
+    if (title) {
+      const titleEl = document.getElementById(`${modalId}-title`) || modal.querySelector(".modal-header h3");
+      if (titleEl) titleEl.innerHTML = title;
+    }
+    if (content) {
+      const bodyEl = document.getElementById(`${modalId}-body`) || modal.querySelector(".modal-card > div:not(.modal-header)");
+      if (bodyEl) bodyEl.innerHTML = content;
+    }
     modal.classList.add("active");
     modal.style.display = "flex";
     setTimeout(() => initDatepickers(), 50);
@@ -252,7 +260,9 @@ const DB_KEYS = {
   appointments:     "vtv_db_appointments",
   repairOrders:     "vtv_db_repair_orders",
   invoices:         "vtv_db_invoices",
-  customerRequests: "vtv_db_customer_requests"
+  customerRequests: "vtv_db_customer_requests",
+  services:         "vtv_db_services",
+  parts:            "vtv_db_parts"
 };
 
 function dbRead(key) {
@@ -571,9 +581,24 @@ function getOfflineMockResponse(endpoint, options) {
     };
   }
 
-  // ----- SERVICES & PARTS (read-only catalogs) -----
+  // ----- SERVICES CATALOG -----
   if (endpoint === "/services") {
-    return [
+    if (method === "POST") {
+      const existing = dbRead(DB_KEYS.services);
+      const id = dbNextId(DB_KEYS.services);
+      const newService = {
+        id: id,
+        code: body.code || dbPadCode("SER", id),
+        name: body.name || "Dịch vụ mới",
+        labor_cost: parseFloat(body.labor_cost) || 0,
+        is_active: true,
+        created_at: new Date().toISOString()
+      };
+      existing.push(newService);
+      dbWrite(DB_KEYS.services, existing);
+      return newService;
+    }
+    const defaultServices = [
       { id: 1, code: "SER-001", name: "Thay dầu động cơ & Lọc dầu chính hãng", labor_cost: 150000 },
       { id: 2, code: "SER-002", name: "Bảo dưỡng & Căn chỉnh hệ thống Phanh 4 bánh", labor_cost: 300000 },
       { id: 3, code: "SER-003", name: "Cân bằng động & Cân chỉnh thước lái Laser 3D", labor_cost: 450000 },
@@ -585,9 +610,30 @@ function getOfflineMockResponse(endpoint, options) {
       { id: 9, code: "SER-009", name: "Thay bình ắc quy GS/Varta & Kiểm tra máy phát", labor_cost: 100000 },
       { id: 10, code: "SER-010", name: "Bảo dưỡng tổng thể mốc 80.000 km", labor_cost: 800000 }
     ];
+    const customServices = dbRead(DB_KEYS.services);
+    return [...defaultServices, ...customServices];
   }
+
+  // ----- PARTS INVENTORY -----
   if (endpoint === "/parts") {
-    return [
+    if (method === "POST") {
+      const existing = dbRead(DB_KEYS.parts);
+      const id = dbNextId(DB_KEYS.parts);
+      const newPart = {
+        id: id,
+        code: body.code || dbPadCode("PAR", id),
+        name: body.name || "Phụ tùng mới",
+        unit_price: parseFloat(body.unit_price) || 0,
+        stock_quantity: parseInt(body.stock_quantity) || 0,
+        min_stock_alert: parseInt(body.min_stock_alert) || 5,
+        is_active: true,
+        created_at: new Date().toISOString()
+      };
+      existing.push(newPart);
+      dbWrite(DB_KEYS.parts, existing);
+      return newPart;
+    }
+    const defaultParts = [
       { id: 1, code: "PAR-001", name: "Dầu động cơ Castrol Edge 5W-30 (Can 4L)", unit_price: 750000, stock_quantity: 25, min_stock_alert: 5 },
       { id: 2, code: "PAR-002", name: "Lọc dầu Toyota Genuine Camry/Corolla", unit_price: 180000, stock_quantity: 30, min_stock_alert: 5 },
       { id: 3, code: "PAR-003", name: "Bộ má phanh đĩa trước Brembo Honda Civic", unit_price: 1200000, stock_quantity: 8, min_stock_alert: 3 },
@@ -599,6 +645,8 @@ function getOfflineMockResponse(endpoint, options) {
       { id: 9, code: "PAR-009", name: "Dầu phanh cao cấp Motul DOT4 (1L)", unit_price: 250000, stock_quantity: 15, min_stock_alert: 4 },
       { id: 10, code: "PAR-010", name: "Nước làm mát động cơ Motul Inugel (5L)", unit_price: 420000, stock_quantity: 20, min_stock_alert: 5 }
     ];
+    const customParts = dbRead(DB_KEYS.parts);
+    return [...defaultParts, ...customParts];
   }
 
   // ----- AI ENDPOINTS (unchanged) -----
@@ -755,9 +803,11 @@ function switchView(viewName) {
 
   const titleMap = {
     dashboard: "Tổng Quan Garage",
+    "customer-requests": "Quản Lý Yêu Cầu Đặt Lịch Dịch Vụ",
     appointments: "Quản Lý Lịch Hẹn & Tiếp Nhận Xe",
     "repair-orders": "Phiếu Sửa Chữa & Chẩn Đoán",
     customers: "Danh Sách Khách Hàng & Xe",
+    "customer-portal": "Cổng Đăng Ký Yêu Cầu Dịch Vụ Dành Cho Khách Hàng",
     inventory: "Kho Phụ Tùng & Danh Mục Dịch Vụ",
     invoices: "Hóa Đơn & Thanh Toán",
     "ai-studio": "AI Studio & Trợ Lý Garage Engine"
@@ -2764,6 +2814,80 @@ async function openTrackRequestModal(requestCode = "") {
   }
 }
 
+async function submitCreateService(e) {
+  e.preventDefault();
+  try {
+    const code = document.getElementById("service-code")?.value?.trim() || "";
+    const name = document.getElementById("service-name")?.value?.trim() || "";
+    const cost = parseFloat(document.getElementById("service-cost")?.value) || 0;
+
+    if (!name) {
+      showToast("Vui lòng nhập tên dịch vụ!");
+      return;
+    }
+
+    const payload = {
+      code: code || `SER-${String(Date.now()).slice(-4)}`,
+      name: name,
+      labor_cost: cost,
+      description: name
+    };
+
+    const res = await apiFetch("/services", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    if (res) {
+      showToast(`✅ Đã thêm dịch vụ "${name}" thành công!`);
+      closeModal("modal-new-service");
+      document.getElementById("form-new-service")?.reset();
+      await loadInventory();
+    }
+  } catch (err) {
+    showToast(`❌ ${err.message || "Lỗi khi thêm dịch vụ mới!"}`);
+  }
+}
+
+async function submitCreatePart(e) {
+  e.preventDefault();
+  try {
+    const code = document.getElementById("part-code")?.value?.trim() || "";
+    const name = document.getElementById("part-name")?.value?.trim() || "";
+    const price = parseFloat(document.getElementById("part-price")?.value) || 0;
+    const stock = parseInt(document.getElementById("part-stock")?.value) || 0;
+    const minStock = parseInt(document.getElementById("part-min-stock")?.value) || 5;
+
+    if (!name) {
+      showToast("Vui lòng nhập tên phụ tùng!");
+      return;
+    }
+
+    const payload = {
+      code: code || `PAR-${String(Date.now()).slice(-4)}`,
+      name: name,
+      unit_price: price,
+      stock_quantity: stock,
+      min_stock_alert: minStock,
+      category: "Vật tư"
+    };
+
+    const res = await apiFetch("/parts", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    if (res) {
+      showToast(`✅ Đã nhập phụ tùng "${name}" thành công!`);
+      closeModal("modal-new-part");
+      document.getElementById("form-new-part")?.reset();
+      await loadInventory();
+    }
+  } catch (err) {
+    showToast(`❌ ${err.message || "Lỗi khi nhập phụ tùng mới!"}`);
+  }
+}
+
 window.loadCustomerRequestsFromBackend = loadCustomerRequestsFromBackend;
 window.filterCustomerRequestsTable = filterCustomerRequestsTable;
 window.renderCustomerRequestsTable = renderCustomerRequestsTable;
@@ -2772,4 +2896,7 @@ window.submitUpdateCustomerRequestStatus = submitUpdateCustomerRequestStatus;
 window.submitSaveCustomerRequestNote = submitSaveCustomerRequestNote;
 window.convertRequestToRepairOrder = convertRequestToRepairOrder;
 window.openTrackRequestModal = openTrackRequestModal;
+window.submitCreateService = submitCreateService;
+window.submitCreatePart = submitCreatePart;
+
 

@@ -533,8 +533,8 @@
             <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
               <input type="text" id="req-search-input" class="form-control" placeholder="Tìm theo Tên, SĐT, Biển số, Mã REQ..." style="width: 260px; padding: 0.4rem 0.75rem; font-size: 0.85rem;" onkeyup="filterCustomerRequestsTable()">
               <select id="req-status-filter" class="form-control" style="width: 170px; padding: 0.4rem 0.75rem; font-size: 0.85rem;" onchange="filterCustomerRequestsTable()">
-                <option value="ALL">Tất cả Trạng thái</option>
-                <option value="Pending" selected>Mới (Pending)</option>
+                <option value="ALL" selected>Tất cả Trạng thái</option>
+                <option value="Pending">Mới (Pending)</option>
                 <option value="Contacted">Đã Liên Hệ</option>
                 <option value="Confirmed">Đã Xác Nhận</option>
                 <option value="InProgress">Đang Xử Lý</option>
@@ -1272,6 +1272,83 @@
             Tiền</button>
         </div>
       </form>
+    </div>
+  <!-- Modal New Service -->
+  <div id="modal-new-service" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 style="font-family: Arial;"><i class="fa-solid fa-list-check"></i> Thêm Dịch Vụ Mới</h3>
+        <button class="close-btn" onclick="closeModal('modal-new-service')">&times;</button>
+      </div>
+      <form id="form-new-service" onsubmit="submitCreateService(event)">
+        <div class="form-group">
+          <label>Mã Dịch Vụ (VD: SER-011):</label>
+          <input type="text" id="service-code" class="form-control" placeholder="Tự động hoặc nhập mã (VD: SER-011)">
+        </div>
+        <div class="form-group">
+          <label>Tên Dịch Vụ:</label>
+          <input type="text" id="service-name" class="form-control" placeholder="Tên dịch vụ / bảo dưỡng" required>
+        </div>
+        <div class="form-group">
+          <label>Tiền Công (VNĐ):</label>
+          <input type="number" id="service-cost" class="form-control" placeholder="Ví dụ: 300000" required min="0">
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-service')">Hủy</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Lưu Dịch Vụ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal New Part -->
+  <div id="modal-new-part" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 style="font-family: Arial;"><i class="fa-solid fa-box-open"></i> Nhập Phụ Tùng Mới Vào Kho</h3>
+        <button class="close-btn" onclick="closeModal('modal-new-part')">&times;</button>
+      </div>
+      <form id="form-new-part" onsubmit="submitCreatePart(event)">
+        <div class="form-group">
+          <label>Mã Phụ Tùng (VD: PAR-011):</label>
+          <input type="text" id="part-code" class="form-control" placeholder="Tự động hoặc nhập mã (VD: PAR-011)">
+        </div>
+        <div class="form-group">
+          <label>Tên Phụ Tùng:</label>
+          <input type="text" id="part-name" class="form-control" placeholder="Tên vật tư / phụ tùng" required>
+        </div>
+        <div class="grid-2col">
+          <div class="form-group">
+            <label>Đơn Giá Bán (VNĐ):</label>
+            <input type="number" id="part-price" class="form-control" placeholder="Ví dụ: 250000" required min="0">
+          </div>
+          <div class="form-group">
+            <label>Số Lượng Tồn Kho:</label>
+            <input type="number" id="part-stock" class="form-control" placeholder="Ví dụ: 20" required min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Cảnh Báo Tồn Tối Thiểu:</label>
+          <input type="number" id="part-min-stock" class="form-control" value="5" required min="1">
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-part')">Hủy</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nhập Kho</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Request Detail & AI Dialog -->
+  <div id="modal-ai-dialog" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 680px; width: 95%;">
+      <div class="modal-header">
+        <h3 id="modal-ai-dialog-title" style="font-family: Arial;"><i class="fa-solid fa-clipboard-check" style="color: var(--accent-cyan);"></i> Chi Tiết Yêu Cầu Dịch Vụ</h3>
+        <button class="close-btn" onclick="closeModal('modal-ai-dialog')">&times;</button>
+      </div>
+      <div id="modal-ai-dialog-body" style="padding: 0.5rem 0;">
+        <!-- Injected dynamically by JS -->
+      </div>
     </div>
   </div>
 
