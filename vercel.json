@@ -1,63 +1,26 @@
 {
-  "version": 2,
-  "builds": [
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+      "source": "/api/v1/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "*.html",
-      "use": "@vercel/static"
+      "source": "/health",
+      "destination": "/api/index.py"
     },
     {
-      "src": "*.css",
-      "use": "@vercel/static"
+      "source": "/admin",
+      "destination": "/admin.html"
     },
     {
-      "src": "*.js",
-      "use": "@vercel/static"
+      "source": "/login",
+      "destination": "/login.html"
     },
     {
-      "src": "*.png",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/v1/(.*)",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/health",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/admin",
-      "dest": "admin.html"
-    },
-    {
-      "src": "/login",
-      "dest": "login.html"
-    },
-    {
-      "src": "/customer",
-      "dest": "customer.html"
-    },
-    {
-      "src": "/styles.css",
-      "dest": "styles.css"
-    },
-    {
-      "src": "/app.js",
-      "dest": "app.js"
-    },
-    {
-      "src": "/logo.png",
-      "dest": "logo.png"
-    },
-    {
-      "src": "/",
-      "dest": "index.html"
+      "source": "/customer",
+      "destination": "/customer.html"
     }
   ]
 }

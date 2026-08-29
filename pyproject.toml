@@ -16,8 +16,9 @@ dependencies = [
     "httpx>=0.24.0",
     "requests>=2.31.0",
     "email-validator>=2.0.0",
-    "psycopg2-binary>=2.9.0"
+    "psycopg2-binary>=2.9.0",
+    "pg8000>=1.30.0"
 ]
 
 [tool.vercel]
-entrypoint = "backend.app.main:app"
+entrypoint = "api/index.py"
