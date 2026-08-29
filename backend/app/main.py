@@ -14,7 +14,7 @@ from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 
 from backend.app.config import settings
-from backend.app.database import engine, Base, get_db
+from backend.app.database import engine, Base, get_db, SessionLocal
 from backend.app.routers import (
     auth, customers, appointments, inventory, repair_orders, invoices, ai, analytics, customer_requests
 )
