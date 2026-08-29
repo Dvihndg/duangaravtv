@@ -1,13 +1,14 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from backend.app.config import settings
 
-# For SQLite, enable check_same_thread=False
-connect_args = {"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {}
+db_url = os.getenv("DATABASE_URL", settings.DATABASE_URL)
+connect_args = {"check_same_thread": False} if "sqlite" in db_url else {}
 
 engine = create_engine(
-    settings.DATABASE_URL, connect_args=connect_args
+    db_url, connect_args=connect_args
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

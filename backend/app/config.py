@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "garage-super-secret-jwt-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
-    DATABASE_URL: str = "sqlite:///./garage.db"
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./garage.db")
     
     DEEPSEEK_API_KEY: str = "sk-9vWcOHQtsCZ5J0gu9wYTU7YawMLVDc80HoMilS9hOHgiQ9ks"
     DEEPSEEK_BASE_URL: str = "https://seekai.cc/v1"
