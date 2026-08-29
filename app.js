@@ -162,21 +162,17 @@ function closeModal(modalId) {
     modal.style.display = "none";
   }
 }
-
 // Auth & Role Handler
 async function loginAsCurrentRole() {
-  if (isBackendAvailable === false) {
-    currentState.token = "demo-offline-jwt-token";
-    return;
-  }
   const creds = ROLE_CREDENTIALS[currentState.currentRole];
+  if (!creds) return;
   try {
     const formData = new URLSearchParams();
     formData.append("username", creds.username);
     formData.append("password", creds.password);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 200);
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for Vercel serverless
 
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
@@ -191,12 +187,10 @@ async function loginAsCurrentRole() {
       currentState.token = data.access_token;
       isBackendAvailable = true;
     } else {
-      currentState.token = "demo-offline-jwt-token";
+      console.warn("Chưa đăng nhập Backend: Dùng thông tin phiên làm việc hiện tại.");
     }
   } catch (err) {
-    isBackendAvailable = false;
-    console.warn("Chế độ Demo Web Offline: Tự động kích hoạt JWT token mô phỏng.");
-    currentState.token = "demo-offline-jwt-token";
+    console.warn("Kết nối Backend Online đang khởi động:", err);
   }
 }
 
