@@ -8,7 +8,7 @@
     },
     {
       "source": "/health",
-      "destination": "/api/index.py"
+      "destination": "/api/health.py"
     },
     {
       "source": "/admin",
