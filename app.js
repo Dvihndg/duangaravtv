@@ -1072,7 +1072,7 @@ async function submitModalAIQuestion() {
   loadingRow.style.cssText = "display: flex; gap: 0.85rem; align-items: flex-start;";
   loadingRow.innerHTML = `
     <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0;">
-      <i class="fa-solid fa-sparkles fa-spin"></i>
+      <i class="fa-solid fa-circle-notch fa-spin"></i>
     </div>
     <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 0.9rem 1.15rem; color: #94a3b8; font-size: 0.9rem; font-style: italic;">
       AI đang suy nghĩ và tổng hợp thông tin...
@@ -1095,7 +1095,7 @@ async function submitModalAIQuestion() {
     aiRow.style.cssText = "display: flex; gap: 0.85rem; align-items: flex-start;";
     aiRow.innerHTML = `
       <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0; margin-top: 2px;">
-        <i class="fa-solid fa-sparkles"></i>
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
       </div>
       <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem 1.25rem; color: #e2e8f0; font-size: 0.92rem; line-height: 1.6; max-width: 88%;">
         ${formattedText}

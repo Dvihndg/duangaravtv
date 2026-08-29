@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi" data-theme="light">
 
 <head>
@@ -566,19 +566,19 @@
       <section id="view-ai-studio" class="view-section">
         <div id="ai-tab-content-chat" class="ai-tab-content">
           <div class="table-card"
-            style="padding: 1.5rem; margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%); border: 1px solid rgba(8, 145, 178, 0.3); box-shadow: var(--shadow-lg);">
+            style="padding: 1.5rem; margin-bottom: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-lg);">
             <div
               style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem; margin-bottom: 1rem;">
               <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <div
-                  style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #164e63 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 0 15px rgba(8, 145, 178, 0.4);">
-                  <i class="fa-solid fa-sparkles"></i>
+                  style="width: 42px; height: 42px; border-radius: 12px; background: rgba(8, 145, 178, 0.15); border: 1px solid rgba(8, 145, 178, 0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan); font-size: 1.25rem; box-shadow: 0 0 15px rgba(8, 145, 178, 0.2);">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
                 <div>
                   <h4
                     style="font-family: Arial; margin: 0; color: var(--text-main); font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
                     Trợ lý GarageAI <span
-                      style="font-size: 0.75rem; background: rgba(8, 145, 178, 0.2); color: #38bdf8; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(8, 145, 178, 0.4);">Pro Active Engine</span>
+                      style="font-size: 0.75rem; background: rgba(8, 145, 178, 0.15); color: var(--accent-cyan); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(8, 145, 178, 0.3);">Pro Active Engine</span>
                   </h4>
                   <div style="font-size: 0.8rem; color: var(--text-muted);">Tư vấn dịch vụ, combo bảo dưỡng, báo giá nháp & tra cứu tiến độ xe</div>
                 </div>
@@ -592,19 +592,19 @@
               <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;">⚡ CÂU HỎI MẪU GỢI Ý:</div>
               <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
                 <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('vios_vibration')"
-                  style="font-size: 0.78rem; border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;">
+                  style="font-size: 0.78rem; border-color: rgba(59, 130, 246, 0.4); color: var(--accent-primary); background: var(--bg-primary);">
                   🛠️ Toyota Vios 2018 bị rung không tải
                 </button>
                 <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('history_analysis')"
-                  style="font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                  style="font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: var(--accent-emerald); background: var(--bg-primary);">
                   📜 Phân tích lịch sử xe 51H-888.88
                 </button>
                 <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('draft_mazda')"
-                  style="font-size: 0.78rem; border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+                  style="font-size: 0.78rem; border-color: rgba(245, 158, 11, 0.4); color: var(--accent-amber); background: var(--bg-primary);">
                   📝 Báo giá nháp Mazda 3 thay dầu & phanh
                 </button>
                 <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('business_analysis')"
-                  style="font-size: 0.78rem; border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">
+                  style="font-size: 0.78rem; border-color: rgba(168, 85, 247, 0.4); color: var(--accent-purple); background: var(--bg-primary);">
                   📊 Phân tích kinh doanh tháng này
                 </button>
               </div>
@@ -612,11 +612,11 @@
 
             <!-- Chat Window Message Stream -->
             <div id="ai-chat-stream"
-              style="min-height: 250px; max-height: 420px; overflow-y: auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
+              style="min-height: 250px; max-height: 420px; overflow-y: auto; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
               <div class="chat-msg ai-msg" style="display: flex; gap: 0.75rem; align-items: flex-start;">
                 <div
-                  style="width: 34px; height: 34px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 0.95rem; flex-shrink: 0;">
-                  <i class="fa-solid fa-sparkles"></i>
+                  style="width: 34px; height: 34px; border-radius: 10px; background: rgba(14, 116, 144, 0.2); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan); font-size: 0.95rem; flex-shrink: 0;">
+                  <i class="fa-solid fa-robot"></i>
                 </div>
                 <div
                   style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.9rem 1.15rem; border-radius: 14px; border-top-left-radius: 2px; max-width: 88%; font-size: 0.92rem; line-height: 1.6; color: var(--text-main);">
@@ -630,7 +630,7 @@
               <input type="text" id="ai-chat-input" class="form-control"
                 placeholder="Nhập câu hỏi kỹ thuật, yêu cầu báo giá hoặc tra cứu tiến độ..."
                 onkeypress="if(event.key==='Enter') sendAIChatMessage()">
-              <button class="btn btn-ai" onclick="sendAIChatMessage()" style="padding: 0 1.25rem; flex-shrink: 0; background: linear-gradient(135deg, #164e63, #0891b2); border: none;">
+              <button class="btn btn-ai" onclick="sendAIChatMessage()" style="padding: 0 1.25rem; flex-shrink: 0; background: linear-gradient(135deg, #0891b2, #0284c7); border: none;">
                 <i class="fa-solid fa-paper-plane"></i> Gửi AI
               </button>
             </div>
@@ -702,7 +702,7 @@
 
               <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
                 <button type="button" class="btn btn-secondary" onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn các mốc bảo dưỡng và chi phí cho xe của tôi')">
-                  <i class="fa-solid fa-sparkles" style="color: #38bdf8;"></i> Hỏi Trợ Lý AI Trước
+                  <i class="fa-solid fa-wand-magic-sparkles" style="color: #38bdf8;"></i> Hỏi Trợ Lý AI Trước
                 </button>
                 <button type="submit" class="btn btn-primary" style="padding: 0.7rem 1.5rem;">
                   <i class="fa-solid fa-paper-plane"></i> Gửi Đăng Ký Dịch Vụ
@@ -737,7 +737,7 @@
             <div class="table-card" style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 1px solid rgba(139, 92, 246, 0.4);">
               <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;">
                 <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); display: flex; align-items: center; justify-content: center; color: #c084fc; font-size: 1.2rem;">
-                  <i class="fa-solid fa-sparkles"></i>
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
                 <div>
                   <h4 style="font-family: Arial; margin: 0; color: #ffffff; font-size: 1.05rem;">Trợ lý GarageAI</h4>
@@ -798,7 +798,7 @@
       <div class="garage-ai-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
         <div style="display: flex; align-items: center; gap: 0.85rem;">
           <div class="ai-header-icon" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #164e63 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);">
-            <i class="fa-solid fa-sparkles"></i>
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
           </div>
           <div>
             <h3 id="modal-ai-title" style="font-family: Arial, sans-serif; color: #ffffff; font-size: 1.2rem; font-weight: 700; margin: 0; line-height: 1.2;">Trợ lý GarageAI</h3>
@@ -821,7 +821,7 @@
         <!-- Default AI Greeting Message matching screenshot -->
         <div class="garage-ai-msg-row ai-msg" style="display: flex; gap: 0.85rem; align-items: flex-start;">
           <div class="ai-msg-avatar" style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0; margin-top: 2px;">
-            <i class="fa-solid fa-sparkles"></i>
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
           </div>
           <div class="ai-msg-bubble" style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem 1.25rem; color: #e2e8f0; font-size: 0.92rem; line-height: 1.6; max-width: 88%;">
             Tôi có thể giải thích dịch vụ, combo bảo dưỡng và quy trình đặt lịch. Bạn có thể nêu loại xe và số km trong câu hỏi để tôi gợi ý sát hơn. Tôi không thể chẩn đoán xe hoặc xác nhận an toàn từ xa; với dấu hiệu bất thường, hãy liên hệ garage để được kiểm tra trực tiếp.
@@ -1212,7 +1212,7 @@
 
   <!-- Floating GarageAI Assistant Quick Trigger Button -->
   <button class="floating-ai-trigger" onclick="openAIAssistantModal()" title="Mở Trợ lý GarageAI">
-    <i class="fa-solid fa-sparkles"></i>
+    <i class="fa-solid fa-wand-magic-sparkles"></i>
   </button>
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
