@@ -78,7 +78,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── Sidebar Header & Navigation ───────────────────────────────────────────────
-st.sidebar.image("logo.png", width=180) if os.path.exists("logo.png") else st.sidebar.title("🚘 GARAGE VTV")
+if os.path.exists("logo.png"):
+    st.sidebar.image("logo.png", width=180)
+else:
+    st.sidebar.title("🚘 GARAGE VTV")
 st.sidebar.markdown("### **Hệ Thống Quản Lý Garage Tích Hợp AI**")
 st.sidebar.markdown("---")
 
