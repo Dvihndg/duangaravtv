@@ -202,15 +202,11 @@ async function loginAsCurrentRole() {
 
 // Detect static hosting environment (GitHub Pages, Netlify, Vercel, HTTPS live deployment)
 const isLocalhostHost = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-let isBackendAvailable = isLocalhostHost ? null : false;
+const API_BASE = isLocalhostHost ? "http://127.0.0.1:8000/api/v1" : "/api/v1";
+let isBackendAvailable = true;
 
-// Helper fetch wrapper with Offline Mock Engine & Instant Abort Controller
+// Helper fetch wrapper connecting directly to Online Backend API
 async function apiFetch(endpoint, options = {}) {
-  // Fast Path: If backend server is known to be offline or unreachable, return mock data instantly (0ms delay)
-  if (isBackendAvailable === false) {
-    return getOfflineMockResponse(endpoint, options);
-  }
-
   const headers = options.headers || {};
   if (currentState.token) {
     headers["Authorization"] = `Bearer ${currentState.token}`;
@@ -219,7 +215,7 @@ async function apiFetch(endpoint, options = {}) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 200); // 200ms ultra-fast connection check
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for Vercel Serverless cold start
 
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
@@ -235,8 +231,7 @@ async function apiFetch(endpoint, options = {}) {
     isBackendAvailable = true;
     return await res.json();
   } catch (err) {
-    isBackendAvailable = false;
-    console.warn(`[Offline Demo Engine] Ultra-fast fallback activated for: ${endpoint}`);
+    console.warn(`[Online Backend Notice] Falling back to local engine for ${endpoint}:`, err);
     return getOfflineMockResponse(endpoint, options);
   }
 }
@@ -255,6 +250,17 @@ const DB_KEYS = {
   services:         "vtv_db_services",
   parts:            "vtv_db_parts"
 };
+
+// Purge all old demo data from localStorage (Keep Services & Parts catalog intact)
+if (!localStorage.getItem("vtv_demo_data_purged_v2")) {
+  localStorage.removeItem(DB_KEYS.customers);
+  localStorage.removeItem(DB_KEYS.vehicles);
+  localStorage.removeItem(DB_KEYS.appointments);
+  localStorage.removeItem(DB_KEYS.repairOrders);
+  localStorage.removeItem(DB_KEYS.invoices);
+  localStorage.removeItem(DB_KEYS.customerRequests);
+  localStorage.setItem("vtv_demo_data_purged_v2", "true");
+}
 
 function dbRead(key) {
   try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
