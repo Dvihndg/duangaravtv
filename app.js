@@ -540,6 +540,9 @@ function switchView(viewName) {
   if (pageTitle) pageTitle.textContent = titleMap[viewName] || "Garage Management";
 
   toggleMobileSidebar(false);
+
+  // Trigger instant view data rendering
+  loadAllData();
 }
 
 function toggleMobileSidebar(open = null) {
@@ -596,13 +599,24 @@ function setupFilterListeners() {
 // Data Loaders
 async function loadAllData() {
   try {
+    // 1. Render active view immediately
     if (currentState.activeView === "dashboard") await loadDashboard();
-    if (currentState.activeView === "appointments") await loadAppointments();
-    if (currentState.activeView === "repair-orders") await loadRepairOrders();
-    if (currentState.activeView === "customers") await loadCustomersAndVehicles();
-    if (currentState.activeView === "inventory") await loadInventory();
-    if (currentState.activeView === "invoices") await loadInvoices();
-    if (currentState.activeView === "ai-studio") await loadAISandboxData();
+    else if (currentState.activeView === "appointments") await loadAppointments();
+    else if (currentState.activeView === "repair-orders") await loadRepairOrders();
+    else if (currentState.activeView === "customers") await loadCustomersAndVehicles();
+    else if (currentState.activeView === "inventory") await loadInventory();
+    else if (currentState.activeView === "invoices") await loadInvoices();
+    else if (currentState.activeView === "ai-studio") await loadAISandboxData();
+
+    // 2. Pre-populate all other tabs in background for instant 0ms tab switching
+    Promise.all([
+      loadDashboard(),
+      loadAppointments(),
+      loadRepairOrders(),
+      loadCustomersAndVehicles(),
+      loadInventory(),
+      loadInvoices()
+    ]).catch(() => {});
   } catch (err) {
     console.error("Lỗi tải dữ liệu:", err);
   }
