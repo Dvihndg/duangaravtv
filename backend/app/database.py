@@ -7,11 +7,16 @@ from sqlalchemy.orm import sessionmaker
 db_url = os.getenv("DATABASE_URL", "sqlite:///./garage.db")
 
 # Fix: Supabase/Heroku uses "postgres://" or "postgresql://"
-# Upgrade to pg8000 (Pure Python driver) for 100% Vercel Serverless AWS Lambda compatibility
 if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql+pg8000://", 1)
-elif db_url.startswith("postgresql://") and "+pg8000" not in db_url and "+psycopg2" not in db_url:
-    db_url = db_url.replace("postgresql://", "postgresql+pg8000://", 1)
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+# Dynamically use pg8000 (Pure Python) if installed, otherwise fallback to standard psycopg2
+if db_url.startswith("postgresql://"):
+    try:
+        import pg8000
+        db_url = db_url.replace("postgresql://", "postgresql+pg8000://", 1)
+    except ImportError:
+        pass
 
 # ─── Engine Configuration ──────────────────────────────────────────────────────
 is_sqlite = "sqlite" in db_url

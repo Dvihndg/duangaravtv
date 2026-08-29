@@ -49,7 +49,10 @@ def ensure_db_columns():
     except Exception as e:
         print(f"Migration notice: {e}")
 
-ensure_db_columns()
+try:
+    ensure_db_columns()
+except Exception as e:
+    print(f"[DB Columns Warning] {e}")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
