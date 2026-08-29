@@ -1,6 +1,5 @@
 import os
 import sys
-from fastapi import FastAPI
 
 # Root path resolution
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,12 +18,6 @@ if os.getenv("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
     except Exception as e:
         print(f"[Vercel Startup Notice] SQLite /tmp setup: {e}")
 
-try:
-    from backend.app.main import app
-except Exception as err:
-    print(f"[Vercel Startup Notice] Fallback app initialization: {err}")
-    app = FastAPI(title="Garage VTV API")
+from backend.app.main import app
 
-    @app.get("/api/v1/health")
-    def health():
-        return {"status": "ok", "mode": "serverless"}
+__all__ = ["app"]
