@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try { setupNavigation(); } catch (e) { console.error("setupNavigation:", e); }
   try { setupRoleSwitcher(); } catch (e) { console.error("setupRoleSwitcher:", e); }
   try { setupFilterListeners(); } catch (e) { console.error("setupFilterListeners:", e); }
+  try { initDatepickers(); } catch (e) { console.error("initDatepickers:", e); }
   try { await loginAsCurrentRole(); } catch (e) { console.error("loginAsCurrentRole:", e); }
   try { await populateVehicleDropdowns(); } catch (e) { console.error("populateVehicleDropdowns:", e); }
   try { await loadAllData(); } catch (e) { console.error("loadAllData:", e); }
@@ -56,6 +57,62 @@ function updateThemeIcon(theme) {
   const icon = document.getElementById("theme-icon");
   if (icon) {
     icon.className = theme === "dark" ? "fa-solid fa-moon" : "fa-solid fa-sun";
+  }
+}
+
+// Flatpickr Datepicker Initialization Helper
+function initDatepickers() {
+  if (typeof flatpickr === "undefined") return;
+
+  // Set Vietnamese locale globally if available
+  if (flatpickr.l10ns && flatpickr.l10ns.vn) {
+    flatpickr.localize(flatpickr.l10ns.vn);
+  }
+
+  // 1. Booking / Appointment Datetime Pickers (with time & minDate = today)
+  const dateTimeSelectors = ["#apt-date", "#cp-apt-date"];
+  dateTimeSelectors.forEach(selector => {
+    const el = document.querySelector(selector);
+    if (el && !el._flatpickr) {
+      flatpickr(el, {
+        enableTime: true,
+        dateFormat: "d/m/Y H:i",
+        time_24hr: true,
+        minDate: "today",
+        defaultHour: 8,
+        defaultMinute: 0,
+        locale: flatpickr.l10ns?.vn || "default"
+      });
+    }
+  });
+
+  // 2. Filter Date Pickers (Date only)
+  const dateSelectors = ["#appointment-date-filter", "#ro-date-from", "#ro-date-to", "#invoice-date-from", "#invoice-date-to"];
+  dateSelectors.forEach(selector => {
+    const el = document.querySelector(selector);
+    if (el && !el._flatpickr) {
+      flatpickr(el, {
+        dateFormat: "d/m/Y",
+        locale: flatpickr.l10ns?.vn || "default"
+      });
+    }
+  });
+}
+
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add("active");
+    modal.style.display = "flex";
+    setTimeout(() => initDatepickers(), 50);
+  }
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove("active");
+    modal.style.display = "none";
   }
 }
 
@@ -1957,3 +2014,4 @@ window.submitCustomerPortalRegistration = submitCustomerPortalRegistration;
 window.openPhoneContactModal = openPhoneContactModal;
 window.submitCallbackRequest = submitCallbackRequest;
 window.lookupCustomerVehicleProgress = lookupCustomerVehicleProgress;
+window.initDatepickers = initDatepickers;
