@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Đăng Nhập - Hệ Thống Garage VTV Automotive</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css?v=6.0">
+  <style>
+    body {
+      background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      font-family: 'Inter', sans-serif;
+    }
+    .login-container {
+      width: 100%;
+      max-width: 440px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: var(--radius-lg);
+      padding: 2.25rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(12px);
+    }
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      color: #ffffff;
+      margin: 0;
+      text-align: center;
+    }
+    .login-tabs {
+      display: flex;
+      background: rgba(30, 41, 59, 0.7);
+      border-radius: 12px;
+      padding: 4px;
+      margin: 1.5rem 0;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+    .login-tab-btn {
+      flex: 1;
+      padding: 0.65rem;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .login-tab-btn.active {
+      background: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-container">
+    <!-- Brand Header -->
+    <div style="text-align: center; margin-bottom: 1.25rem;">
+      <div style="width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg, #0891b2, #0284c7); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; margin: 0 auto 0.75rem auto; box-shadow: 0 8px 20px rgba(8, 145, 178, 0.4);">
+        <i class="fa-solid fa-car-wrench"></i>
+      </div>
+      <h2 class="brand-title">GARAGE VTV</h2>
+      <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">HỆ THỐNG QUẢN LÝ OTO TÍCH HỢP AI</span>
+    </div>
+
+    <!-- Login Mode Tabs -->
+    <div class="login-tabs">
+      <button class="login-tab-btn active" id="tab-cust" onclick="switchLoginTab('customer')">
+        <i class="fa-solid fa-user"></i> Khách Hàng
+      </button>
+      <button class="login-tab-btn" id="tab-staff" onclick="switchLoginTab('staff')">
+        <i class="fa-solid fa-user-gear"></i> Nhân Viên Nội Bộ
+      </button>
+    </div>
+
+    <!-- Customer Access Form -->
+    <div id="form-login-cust">
+      <div style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; text-align: center;">
+        <i class="fa-solid fa-car-tunnel" style="font-size: 2rem; color: #38bdf8; margin-bottom: 0.5rem; display: block;"></i>
+        <h4 style="font-family: 'Outfit'; color: #ffffff; margin-bottom: 0.4rem;">Cổng Thông Tin Dịch Vụ Khách Hàng</h4>
+        <p style="font-size: 0.82rem; color: #94a3b8; line-height: 1.5; margin: 0;">
+          Đăng ký dịch vụ xe, tra cứu tiến độ sửa chữa & tư vấn trực tiếp cùng Trợ lý AI Garage VTV.
+        </p>
+      </div>
+
+      <button onclick="loginAsCustomer()" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(8, 145, 178, 0.4);">
+        <i class="fa-solid fa-right-to-bracket"></i> Truy Cập Cổng Khách Hàng
+      </button>
+    </div>
+
+    <!-- Staff Login Form -->
+    <div id="form-login-staff" style="display: none;">
+      <form onsubmit="submitStaffLogin(event)">
+        <div class="form-group" style="margin-bottom: 1.15rem;">
+          <label style="color: #cbd5e1;">Chọn Vai Trò Nội Bộ:</label>
+          <select id="staff-role-select" class="form-control" style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;" onchange="updateStaffCredentialsHint()">
+            <option value="receptionist" selected>Lễ Tân (Receptionist)</option>
+            <option value="manager">Quản Lý (Admin)</option>
+            <option value="technician">Kỹ Thuật Viên (Tech)</option>
+            <option value="cashier">Thu Ngân (Cashier)</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.15rem;">
+          <label style="color: #cbd5e1;">Mật Khẩu Xác Thực:</label>
+          <input type="password" id="staff-password" class="form-control" value="letan123" placeholder="Nhập mật khẩu..." required style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
+        </div>
+
+        <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 1.25rem; background: rgba(255, 255, 255, 0.03); padding: 0.65rem 0.85rem; border-radius: 8px;">
+          <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Demo Credential: <strong id="hint-creds" style="color: #38bdf8;">letan / letan123</strong>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; background: linear-gradient(135deg, #4f46e5, #6366f1); border: none; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
+          <i class="fa-solid fa-lock"></i> Đăng Nhập Trang Nội Bộ
+        </button>
+      </form>
+    </div>
+
+    <!-- Contact Support -->
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #64748b;">
+      Hotline Kỹ Thuật Hỗ Trợ: <strong style="color: #38bdf8;">033.344.2358</strong>
+    </div>
+  </div>
+
+  <script>
+    const DEMO_CREDS = {
+      manager: "admin123",
+      receptionist: "letan123",
+      technician: "tech123",
+      cashier: "cashier123"
+    };
+
+    function switchLoginTab(mode) {
+      document.getElementById("tab-cust").classList.toggle("active", mode === 'customer');
+      document.getElementById("tab-staff").classList.toggle("active", mode === 'staff');
+      document.getElementById("form-login-cust").style.display = mode === 'customer' ? 'block' : 'none';
+      document.getElementById("form-login-staff").style.display = mode === 'staff' ? 'block' : 'none';
+    }
+
+    function updateStaffCredentialsHint() {
+      const role = document.getElementById("staff-role-select").value;
+      const passInput = document.getElementById("staff-password");
+      const hintEl = document.getElementById("hint-creds");
+      
+      const pass = DEMO_CREDS[role] || "123456";
+      if (passInput) passInput.value = pass;
+      if (hintEl) hintEl.textContent = `${role} / ${pass}`;
+    }
+
+    function loginAsCustomer() {
+      localStorage.setItem("garage_user_role", "customer");
+      localStorage.setItem("garage_is_logged_in", "true");
+      window.location.href = "customer.html";
+    }
+
+    function submitStaffLogin(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const role = document.getElementById("staff-role-select").value;
+      const pass = document.getElementById("staff-password").value;
+
+      if (!pass) {
+        alert("Vui lòng nhập mật khẩu xác thực!");
+        return;
+      }
+
+      localStorage.setItem("garage_user_role", role);
+      localStorage.setItem("garage_is_logged_in", "true");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+
+</html>

@@ -29,6 +29,7 @@ const ROLE_CREDENTIALS = {
 // Fault-Tolerant Application Initialization
 document.addEventListener("DOMContentLoaded", async () => {
   try { setupTheme(); } catch (e) { console.error("setupTheme:", e); }
+  try { checkAuthPermission(); } catch (e) { console.error("checkAuthPermission:", e); }
   try { setupNavigation(); } catch (e) { console.error("setupNavigation:", e); }
   try { setupRoleSwitcher(); } catch (e) { console.error("setupRoleSwitcher:", e); }
   try { setupFilterListeners(); } catch (e) { console.error("setupFilterListeners:", e); }
@@ -58,6 +59,45 @@ function updateThemeIcon(theme) {
   if (icon) {
     icon.className = theme === "dark" ? "fa-solid fa-moon" : "fa-solid fa-sun";
   }
+}
+
+// Authorization Guard & 404 Access Denied Handler
+function checkAuthPermission() {
+  const role = localStorage.getItem("garage_user_role");
+  const isLoggedIn = localStorage.getItem("garage_is_logged_in") === "true";
+  const internalRoles = ["manager", "receptionist", "technician", "cashier"];
+
+  const path = window.location.pathname.toLowerCase();
+  if (path.endsWith("customer.html") || path.endsWith("login.html")) {
+    return true;
+  }
+
+  // If unauthenticated or role is customer (or null), block access to index.html & show 404
+  if (!isLoggedIn || !internalRoles.includes(role)) {
+    const sidebar = document.querySelector(".sidebar");
+    if (sidebar) sidebar.style.display = "none";
+
+    const topBar = document.querySelector(".top-bar");
+    if (topBar) topBar.style.display = "none";
+
+    const mainWrapper = document.querySelector(".main-wrapper");
+    if (mainWrapper) mainWrapper.style.marginLeft = "0";
+
+    switchView("404-error");
+    return false;
+  }
+
+  currentState.currentRole = role;
+  const roleSelect = document.getElementById("role-select");
+  if (roleSelect) roleSelect.value = role;
+
+  return true;
+}
+
+function logoutUser() {
+  localStorage.removeItem("garage_user_role");
+  localStorage.removeItem("garage_is_logged_in");
+  window.location.href = "login.html";
 }
 
 // Flatpickr Datepicker Initialization Helper
@@ -2015,3 +2055,5 @@ window.openPhoneContactModal = openPhoneContactModal;
 window.submitCallbackRequest = submitCallbackRequest;
 window.lookupCustomerVehicleProgress = lookupCustomerVehicleProgress;
 window.initDatepickers = initDatepickers;
+window.logoutUser = logoutUser;
+window.checkAuthPermission = checkAuthPermission;

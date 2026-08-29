@@ -88,6 +88,11 @@
           <i class="fa-solid fa-sun" id="theme-icon"></i>
         </button>
 
+        <!-- Logout Button -->
+        <button class="btn btn-secondary btn-sm" onclick="logoutUser()" title="Đăng Xuất" style="border-color: rgba(244, 63, 94, 0.4); color: #f43f5e;">
+          <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
+        </button>
+
         <!-- Role Switcher -->
         <div class="role-switcher-container">
           <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;"><i
@@ -748,6 +753,33 @@
 
           </div>
 
+        </div>
+      </section>
+
+      <!-- VIEW 404: Access Denied / Page Not Found -->
+      <section id="view-404-error" class="view-section">
+        <div style="max-width: 600px; margin: 3rem auto; text-align: center; background: var(--bg-card); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: var(--radius-lg); padding: 3rem 2rem; box-shadow: var(--shadow-lg);">
+          <div style="font-size: 5rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: #f43f5e; line-height: 1; margin-bottom: 0.5rem; text-shadow: 0 0 20px rgba(244, 63, 94, 0.4);">
+            404
+          </div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: #fb7185; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;">
+            HTTP 404 - NOT FOUND & ACCESS DENIED
+          </div>
+          <h2 style="font-family: 'Outfit'; font-size: 1.4rem; color: var(--text-main); margin-bottom: 1rem;">
+            Trang Không Tồn Tại Hoặc Không Có Quyền Truy Cập
+          </h2>
+          <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.75rem;">
+            Trang quản trị nội bộ này chỉ dành riêng cho nhân viên được cấp quyền (Quản lý, Lễ tân, KTV, Thu ngân). Tài khoản của bạn hiện không có quyền truy cập hệ thống vận hành.
+          </p>
+
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="customer.html" class="btn btn-primary" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700;">
+              <i class="fa-solid fa-arrow-left"></i> Về Cổng Khách Hàng
+            </a>
+            <a href="login.html" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-weight: 700;">
+              <i class="fa-solid fa-key"></i> Đăng Nhập Lại
+            </a>
+          </div>
         </div>
       </section>
 
