@@ -1,4 +1,4 @@
-// Garage AI Management System - Frontend App Engine
+﻿// Garage AI Management System - Frontend App Engine
 
 const API_BASE = "http://127.0.0.1:8000/api/v1";
 
@@ -1983,7 +1983,7 @@ async function lookupCustomerVehicleProgress() {
       resContainer.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
           <div>
-            <h4 style="font-family: 'Outfit'; margin: 0; color: var(--text-main); font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+            <h4 style="font-family: Arial; margin: 0; color: var(--text-main); font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
               <i class="fa-solid fa-car" style="color: var(--accent-primary);"></i> Xe: ${matched.license_plate || input.toUpperCase()}
             </h4>
             <span style="font-size: 0.82rem; color: var(--text-muted);">Mã Phiếu: <strong>${matched.code}</strong> | Ngày nhận: ${new Date(matched.created_at || Date.now()).toLocaleDateString('vi-VN')}</span>

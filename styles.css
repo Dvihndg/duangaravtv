@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
 
 /* Figma Dark Automotive OS Theme (Default) */
 :root {
@@ -69,7 +69,7 @@
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: Arial, sans-serif;
   background: var(--bg-primary);
   color: var(--text-main);
   min-height: 100vh;
@@ -129,7 +129,7 @@ body {
 }
 
 .brand-name {
-  font-family: 'Outfit', sans-serif;
+  font-family: Arial, sans-serif;
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -320,7 +320,7 @@ body {
   margin-bottom: 0.4rem;
 }
 .kpi-info .val {
-  font-family: 'Outfit', sans-serif;
+  font-family: Arial, sans-serif;
   font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -735,7 +735,7 @@ select.form-control option {
   color: var(--text-muted);
   padding: 0.65rem 1.15rem;
   border-radius: var(--radius-md);
-  font-family: 'Outfit', sans-serif;
+  font-family: Arial, sans-serif;
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
@@ -772,7 +772,7 @@ select.form-control option {
 }
 
 .ai-output-box h3, .ai-output-box h4 {
-  font-family: 'Outfit', sans-serif;
+  font-family: Arial, sans-serif;
   color: var(--accent-purple);
   margin: 0.8rem 0 0.4rem 0;
 }
@@ -921,7 +921,7 @@ select.form-control option {
   border-bottom: 1px solid var(--border-color);
 }
 .qr-bank-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: Arial, sans-serif;
   font-weight: 800;
   font-size: 1.05rem;
   color: var(--accent-rose);
@@ -1025,7 +1025,7 @@ select.form-control option {
   border-color: transparent;
 }
 .wizard-step .step-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: Arial, sans-serif;
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-main);
@@ -1316,7 +1316,7 @@ select.form-control option {
 
 /* GarageAI Assistant Modal & Floating Widget */
 .garage-ai-modal {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: Arial, sans-serif;
   animation: modalScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
