@@ -21,4 +21,6 @@ if not db_url or "sqlite" in db_url:
 
 from backend.app.main import app
 
-__all__ = ["app"]
+# Export both app and handler for Vercel WSGI/ASGI Serverless runtime
+handler = app
+__all__ = ["app", "handler"]
