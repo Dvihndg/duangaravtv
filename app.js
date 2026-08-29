@@ -903,16 +903,16 @@ async function loadDashboard() {
   const kpi = data ? (data.kpi || {}) : {};
 
   const revEl = document.getElementById("kpi-revenue");
-  if (revEl) revEl.textContent = `${(kpi.total_revenue || 245000000).toLocaleString('vi-VN')} VNĐ`;
+  if (revEl) revEl.textContent = `${(kpi.total_revenue ?? 0).toLocaleString('vi-VN')} VNĐ`;
 
   const activeEl = document.getElementById("kpi-active-orders");
-  if (activeEl) activeEl.textContent = kpi.active_repair_orders || 12;
+  if (activeEl) activeEl.textContent = kpi.active_repair_orders ?? 0;
 
   const pendingEl = document.getElementById("kpi-pending-apts");
-  if (pendingEl) pendingEl.textContent = kpi.pending_appointments || 8;
+  if (pendingEl) pendingEl.textContent = kpi.pending_appointments ?? 0;
 
   const newCustEl = document.getElementById("kpi-new-customers");
-  if (newCustEl) newCustEl.textContent = kpi.low_stock_parts_count || 34;
+  if (newCustEl) newCustEl.textContent = kpi.total_customers ?? 0;
 
   const orders = await apiFetch("/repair-orders");
   const tbody = document.getElementById("dash-orders-tbody");
