@@ -39,6 +39,14 @@ class PaymentMethod(str, enum.Enum):
     BANK_TRANSFER = "bank_transfer"
     CREDIT_CARD = "credit_card"
 
+class CustomerRequestStatus(str, enum.Enum):
+    PENDING = "Pending"
+    CONTACTED = "Contacted"
+    CONFIRMED = "Confirmed"
+    IN_PROGRESS = "InProgress"
+    COMPLETED = "Completed"
+    CANCELLED = "Cancelled"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -233,4 +241,39 @@ class AILog(Base):
     price_variance = Column(Float, default=0.0) # Bắt buộc = 0.0%
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CustomerRequest(Base):
+    __tablename__ = "customer_requests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    request_code = Column(String(30), unique=True, index=True, nullable=False) # e.g. REQ-20260829-0001
+    full_name = Column(String(100), nullable=False)
+    phone = Column(String(20), index=True, nullable=False)
+    email = Column(String(100), nullable=True)
+    address = Column(String(255), nullable=True)
+    license_plate = Column(String(20), index=True, nullable=False)
+    vehicle_brand = Column(String(50), nullable=False)
+    vehicle_model = Column(String(50), nullable=False)
+    manufacture_year = Column(Integer, nullable=True)
+    current_mileage = Column(Integer, default=0)
+    service_type = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    preferred_date = Column(String(20), nullable=True)
+    preferred_time = Column(String(20), nullable=True)
+    note = Column(Text, nullable=True)
+    
+    status = Column(Enum(CustomerRequestStatus), default=CustomerRequestStatus.PENDING, nullable=False)
+    admin_note = Column(Text, nullable=True)
+    assigned_employee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=True)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    assigned_employee = relationship("User", foreign_keys=[assigned_employee_id])
+    customer = relationship("Customer")
+    vehicle = relationship("Vehicle")
+
 

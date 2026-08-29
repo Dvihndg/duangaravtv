@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from backend.app.config import settings
 from backend.app.database import engine, Base
 from backend.app.routers import (
-    auth, customers, appointments, inventory, repair_orders, invoices, ai, analytics
+    auth, customers, appointments, inventory, repair_orders, invoices, ai, analytics, customer_requests
 )
 
 from sqlalchemy import inspect, text
@@ -66,6 +66,7 @@ app.include_router(repair_orders.router)
 app.include_router(invoices.router)
 app.include_router(ai.router)
 app.include_router(analytics.router)
+app.include_router(customer_requests.router, prefix="/api/v1")
 
 # Serve Frontend from Project Root
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))

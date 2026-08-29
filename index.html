@@ -198,14 +198,24 @@
           <h4 style="font-family: Arial; font-size: 1rem; color: var(--accent-primary); margin-bottom: 0.85rem;">
             <i class="fa-solid fa-user"></i> 1. Thông Tin Khách Hàng Liên Hệ
           </h4>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.85rem;">
             <div class="form-group" style="margin-bottom: 0;">
               <label>Họ và Tên Khách Hàng (*):</label>
-              <input type="text" id="cp-cust-name" class="form-control" placeholder="Nguyễn Văn A" required>
+              <input type="text" id="cp-cust-name" class="form-control" placeholder="VD: Nguyễn Văn A" required>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-              <label>Số Điện Thoại Liên Hệ (*):</label>
-              <input type="tel" id="cp-cust-phone" class="form-control" placeholder="0333442358" required>
+              <label>Số Điện Thoại (*):</label>
+              <input type="tel" id="cp-cust-phone" class="form-control" placeholder="VD: 0901234567" required>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Email Liên Hệ:</label>
+              <input type="email" id="cp-cust-email" class="form-control" placeholder="VD: example@gmail.com">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Địa Chỉ / Tỉnh Thành:</label>
+              <input type="text" id="cp-cust-address" class="form-control" placeholder="VD: TP. Thái Nguyên / Ninh Bình">
             </div>
           </div>
 
@@ -213,35 +223,73 @@
             style="font-family: Arial; font-size: 1rem; color: var(--accent-cyan); margin-top: 1.25rem; margin-bottom: 0.85rem;">
             <i class="fa-solid fa-car"></i> 2. Thông Tin Xe Cần Bảo Dưỡng / Sửa Chữa
           </h4>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
             <div class="form-group" style="margin-bottom: 0;">
               <label>Biển Số Xe (*):</label>
-              <input type="text" id="cp-veh-plate" class="form-control" placeholder="VD: 51H-888.88" required>
+              <input type="text" id="cp-veh-plate" class="form-control" placeholder="VD: 35A-12345" required>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-              <label>Hãng Xe & Dòng Xe (*):</label>
-              <input type="text" id="cp-veh-brandmodel" class="form-control" placeholder="VD: Toyota Camry 2.5Q"
-                required>
+              <label>Hãng Xe (*):</label>
+              <input type="text" id="cp-veh-brand" class="form-control" placeholder="VD: Toyota" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Model Dòng Xe (*):</label>
+              <input type="text" id="cp-veh-model" class="form-control" placeholder="VD: Vios" required>
             </div>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
             <div class="form-group" style="margin-bottom: 0;">
-              <label>Số Km Odometer Hiện Tại:</label>
-              <input type="number" id="cp-veh-mileage" class="form-control" value="5000" placeholder="VD: 5000">
+              <label>Năm Sản Xuất:</label>
+              <input type="number" id="cp-veh-year" class="form-control" value="2020" placeholder="VD: 2020">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-              <label>Thời Gian Muốn Mang Xe Đến:</label>
-              <input type="datetime-local" id="cp-apt-date" class="form-control">
+              <label>Số Km Odometer Hiện Tại:</label>
+              <input type="number" id="cp-veh-mileage" class="form-control" value="50000" placeholder="VD: 50000">
             </div>
           </div>
 
           <h4
             style="font-family: Arial; font-size: 1rem; color: var(--accent-purple); margin-top: 1.25rem; margin-bottom: 0.85rem;">
-            <i class="fa-solid fa-wrench"></i> 3. Yêu Cầu Dịch Vụ & Triệu Chứng Xe
+            <i class="fa-solid fa-wrench"></i> 3. Yêu Cầu Dịch Vụ & Lịch Hẹn Mang Xe Đến
           </h4>
-          <div class="form-group">
-            <textarea id="cp-symptoms" class="form-control" rows="3"
-              placeholder="Mô tả chi tiết triệu chứng xe hoặc dịch vụ cần làm (VD: Xe đi 5.000 km muốn thay nhớt máy, kiểm tra phanh trước...)"></textarea>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Loại Dịch Vụ (*):</label>
+              <select id="cp-service-type" class="form-control" required style="background: var(--bg-input); color: var(--text-main);">
+                <option value="Bảo dưỡng định kỳ" selected>Bảo dưỡng định kỳ</option>
+                <option value="Sửa chữa chung">Sửa chữa chung</option>
+                <option value="Bảo dưỡng hệ thống Phanh">Bảo dưỡng hệ thống Phanh</option>
+                <option value="Cân chỉnh thước lái 3D">Cân chỉnh thước lái 3D</option>
+                <option value="Điện & Điều hòa (HVAC)">Điện & Điều hòa (HVAC)</option>
+                <option value="Đại tu động cơ / Hộp số">Đại tu động cơ / Hộp số</option>
+                <option value="Phủ Ceramic / Chăm sóc xe">Phủ Ceramic / Chăm sóc xe</option>
+                <option value="Khác">Dịch vụ khác</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Ngày Mong Muốn:</label>
+              <input type="date" id="cp-pref-date" class="form-control" style="background: var(--bg-input); color: var(--text-main);">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Giờ Mong Muốn:</label>
+              <select id="cp-pref-time" class="form-control" style="background: var(--bg-input); color: var(--text-main);">
+                <option value="08:00">08:00 Sáng</option>
+                <option value="09:00" selected>09:00 Sáng</option>
+                <option value="10:00">10:00 Sáng</option>
+                <option value="13:30">13:30 Chiều</option>
+                <option value="15:00">15:00 Chiều</option>
+                <option value="16:30">16:30 Chiều</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label>Nội Dung Chi Tiết Cần Sửa Chữa / Bảo Dưỡng:</label>
+            <textarea id="cp-symptoms" class="form-control" rows="2"
+              placeholder="Xe đi 50.000 km cần bảo dưỡng định kỳ, kiểm tra phanh và thay dầu máy..."></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Ghi Chú Thêm:</label>
+            <input type="text" id="cp-note" class="form-control" placeholder="Ghi chú thêm cho Lễ tân (nếu có)...">
           </div>
 
           <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
@@ -249,8 +297,8 @@
               onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn các mốc bảo dưỡng và chi phí cho xe của tôi')">
               <i class="fa-solid fa-wand-magic-sparkles" style="color: #38bdf8;"></i> Hỏi Trợ Lý AI Trước
             </button>
-            <button type="submit" class="btn btn-primary" style="padding: 0.7rem 1.5rem;">
-              <i class="fa-solid fa-paper-plane"></i> Gửi Đăng Ký Dịch Vụ
+            <button type="submit" id="btn-submit-request" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-weight: 700;">
+              <i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu
             </button>
           </div>
         </form>

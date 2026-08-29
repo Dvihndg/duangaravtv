@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!isCustomerPage) {
     try { await loginAsCurrentRole(); } catch (e) { console.error("loginAsCurrentRole:", e); }
     try { await populateVehicleDropdowns(); } catch (e) { console.error("populateVehicleDropdowns:", e); }
+    try { initSSERealtimeStream(); } catch (e) { console.error("initSSERealtimeStream:", e); }
   }
 
   try { setupGlobalEventDelegation(); } catch (e) { console.error("setupGlobalEventDelegation:", e); }
@@ -557,6 +558,7 @@ async function loadAllData() {
   try {
     // 1. Render active view immediately
     if (currentState.activeView === "dashboard") await loadDashboard();
+    else if (currentState.activeView === "customer-requests") await loadCustomerRequestsFromBackend();
     else if (currentState.activeView === "appointments") await loadAppointments();
     else if (currentState.activeView === "repair-orders") await loadRepairOrders();
     else if (currentState.activeView === "customers") await loadCustomersAndVehicles();
@@ -567,6 +569,7 @@ async function loadAllData() {
     // 2. Pre-populate all other tabs in background for instant 0ms tab switching
     Promise.all([
       loadDashboard(),
+      loadCustomerRequestsFromBackend(),
       loadAppointments(),
       loadRepairOrders(),
       loadCustomersAndVehicles(),
@@ -1887,38 +1890,93 @@ async function submitOBDDiagnosticForm(event) {
 // Customer Portal Registration & Phone Contact Popup Handlers
 async function submitCustomerPortalRegistration(e) {
   if (e && e.preventDefault) e.preventDefault();
-  const name = document.getElementById("cp-cust-name")?.value || "";
-  const phone = document.getElementById("cp-cust-phone")?.value || "";
-  const plate = document.getElementById("cp-veh-plate")?.value || "";
-  const brandmodel = document.getElementById("cp-veh-brandmodel")?.value || "";
-  const mileage = parseInt(document.getElementById("cp-veh-mileage")?.value || 5000);
-  const aptDate = document.getElementById("cp-apt-date")?.value;
-  const symptoms = document.getElementById("cp-symptoms")?.value || "";
+  
+  const submitBtn = document.getElementById("btn-submit-request");
+  const name = document.getElementById("cp-cust-name")?.value.trim() || "";
+  const phone = document.getElementById("cp-cust-phone")?.value.trim() || "";
+  const email = document.getElementById("cp-cust-email")?.value.trim() || "";
+  const address = document.getElementById("cp-cust-address")?.value.trim() || "";
+  
+  const plate = document.getElementById("cp-veh-plate")?.value.trim() || "";
+  const brand = document.getElementById("cp-veh-brand")?.value.trim() || "Toyota";
+  const model = document.getElementById("cp-veh-model")?.value.trim() || "Vios";
+  const year = parseInt(document.getElementById("cp-veh-year")?.value || 2020);
+  const mileage = parseInt(document.getElementById("cp-veh-mileage")?.value || 50000);
+  
+  const serviceType = document.getElementById("cp-service-type")?.value || "Bảo dưỡng định kỳ";
+  const description = document.getElementById("cp-symptoms")?.value.trim() || "";
+  const preferredDate = document.getElementById("cp-pref-date")?.value || "";
+  const preferredTime = document.getElementById("cp-pref-time")?.value || "09:00";
+  const note = document.getElementById("cp-note")?.value.trim() || "";
+
+  // Frontend Validation Check
+  if (!name || !phone || !plate || !serviceType) {
+    showToast("Vui lòng điền đầy đủ các thông tin bắt buộc (*)");
+    return;
+  }
+
+  // Section 16: Anti-Duplicate Submission - Disable button immediately
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
+  }
 
   try {
-    const cust = await apiFetch("/customers", {
+    const payload = {
+      fullName: name,
+      phone: phone,
+      email: email || null,
+      address: address || null,
+      licensePlate: plate,
+      vehicleBrand: brand,
+      vehicleModel: model,
+      manufactureYear: year,
+      currentMileage: mileage,
+      serviceType: serviceType,
+      description: description || null,
+      preferredDate: preferredDate || null,
+      preferredTime: preferredTime || null,
+      note: note || null
+    };
+
+    const res = await apiFetch("/customer-requests", {
       method: "POST",
-      body: JSON.stringify({ full_name: name, phone, address: "Đăng ký qua Customer Portal" })
+      body: JSON.stringify(payload)
     });
 
-    const veh = await apiFetch("/vehicles", {
-      method: "POST",
-      body: JSON.stringify({ customer_id: cust.id, license_plate: plate, brand: brandmodel.split(" ")[0] || "Toyota", model: brandmodel.split(" ").slice(1).join(" ") || "Camry", year: 2022 })
-    });
+    const reqCode = res.requestCode || res.code || "REQ-SUCCESS";
 
-    if (aptDate) {
-      await apiFetch("/appointments", {
-        method: "POST",
-        body: JSON.stringify({ vehicle_id: veh.id, appointment_date: new Date(aptDate).toISOString(), notes: symptoms })
-      });
-    }
+    // Section 17: UX Success Feedback
+    const modalContent = `
+      <div style="text-align: center; padding: 1rem 0;">
+        <div style="font-size: 3rem; color: #10b981; margin-bottom: 0.5rem;"><i class="fa-solid fa-circle-check"></i></div>
+        <h3 style="font-family: Arial; font-size: 1.35rem; color: var(--text-main); margin-bottom: 0.5rem;">Gửi Yêu Cầu Thành Công!</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Gara VTV sẽ liên hệ với quý khách theo SĐT <strong>${phone}</strong> trong thời gian sớm nhất.</p>
+        <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+          <div style="font-size: 0.8rem; color: #38bdf8; font-weight: 600; text-transform: uppercase;">Mã Yêu Cầu Của Bạn</div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: var(--accent-cyan); letter-spacing: 0.05em; font-family: monospace;">${reqCode}</div>
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+          <button class="btn btn-secondary" onclick="closeModal('modal-ai-dialog')">Đóng</button>
+          <button class="btn btn-primary" onclick="closeModal('modal-ai-dialog'); openTrackRequestModal('${reqCode}');">
+            <i class="fa-solid fa-magnifying-glass"></i> Xem Trạng Thái Yêu Cầu
+          </button>
+        </div>
+      </div>
+    `;
 
-    showToast(`Đã gửi đăng ký dịch vụ thành công cho xe ${plate}! Lễ tân Garage VTV sẽ liên hệ SĐT ${phone} trong vài phút.`);
+    openModal("modal-ai-dialog", "Thông Báo Tiếp Nhận Yêu Cầu", modalContent);
     
     const form = document.getElementById("form-customer-portal");
     if (form) form.reset();
+
   } catch (err) {
-    showToast(`Đã gửi yêu cầu đăng ký dịch vụ cho xe ${plate}! Hotline sẽ gọi xác nhận.`);
+    showToast(`❌ Không thể gửi yêu cầu: ${err.message || 'Vui lòng thử lại sau.'}`);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu';
+    }
   }
 }
 
@@ -2055,3 +2113,394 @@ window.lookupCustomerVehicleProgress = lookupCustomerVehicleProgress;
 window.initDatepickers = initDatepickers;
 window.logoutUser = logoutUser;
 window.checkAuthPermission = checkAuthPermission;
+
+// ----------------------------------------------------
+// CUSTOMER REQUESTS MANAGEMENT & REAL-TIME SSE LOGIC
+// ----------------------------------------------------
+
+let sseEventSource = null;
+
+function initSSERealtimeStream() {
+  if (sseEventSource) return;
+  const streamUrl = `${API_BASE}/customer-requests/stream`;
+  try {
+    sseEventSource = new EventSource(streamUrl);
+    sseEventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.event === "NEW_CUSTOMER_REQUEST") {
+          const req = payload.data;
+          showToast(`🔔 CÓ YÊU CẦU MỚI: ${req.fullName} - ${req.vehicleBrand} ${req.vehicleModel} (${req.licensePlate})!`);
+          
+          // Increment badge count
+          const badge = document.getElementById("nav-badge-requests");
+          if (badge) {
+            let count = parseInt(badge.textContent || "0") + 1;
+            badge.textContent = count;
+            badge.style.display = "inline-block";
+          }
+          
+          // Refresh table if active view is customer-requests
+          if (currentState.activeView === "customer-requests") {
+            loadCustomerRequestsFromBackend();
+          }
+        } else if (payload.event === "UPDATE_CUSTOMER_REQUEST") {
+          if (currentState.activeView === "customer-requests") {
+            loadCustomerRequestsFromBackend();
+          }
+        }
+      } catch (e) { console.error("SSE parse:", e); }
+    };
+  } catch (e) {
+    console.log("SSE stream notice:", e);
+  }
+}
+
+async function loadCustomerRequestsFromBackend() {
+  try {
+    const list = await apiFetch("/customer-requests");
+    currentState.customerRequests = Array.isArray(list) ? list : [];
+    
+    // Update KPI counters
+    let pending = 0, confirmed = 0, inprogress = 0, completed = 0;
+    currentState.customerRequests.forEach(r => {
+      if (r.status === "Pending") pending++;
+      else if (r.status === "Contacted" || r.status === "Confirmed") confirmed++;
+      else if (r.status === "InProgress") inprogress++;
+      else if (r.status === "Completed") completed++;
+    });
+
+    const pEl = document.getElementById("req-kpi-pending");
+    if (pEl) pEl.textContent = pending;
+    
+    const cEl = document.getElementById("req-kpi-confirmed");
+    if (cEl) cEl.textContent = confirmed;
+    
+    const iEl = document.getElementById("req-kpi-inprogress");
+    if (iEl) iEl.textContent = inprogress;
+    
+    const dEl = document.getElementById("req-kpi-completed");
+    if (dEl) dEl.textContent = completed;
+
+    // Update nav badge count for Pending requests
+    const badge = document.getElementById("nav-badge-requests");
+    if (badge) {
+      if (pending > 0) {
+        badge.textContent = pending;
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+
+    renderCustomerRequestsTable();
+  } catch (err) {
+    console.error("loadCustomerRequestsFromBackend:", err);
+  }
+}
+
+function filterCustomerRequestsTable() {
+  renderCustomerRequestsTable();
+}
+
+function renderCustomerRequestsTable() {
+  const tbody = document.getElementById("customer-requests-tbody");
+  if (!tbody) return;
+
+  const search = document.getElementById("req-search-input")?.value?.toLowerCase()?.trim() || "";
+  const statusFilter = document.getElementById("req-status-filter")?.value || "ALL";
+
+  let list = currentState.customerRequests || [];
+
+  if (statusFilter !== "ALL") {
+    list = list.filter(r => r.status === statusFilter);
+  }
+
+  if (search) {
+    list = list.filter(r => 
+      (r.requestCode && r.requestCode.toLowerCase().includes(search)) ||
+      (r.fullName && r.fullName.toLowerCase().includes(search)) ||
+      (r.phone && r.phone.toLowerCase().includes(search)) ||
+      (r.licensePlate && r.licensePlate.toLowerCase().includes(search)) ||
+      (r.serviceType && r.serviceType.toLowerCase().includes(search))
+    );
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+          Không tìm thấy yêu cầu dịch vụ nào phù hợp.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const statusMap = {
+    Pending: { label: "Mới (Pending)", color: "#fb7185", bg: "rgba(244, 63, 94, 0.15)" },
+    Contacted: { label: "Đã Liên Hệ", color: "#38bdf8", bg: "rgba(56, 189, 248, 0.15)" },
+    Confirmed: { label: "Đã Xác Nhận", color: "#2563eb", bg: "rgba(37, 99, 235, 0.15)" },
+    InProgress: { label: "Đang Xử Lý", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)" },
+    Completed: { label: "Hoàn Thành", color: "#10b981", bg: "rgba(16, 185, 129, 0.15)" },
+    Cancelled: { label: "Đã Hủy", color: "#94a3b8", bg: "rgba(148, 163, 184, 0.15)" }
+  };
+
+  tbody.innerHTML = list.map(r => {
+    const st = statusMap[r.status] || { label: r.status, color: "#cbd5e1", bg: "rgba(255,255,255,0.1)" };
+    const dateStr = formatVietnameseDate(r.createdAt || Date.now());
+
+    return `
+      <tr>
+        <td><strong style="color: var(--accent-cyan); font-family: monospace;">${r.requestCode || ('REQ-' + r.id)}</strong></td>
+        <td><strong>${r.fullName}</strong></td>
+        <td><a href="tel:${r.phone}" style="color: var(--accent-primary); text-decoration: none;">${r.phone}</a></td>
+        <td><span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-weight: 700;">${r.licensePlate}</span></td>
+        <td>${r.vehicleBrand} ${r.vehicleModel}</td>
+        <td>${r.serviceType}</td>
+        <td style="font-size: 0.8rem; color: var(--text-muted);">${dateStr}</td>
+        <td>
+          <span style="background: ${st.bg}; color: ${st.color}; font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 12px; display: inline-block;">
+            ${st.label}
+          </span>
+        </td>
+        <td>
+          <div style="display: flex; gap: 0.35rem;">
+            <button class="btn btn-secondary btn-sm" onclick="openCustomerRequestDetailModal(${r.id})" title="Xem chi tiết & Xử lý">
+              <i class="fa-solid fa-eye"></i> Xem & Xử Lý
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+async function openCustomerRequestDetailModal(reqId) {
+  try {
+    const req = await apiFetch(`/customer-requests/${reqId}`);
+    if (!req) return;
+
+    const modalContent = `
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <!-- Header Info -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; padding: 0.85rem 1.1rem;">
+          <div>
+            <div style="font-size: 0.75rem; color: #38bdf8; font-weight: 700; text-transform: uppercase;">MÃ YÊU CẦU DỊCH VỤ</div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); font-family: monospace;">${req.requestCode}</div>
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Cập Nhật Trạng Thái:</label>
+            <select id="req-modal-status" class="form-control" style="font-weight: 700; background: var(--bg-card); color: var(--text-main);" onchange="submitUpdateCustomerRequestStatus(${req.id}, this.value)">
+              <option value="Pending" ${req.status === 'Pending' ? 'selected' : ''}>Mới (Pending)</option>
+              <option value="Contacted" ${req.status === 'Contacted' ? 'selected' : ''}>Đã Liên Hệ (Contacted)</option>
+              <option value="Confirmed" ${req.status === 'Confirmed' ? 'selected' : ''}>Đã Xác Nhận Hẹn (Confirmed)</option>
+              <option value="InProgress" ${req.status === 'InProgress' ? 'selected' : ''}>Đang Xử Lý tại Xưởng (InProgress)</option>
+              <option value="Completed" ${req.status === 'Completed' ? 'selected' : ''}>Hoàn Thành Bàn Giao (Completed)</option>
+              <option value="Cancelled" ${req.status === 'Cancelled' ? 'selected' : ''}>Đã Hủy (Cancelled)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <!-- Customer Info -->
+          <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem;">
+            <h4 style="font-family: Arial; font-size: 0.92rem; color: var(--accent-primary); margin-bottom: 0.75rem;"><i class="fa-solid fa-user"></i> THÔNG TIN KHÁCH HÀNG</h4>
+            <div style="font-size: 0.85rem; line-height: 1.7; color: var(--text-main);">
+              <div><strong>Họ và tên:</strong> ${req.fullName}</div>
+              <div><strong>Số điện thoại:</strong> <a href="tel:${req.phone}" style="color: var(--accent-cyan);">${req.phone}</a></div>
+              <div><strong>Email:</strong> ${req.email || 'Chưa cung cấp'}</div>
+              <div><strong>Địa chỉ:</strong> ${req.address || 'Chưa cung cấp'}</div>
+            </div>
+          </div>
+
+          <!-- Vehicle Info -->
+          <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem;">
+            <h4 style="font-family: Arial; font-size: 0.92rem; color: var(--accent-cyan); margin-bottom: 0.75rem;"><i class="fa-solid fa-car"></i> THÔNG TIN XE</h4>
+            <div style="font-size: 0.85rem; line-height: 1.7; color: var(--text-main);">
+              <div><strong>Biển số xe:</strong> <span style="color: var(--accent-cyan); font-weight: 700;">${req.licensePlate}</span></div>
+              <div><strong>Hãng & Dòng xe:</strong> ${req.vehicleBrand} ${req.vehicleModel}</div>
+              <div><strong>Năm sản xuất:</strong> ${req.manufactureYear || '2020'}</div>
+              <div><strong>Số km Odometer:</strong> ${req.currentMileage ? req.currentMileage.toLocaleString() + ' km' : 'Chưa nhập'}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Service Request Info -->
+        <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem;">
+          <h4 style="font-family: Arial; font-size: 0.92rem; color: var(--accent-purple); margin-bottom: 0.75rem;"><i class="fa-solid fa-wrench"></i> NỘI DUNG YÊU CẦU DỊCH VỤ</h4>
+          <div style="font-size: 0.85rem; line-height: 1.7; color: var(--text-main);">
+            <div><strong>Loại dịch vụ:</strong> <span style="color: #fb7185; font-weight: 700;">${req.serviceType}</span></div>
+            <div><strong>Mô tả chi tiết:</strong> ${req.description || 'Không có mô tả chi tiết'}</div>
+            <div><strong>Thời gian mong muốn mang xe đến:</strong> ${req.preferredDate ? (req.preferredDate + ' lúc ' + (req.preferredTime || '09:00')) : 'Lễ tân xếp lịch'}</div>
+            <div><strong>Ghi chú từ khách:</strong> ${req.note || 'Không có ghi chú'}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.5rem;">Thời gian gửi: ${formatVietnameseDate(req.createdAt)}</div>
+          </div>
+        </div>
+
+        <!-- Admin Processing Notes & Staff Assignment -->
+        <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem;">
+          <h4 style="font-family: Arial; font-size: 0.92rem; color: var(--accent-amber); margin-bottom: 0.75rem;"><i class="fa-solid fa-user-gear"></i> XỬ LÝ & GHI CHÚ QUẢN TRỊ</h4>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div>
+              <label style="font-size: 0.8rem; color: var(--text-muted);">Ghi Chú Admin (Ví dụ: Đã gọi khách, xác nhận đến lúc 9:00):</label>
+              <div style="display: flex; gap: 0.5rem; margin-top: 4px;">
+                <input type="text" id="req-modal-admin-note" class="form-control" value="${req.adminNote || ''}" placeholder="Nhập ghi chú xử lý...">
+                <button class="btn btn-secondary btn-sm" onclick="submitSaveCustomerRequestNote(${req.id})">Lưu Ghi Chú</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem;">
+          <button class="btn btn-secondary" onclick="closeModal('modal-ai-dialog')">Đóng</button>
+          <button class="btn btn-primary" onclick="convertRequestToRepairOrder(${req.id})">
+            <i class="fa-solid fa-file-circle-plus"></i> Tạo Phiếu Sửa Chữa (RO)
+          </button>
+        </div>
+      </div>
+    `;
+
+    openModal("modal-ai-dialog", `Chi Tiết Yêu Cầu ${req.requestCode}`, modalContent);
+  } catch (err) {
+    showToast("Không thể tải chi tiết yêu cầu!");
+  }
+}
+
+async function submitUpdateCustomerRequestStatus(reqId, newStatus) {
+  try {
+    await apiFetch(`/customer-requests/${reqId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: newStatus })
+    });
+    showToast(`Đã cập nhật trạng thái yêu cầu sang: ${newStatus}`);
+    await loadCustomerRequestsFromBackend();
+  } catch (err) {
+    showToast("❌ Không thể cập nhật trạng thái!");
+  }
+}
+
+async function submitSaveCustomerRequestNote(reqId) {
+  const note = document.getElementById("req-modal-admin-note")?.value?.trim();
+  if (!note) {
+    showToast("Vui lòng nhập ghi chú!");
+    return;
+  }
+  try {
+    await apiFetch(`/customer-requests/${reqId}/note`, {
+      method: "POST",
+      body: JSON.stringify({ admin_note: note })
+    });
+    showToast("Đã lưu ghi chú Admin thành công!");
+    await loadCustomerRequestsFromBackend();
+  } catch (err) {
+    showToast("❌ Không thể lưu ghi chú!");
+  }
+}
+
+async function convertRequestToRepairOrder(reqId) {
+  try {
+    const req = await apiFetch(`/customer-requests/${reqId}`);
+    if (!req) return;
+
+    // Auto-update status to InProgress
+    await apiFetch(`/customer-requests/${reqId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "InProgress" })
+    });
+
+    closeModal('modal-ai-dialog');
+    switchView('repair-orders');
+    openModal('modal-new-ro');
+    
+    // Auto-fill new RO modal fields
+    setTimeout(() => {
+      const plateEl = document.getElementById('ro-plate-input');
+      if (plateEl) plateEl.value = req.licensePlate;
+      
+      const symEl = document.getElementById('ro-symptoms-input');
+      if (symEl) symEl.value = `[Từ Yêu Cầu ${req.requestCode}] ${req.serviceType}: ${req.description || ''}`;
+    }, 300);
+
+    showToast(`Đã chuyển yêu cầu ${req.requestCode} sang tạo Phiếu Sửa Chữa (RO)!`);
+  } catch (err) {
+    showToast("❌ Không thể tạo phiếu sửa chữa từ yêu cầu này!");
+  }
+}
+
+// PUBLIC CUSTOMER REQUEST STATUS TRACKING (SECTION 12)
+async function openTrackRequestModal(requestCode = "") {
+  const codePrompt = requestCode || prompt("Nhập Mã Yêu Cầu của bạn (Ví dụ: REQ-20260829-0001):");
+  if (!codePrompt) return;
+
+  try {
+    const req = await apiFetch(`/customer-requests/code/${codePrompt.trim().toUpperCase()}`);
+    
+    const steps = [
+      { key: "Pending", title: "1. Đã Gửi Yêu Cầu", desc: "Hệ thống đã tiếp nhận form đăng ký" },
+      { key: "Contacted", title: "2. Admin Đã Liên Hệ", desc: "Lễ tân đã gọi điện thoại xác nhận" },
+      { key: "Confirmed", title: "3. Đã Xác Nhận Hẹn", desc: "Đã chốt lịch hẹn mang xe đến xưởng" },
+      { key: "InProgress", title: "4. Đang Sửa Chữa", desc: "KTV đang bảo dưỡng / sửa chữa tại xưởng" },
+      { key: "Completed", title: "5. Hoàn Thành", desc: "Đã bàn giao xe cho khách hàng" }
+    ];
+
+    const statusOrder = ["Pending", "Contacted", "Confirmed", "InProgress", "Completed"];
+    const currentIdx = statusOrder.indexOf(req.status);
+
+    const stepsHtml = steps.map((s, idx) => {
+      const isDone = currentIdx >= idx && req.status !== 'Cancelled';
+      const isCurrent = currentIdx === idx && req.status !== 'Cancelled';
+      const icon = isDone ? "fa-circle-check" : "fa-circle";
+      const color = isDone ? "#10b981" : "var(--text-muted)";
+      const bg = isCurrent ? "rgba(16, 185, 129, 0.15)" : "transparent";
+
+      return `
+        <div style="display: flex; align-items: center; gap: 0.85rem; padding: 0.75rem; border-radius: 10px; background: ${bg}; margin-bottom: 0.5rem; border: 1px solid ${isCurrent ? '#10b98150' : 'transparent'};">
+          <i class="fa-solid ${icon}" style="color: ${color}; font-size: 1.25rem;"></i>
+          <div>
+            <div style="font-weight: 700; color: ${isDone ? 'var(--text-main)' : 'var(--text-muted)'}; font-size: 0.9rem;">${s.title}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">${s.desc}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    const isCancelled = req.status === "Cancelled";
+
+    const modalContent = `
+      <div style="padding: 0.5rem 0;">
+        <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.78rem; color: #38bdf8; font-weight: 700;">TRA CỨU TRẠNG THÁI YÊU CẦU</div>
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan); font-family: monospace;">${req.requestCode}</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Khách hàng: <strong>${req.fullName}</strong> (${req.phone}) | Xe: <strong>${req.licensePlate}</strong></div>
+        </div>
+
+        ${isCancelled ? `
+          <div style="background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 12px; padding: 1rem; color: #fb7185; margin-bottom: 1rem; text-align: center;">
+            <i class="fa-solid fa-circle-xmark" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+            <div style="font-weight: 700; font-size: 1.05rem;">Yêu cầu dịch vụ này đã bị hủy.</div>
+            <div style="font-size: 0.82rem; margin-top: 4px;">Ghi chú: ${req.adminNote || 'Quý khách vui lòng liên hệ Hotline 033.344.2358 để biết chi tiết.'}</div>
+          </div>
+        ` : stepsHtml}
+
+        <div style="text-align: right; margin-top: 1.25rem;">
+          <button class="btn btn-secondary" onclick="closeModal('modal-ai-dialog')">Đóng</button>
+        </div>
+      </div>
+    `;
+
+    openModal("modal-ai-dialog", `Trạng Thái Yêu Cầu ${req.requestCode}`, modalContent);
+  } catch (err) {
+    showToast(`❌ ${err.message || 'Không thể tra cứu mã yêu cầu này!'}`);
+  }
+}
+
+window.loadCustomerRequestsFromBackend = loadCustomerRequestsFromBackend;
+window.filterCustomerRequestsTable = filterCustomerRequestsTable;
+window.renderCustomerRequestsTable = renderCustomerRequestsTable;
+window.openCustomerRequestDetailModal = openCustomerRequestDetailModal;
+window.submitUpdateCustomerRequestStatus = submitUpdateCustomerRequestStatus;
+window.submitSaveCustomerRequestNote = submitSaveCustomerRequestNote;
+window.convertRequestToRepairOrder = convertRequestToRepairOrder;
+window.openTrackRequestModal = openTrackRequestModal;
+
