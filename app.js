@@ -1,4 +1,4 @@
-﻿// Garage AI Management System - Frontend App Engine
+// Garage AI Management System - Frontend App Engine
 
 const API_BASE = "http://127.0.0.1:8000/api/v1";
 
@@ -34,9 +34,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   try { setupRoleSwitcher(); } catch (e) { console.error("setupRoleSwitcher:", e); }
   try { setupFilterListeners(); } catch (e) { console.error("setupFilterListeners:", e); }
   try { initDatepickers(); } catch (e) { console.error("initDatepickers:", e); }
-  try { await loginAsCurrentRole(); } catch (e) { console.error("loginAsCurrentRole:", e); }
-  try { await populateVehicleDropdowns(); } catch (e) { console.error("populateVehicleDropdowns:", e); }
-  try { await loadAllData(); } catch (e) { console.error("loadAllData:", e); }
+
+  const path = window.location.pathname.toLowerCase();
+  const isCustomerPage = path.endsWith("index.html") || path.endsWith("customer.html") || path.endsWith("/");
+  
+  if (!isCustomerPage) {
+    try { await loginAsCurrentRole(); } catch (e) { console.error("loginAsCurrentRole:", e); }
+    try { await populateVehicleDropdowns(); } catch (e) { console.error("populateVehicleDropdowns:", e); }
+  }
+
   try { setupGlobalEventDelegation(); } catch (e) { console.error("setupGlobalEventDelegation:", e); }
 });
 
@@ -159,6 +165,10 @@ function closeModal(modalId) {
 
 // Auth & Role Handler
 async function loginAsCurrentRole() {
+  if (isBackendAvailable === false) {
+    currentState.token = "demo-offline-jwt-token";
+    return;
+  }
   const creds = ROLE_CREDENTIALS[currentState.currentRole];
   try {
     const formData = new URLSearchParams();
@@ -166,7 +176,7 @@ async function loginAsCurrentRole() {
     formData.append("password", creds.password);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1000);
+    const timeoutId = setTimeout(() => controller.abort(), 200);
 
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
@@ -179,17 +189,26 @@ async function loginAsCurrentRole() {
     if (res.ok) {
       const data = await res.json();
       currentState.token = data.access_token;
+      isBackendAvailable = true;
     } else {
       currentState.token = "demo-offline-jwt-token";
     }
   } catch (err) {
+    isBackendAvailable = false;
     console.warn("Chế độ Demo Web Offline: Tự động kích hoạt JWT token mô phỏng.");
     currentState.token = "demo-offline-jwt-token";
   }
 }
 
+let isBackendAvailable = null;
+
 // Helper fetch wrapper with Offline Mock Engine & Instant Abort Controller
 async function apiFetch(endpoint, options = {}) {
+  // Fast Path: If backend server is known to be offline or unreachable, return mock data instantly (0ms delay)
+  if (isBackendAvailable === false) {
+    return getOfflineMockResponse(endpoint, options);
+  }
+
   const headers = options.headers || {};
   if (currentState.token) {
     headers["Authorization"] = `Bearer ${currentState.token}`;
@@ -198,7 +217,7 @@ async function apiFetch(endpoint, options = {}) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1000); // 1.0s instant offline fallback
+    const timeoutId = setTimeout(() => controller.abort(), 200); // 200ms ultra-fast connection check
 
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
@@ -211,9 +230,11 @@ async function apiFetch(endpoint, options = {}) {
       const errData = await res.json().catch(() => ({ detail: "Lỗi kết nối máy chủ" }));
       throw new Error(errData.detail || "Thao tác thất bại");
     }
+    isBackendAvailable = true;
     return await res.json();
   } catch (err) {
-    console.warn(`[Offline Demo Mode] Executing offline mock response for: ${endpoint}`);
+    isBackendAvailable = false;
+    console.warn(`[Offline Demo Engine] Ultra-fast fallback activated for: ${endpoint}`);
     return getOfflineMockResponse(endpoint, options);
   }
 }
