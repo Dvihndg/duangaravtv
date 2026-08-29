@@ -103,18 +103,22 @@ def read_app_js():
     return {"detail": "App JS not found"}
 
 @app.get("/health")
-def health_check(db: Session = Depends(get_db)):
+def health_check():
     db_status = "connected"
     db_type = "unknown"
     table_count = 0
     error_msg = None
     try:
-        db.execute(text("SELECT 1"))
-        db_type = engine.name
-        inspector = inspect(engine)
-        table_count = len(inspector.get_table_names())
+        db = SessionLocal()
+        try:
+            db.execute(text("SELECT 1"))
+            db_type = engine.name
+            inspector = inspect(engine)
+            table_count = len(inspector.get_table_names())
+        finally:
+            db.close()
     except Exception as e:
-        db_status = "error"
+        db_status = "degraded"
         error_msg = str(e)
 
     return {
