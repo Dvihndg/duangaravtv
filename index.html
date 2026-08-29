@@ -547,376 +547,75 @@
 
       <!-- VIEW 7: Trợ Lý AI Garage VTV -->
       <section id="view-ai-studio" class="view-section">
-
-        <!-- INTERACTIVE CHATBOT MODULE: AI GARAGE ASSISTANT -->
-        <div class="table-card"
-          style="padding: 1.5rem; margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%); border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: var(--shadow-lg);">
-          <div
-            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem; margin-bottom: 1rem;">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <div
-                style="width: 42px; height: 42px; border-radius: 50%; background: var(--gradient-ai); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);">
-                <i class="fa-solid fa-robot"></i>
-              </div>
-              <div>
-                <h4
-                  style="font-family: 'Outfit'; margin: 0; color: var(--text-main); font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
-                  AI GARAGE ASSISTANT <span
-                    style="font-size: 0.75rem; background: rgba(139, 92, 246, 0.2); color: #a78bfa; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.4);">Pro
-                    Active Engine</span>
-                </h4>
-                <div style="font-size: 0.8rem; color: var(--text-muted);">Trợ lý AI chuyên sâu chẩn đoán kỹ thuật, báo
-                  giá nháp, phân tích kinh doanh & tra cứu tiến độ</div>
-              </div>
-            </div>
-            <button class="btn btn-secondary btn-sm" onclick="clearAIChatHistory()"><i
-                class="fa-solid fa-rotate-left"></i> Xóa Chat</button>
-          </div>
-
-          <!-- Quick Action Prompt Chips -->
-          <div style="margin-bottom: 1rem;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;">⚡ CHỌN
-              NHANH CÂU HỎI MẪU CHO AI ASSISTANT:</div>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('vios_vibration')"
-                style="font-size: 0.78rem; border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;">
-                🛠️ Toyota Vios 2018 bị rung không tải
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('history_analysis')"
-                style="font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
-                📜 Phân tích lịch sử xe 51H-888.88
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('draft_mazda')"
-                style="font-size: 0.78rem; border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
-                📝 Báo giá nháp Mazda 3 thay dầu & phanh
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('business_analysis')"
-                style="font-size: 0.78rem; border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">
-                📊 Phân tích kinh doanh tháng này (Manager)
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('predict_maintenance')"
-                style="font-size: 0.78rem; border-color: rgba(6, 182, 212, 0.4); color: #22d3ee;">
-                🔮 Dự đoán bảo dưỡng đợt tiếp theo
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('customer_progress')"
-                style="font-size: 0.78rem; border-color: rgba(244, 63, 94, 0.4); color: #fb7185;">
-                🔍 Xe của tôi đang sửa đến đâu rồi? (Khách)
-              </button>
-            </div>
-          </div>
-
-          <!-- Chat Window Message Stream -->
-          <div id="ai-chat-stream"
-            style="min-height: 220px; max-height: 380px; overflow-y: auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
-            <!-- Initial AI Welcome Message -->
-            <div class="chat-msg ai-msg" style="display: flex; gap: 0.75rem; align-items: flex-start;">
-              <div
-                style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-purple); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; flex-shrink: 0;">
-                <i class="fa-solid fa-robot"></i>
-              </div>
-              <div
-                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.85rem 1.1rem; border-radius: 14px; border-top-left-radius: 2px; max-width: 85%; font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
-                Xin chào! Tôi là <strong>AI GARAGE ASSISTANT</strong>. Tôi có thể giúp bạn:
-                <ul style="margin-left: 1.25rem; margin-top: 0.4rem;">
-                  <li>Chẩn đoán sự cố kỹ thuật ô tô & gợi ý linh kiện</li>
-                  <li>Phân tích lịch sử sửa chữa & lỗi lặp lại</li>
-                  <li>Tạo dự thảo báo giá linh kiện & tiền công</li>
-                  <li>Báo cáo doanh thu & chỉ số kinh doanh cho Quản lý</li>
-                  <li>Dự đoán bảo dưỡng định kỳ & tra cứu tiến độ xe</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- Chat Input Bar -->
-          <div style="display: flex; gap: 0.75rem;">
-            <input type="text" id="ai-chat-input" class="form-control"
-              placeholder="Nhập câu hỏi kỹ thuật, yêu cầu báo giá hoặc tra cứu tiến độ..."
-              onkeypress="if(event.key==='Enter') sendAIChatMessage()">
-            <button class="btn btn-ai" onclick="sendAIChatMessage()" style="padding: 0 1.25rem; flex-shrink: 0;">
-              <i class="fa-solid fa-paper-plane"></i> Gửi AI
-            </button>
-          </div>
-        </div>
-
-        <!-- SPECIALIZED FORM: OBD DIAGNOSTIC ANALYSIS (Mục 10) -->
-        <div class="table-card"
-          style="padding: 1.5rem; margin-bottom: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color);">
-          <h4
-            style="font-family: 'Outfit'; color: var(--accent-cyan); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i class="fa-solid fa-microchip"></i> 10. AI PHÂN TÍCH LỖI KỸ THUẬT & MÃ LỖI OBD-II
-          </h4>
-          <form onsubmit="submitOBDDiagnosticForm(event)">
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; margin-bottom: 1rem;">
-              <div>
-                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Hãng Xe:</label>
-                <input type="text" id="obd-brand" class="form-control" value="Toyota" required>
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Model Xe:</label>
-                <input type="text" id="obd-model" class="form-control" value="Camry 2.5Q" required>
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Năm Sản Xuất:</label>
-                <input type="number" id="obd-year" class="form-control" value="2022" required>
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Số Km Odometer:</label>
-                <input type="number" id="obd-mileage" class="form-control" value="40000" required>
-              </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1rem;">
-              <div>
-                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Mã Lỗi OBD-II (VD: P0300,
-                  P0171...):</label>
-                <input type="text" id="obd-code" class="form-control" value="P0300" placeholder="Nhập mã lỗi OBD..."
-                  required>
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Mô Tả Triệu Chứng Thực
-                  Tế:</label>
-                <input type="text" id="obd-symptoms" class="form-control"
-                  value="Báo đèn Check Engine, xe giật cục khi tăng tốc" required>
-              </div>
-            </div>
-            <div style="text-align: right;">
-              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-wand-magic-sparkles"></i> Phân Tích
-                Lỗi OBD Bằng AI</button>
-            </div>
-          </form>
-
-          <!-- OBD Analysis Output Box -->
-          <div id="obd-output-card"
-            style="display: none; margin-top: 1.25rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
-            <div id="obd-output-content"></div>
-            <!-- Mandatory Warning Box -->
-            <div
-              style="margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: var(--radius-sm); color: #f59e0b; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
-              <i class="fa-solid fa-triangle-exclamation"></i>
-              <span>CẢNH BÁO BẮT BỘC: AI chỉ hỗ trợ kỹ thuật viên, không thay thế quy trình chẩn đoán và kiểm tra thực
-                tế.</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 5 Demo Scenario Quick Launchers (Step 13) -->
-        <div
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-            <span
-              style="font-weight: 800; font-size: 0.9rem; color: var(--accent-rose); font-family: 'Outfit'; display: flex; align-items: center; gap: 0.5rem;">
-              <i class="fa-solid fa-flask"></i> 5 KỊCH BẢN DEMO BÁO CÁO BẢO VỆ (NHÓM VTV):
-            </span>
-            <button class="btn btn-secondary btn-sm" onclick="loadAIBenchmarkReport()"><i
-                class="fa-solid fa-chart-line"></i> Xem Báo Cáo Đo Lường</button>
-          </div>
-          <div class="prompt-pill-container" style="gap: 0.6rem;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(1)"
-              style="border-color: #10b981; color: #10b981;">
-              <i class="fa-solid fa-circle-check"></i> Ca 1: Đúng chuẩn (Kho đủ)
-            </button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(2)"
-              style="border-color: #f43f5e; color: #f43f5e;">
-              <i class="fa-solid fa-triangle-exclamation"></i> Ca 2: Phụ tùng hết hàng
-            </button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(3)"
-              style="border-color: #f59e0b; color: #f59e0b;">
-              <i class="fa-solid fa-circle-question"></i> Ca 3: Triệu chứng mơ hồ
-            </button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(4)"
-              style="border-color: #3b82f6; color: #3b82f6;">
-              <i class="fa-solid fa-diagram-project"></i> Ca 4: Đa hỏng hóc
-            </button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerDemoScenarioUI(5)"
-              style="border-color: #ec4899; color: #ec4899;">
-              <i class="fa-solid fa-shield-halved"></i> Ca 5: Phá quy tắc (Jailbreak)
-            </button>
-          </div>
-        </div>
-
-        <!-- 4-Screen Workflow Wizard Stepper (Step 12) -->
-        <div class="wizard-stepper"
-          style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-          <div id="step-btn-1" class="wizard-step active" onclick="switchWizardStep(1)">
-            <span class="step-num">1</span>
-            <span class="step-title">Tiếp Nhận Xe</span>
-          </div>
-          <div id="step-btn-2" class="wizard-step" onclick="switchWizardStep(2)">
-            <span class="step-num">2</span>
-            <span class="step-title">Dự Thảo AI (<code style="color:#38bdf8;">AI_DRAFT</code>)</span>
-          </div>
-          <div id="step-btn-3" class="wizard-step" onclick="switchWizardStep(3)">
-            <span class="step-num">3</span>
-            <span class="step-title">Thợ Duyệt (<code style="color:#f59e0b;">UNDER_REVIEW</code>)</span>
-          </div>
-          <div id="step-btn-4" class="wizard-step" onclick="switchWizardStep(4)">
-            <span class="step-num">4</span>
-            <span class="step-title">Xuất Báo Giá (<code style="color:#10b981;">APPROVED</code>)</span>
-          </div>
-        </div>
-
-        <!-- STEP 1: Reception & Symptoms Input -->
-        <div id="wizard-screen-1" class="wizard-screen table-card" style="padding: 1.75rem;">
-          <h4 style="font-family: 'Outfit'; color: var(--accent-primary); margin-bottom: 1rem;">
-            <i class="fa-solid fa-car-tunnel"></i> Màn Hình 1: Tiếp Nhận Thông Tin Xe & Triệu Chứng Ban Đầu
-          </h4>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
-            <div class="form-group">
-              <label>Chọn Xe Tiếp Nhận:</label>
-              <select id="wz-vehicle-select" class="form-control"></select>
-            </div>
-            <div class="form-group">
-              <label>Số Km Nhận Xe:</label>
-              <input type="number" id="wz-mileage" class="form-control" value="40000">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Triệu Chứng / Yêu Cầu Của Khách (Ngôn ngữ tự nhiên):</label>
-            <textarea id="wz-symptoms-input" class="form-control" rows="3"
-              placeholder="Nhập mô tả triệu chứng (Ví dụ: Xe kêu rít khi phanh trước, muốn bảo dưỡng mốc 40,000 km...)"></textarea>
-          </div>
-          <div style="text-align: right;">
-            <button class="btn btn-ai" onclick="submitWizardScreen1()"><i class="fa-solid fa-sparkles"></i> Phân Tích &
-              Tạo Dự Thảo AI (Screen 2)</button>
-          </div>
-        </div>
-
-        <!-- STEP 2: AI Analysis & Draft Quotation -->
-        <div id="wizard-screen-2" class="wizard-screen table-card" style="padding: 1.75rem; display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h4 style="font-family: 'Outfit'; color: var(--accent-purple); margin: 0;">
-              <i class="fa-solid fa-microchip"></i> Màn Hình 2: Kết Quả AI Phân Tích & Dự Thảo Báo Giá
-            </h4>
-            <span class="status-pill ai_draft" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;"><i
-                class="fa-solid fa-robot"></i> TRẠNG THÁI: AI_DRAFT</span>
-          </div>
-          <div id="wz-ai-diag-output" class="ai-output-box" style="margin-bottom: 1.25rem;">Chưa có dữ liệu chẩn đoán từ
-            AI.</div>
-          <div id="wz-ai-warnings-box"></div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
-            <button class="btn btn-secondary" onclick="switchWizardStep(1)"><i class="fa-solid fa-arrow-left"></i> Quả
-              Lại Màn 1</button>
-            <button class="btn btn-primary" onclick="proceedToScreen3()"><i class="fa-solid fa-wrench"></i> Chuyển Cho
-              Thợ Kiểm Tra & Duyệt (Screen 3)</button>
-          </div>
-        </div>
-
-        <!-- STEP 3: Technician Review Workspace -->
-        <div id="wizard-screen-3" class="wizard-screen table-card" style="padding: 1.75rem; display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h4 style="font-family: 'Outfit'; color: var(--accent-amber); margin: 0;">
-              <i class="fa-solid fa-user-gear"></i> Màn Hình 3: Workspace Thợ Kiểm Tra & Điều Chỉnh
-            </h4>
-            <span class="status-pill under_review" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;"><i
-                class="fa-solid fa-user-check"></i> TRẠNG THÁI: UNDER_REVIEW</span>
-          </div>
-          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
-            Kỹ thuật viên kiểm tra thực tế xe, chỉnh sửa phụ tùng/tiền công, kiểm tra tồn kho trước khi chốt giá.
-          </p>
-          <div class="table-card" style="margin-bottom: 1.25rem;">
-            <div class="table-responsive">
-              <table class="custom-table">
-                <thead>
-                  <tr>
-                    <th>Mã</th>
-                    <th>Hạng Mục</th>
-                    <th>Số Lượng</th>
-                    <th>Đơn Giá / Công</th>
-                    <th>Tồn Kho</th>
-                    <th>Thành Tiền</th>
-                  </tr>
-                </thead>
-                <tbody id="wz-review-items-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <button class="btn btn-secondary" onclick="switchWizardStep(2)"><i class="fa-solid fa-arrow-left"></i> Quay
-              Lại AI Draft</button>
-            <div>
-              <span
-                style="font-weight: 700; font-family: 'Outfit'; font-size: 1.1rem; color: var(--accent-emerald); margin-right: 1rem;">
-                Tổng Tiền: <span id="wz-review-total">0 VNĐ</span>
-              </span>
-              <button class="btn btn-primary" onclick="proceedToScreen4()"><i class="fa-solid fa-circle-check"></i> Phê
-                Duyệt Báo Giá (Screen 4)</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 4: Official Quotation & Approval Export -->
-        <div id="wizard-screen-4" class="wizard-screen table-card" style="padding: 1.75rem; display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h4 style="font-family: 'Outfit'; color: var(--accent-emerald); margin: 0;">
-              <i class="fa-solid fa-file-signature"></i> Màn Hình 4: Báo Giá Chính Thức & Phê Duyệt
-            </h4>
-            <span class="status-pill approved" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;"><i
-                class="fa-solid fa-check-double"></i> TRẠNG THÁI: APPROVED</span>
-          </div>
-
-          <div
-            style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
-            <div
-              style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
-              <strong style="color: var(--accent-primary); font-size: 1.1rem;">GARAGE VTV AUTOMOTIVE OS</strong>
-              <span style="color: var(--text-muted); font-size: 0.85rem;">Báo Giá #EST-2026-FINAL</span>
-            </div>
-            <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
-              <div>• <strong>Quy trình:</strong> Deterministic Pricing Engine (Backend Python recalculates 100%).</div>
-              <div>• <strong>Sai lệch giá:</strong> <span style="color: var(--accent-emerald); font-weight: 800;">0.0%
-                  (Zero Price Variance Guaranteed)</span>.</div>
-              <div>• <strong>Tổng thanh toán phê duyệt:</strong> <span id="wz-final-total-display"
-                  style="font-size: 1.3rem; color: var(--accent-emerald); font-weight: 800;">0 VNĐ</span></div>
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-            <button class="btn btn-secondary" onclick="switchWizardStep(3)"><i class="fa-solid fa-arrow-left"></i> Chỉnh
-              Sửa Lại</button>
-            <button class="btn btn-primary" onclick="triggerApprovedPayment()"><i class="fa-solid fa-qrcode"></i> Thanh
-              Toán VietQR Techcombank</button>
-          </div>
-        </div>
-
-        <!-- BENCHMARK EVALUATION METRICS CARD (Step 11) -->
-        <div id="ai-benchmark-container" style="margin-top: 1.5rem; display: none;">
+        <div id="ai-tab-content-chat" class="ai-tab-content">
           <div class="table-card"
-            style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border-color: rgba(99, 102, 241, 0.4);">
-            <h4
-              style="font-family: 'Outfit'; color: var(--accent-purple); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-              <i class="fa-solid fa-chart-pie"></i> BÁO CÁO ĐÁNH GIÁ & ĐO LƯỜNG HỆ THỐNG (STEP 11):
-            </h4>
-            <div class="grid-5col-benchmark">
-              <div
-                style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                <div style="font-size: 0.75rem; color: var(--text-muted);">Top-1 Accuracy</div>
-                <div id="bm-top1" style="font-size: 1.3rem; font-weight: 800; color: #10b981; margin-top: 0.2rem;">95.5%
+            style="padding: 1.5rem; margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%); border: 1px solid rgba(8, 145, 178, 0.3); box-shadow: var(--shadow-lg);">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem; margin-bottom: 1rem;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div
+                  style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #164e63 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 0 15px rgba(8, 145, 178, 0.4);">
+                  <i class="fa-solid fa-sparkles"></i>
+                </div>
+                <div>
+                  <h4
+                    style="font-family: 'Outfit'; margin: 0; color: var(--text-main); font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                    Trợ lý GarageAI <span
+                      style="font-size: 0.75rem; background: rgba(8, 145, 178, 0.2); color: #38bdf8; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(8, 145, 178, 0.4);">Pro Active Engine</span>
+                  </h4>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Tư vấn dịch vụ, combo bảo dưỡng, báo giá nháp & tra cứu tiến độ xe</div>
                 </div>
               </div>
-              <div
-                style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                <div style="font-size: 0.75rem; color: var(--text-muted);">Parts Precision</div>
-                <div id="bm-parts" style="font-size: 1.3rem; font-weight: 800; color: #38bdf8; margin-top: 0.2rem;">
-                  98.2%</div>
+              <button class="btn btn-secondary btn-sm" onclick="clearAIChatHistory()"><i
+                  class="fa-solid fa-rotate-left"></i> Xóa Chat</button>
+            </div>
+
+            <!-- Quick Action Prompt Chips -->
+            <div style="margin-bottom: 1rem;">
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;">⚡ CÂU HỎI MẪU GỢI Ý:</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('vios_vibration')"
+                  style="font-size: 0.78rem; border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;">
+                  🛠️ Toyota Vios 2018 bị rung không tải
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('history_analysis')"
+                  style="font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                  📜 Phân tích lịch sử xe 51H-888.88
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('draft_mazda')"
+                  style="font-size: 0.78rem; border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+                  📝 Báo giá nháp Mazda 3 thay dầu & phanh
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="triggerQuickPrompt('business_analysis')"
+                  style="font-size: 0.78rem; border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">
+                  📊 Phân tích kinh doanh tháng này
+                </button>
               </div>
-              <div
-                style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                <div style="font-size: 0.75rem; color: var(--text-muted);">Sai Lệch Giá</div>
-                <div id="bm-price-var" style="font-size: 1.3rem; font-weight: 800; color: #f59e0b; margin-top: 0.2rem;">
-                  0.0%</div>
+            </div>
+
+            <!-- Chat Window Message Stream -->
+            <div id="ai-chat-stream"
+              style="min-height: 250px; max-height: 420px; overflow-y: auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
+              <div class="chat-msg ai-msg" style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <div
+                  style="width: 34px; height: 34px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 0.95rem; flex-shrink: 0;">
+                  <i class="fa-solid fa-sparkles"></i>
+                </div>
+                <div
+                  style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.9rem 1.15rem; border-radius: 14px; border-top-left-radius: 2px; max-width: 88%; font-size: 0.92rem; line-height: 1.6; color: var(--text-main);">
+                  Tôi có thể giải thích dịch vụ, combo bảo dưỡng và quy trình đặt lịch. Bạn có thể nêu loại xe và số km trong câu hỏi để tôi gợi ý sát hơn. Tôi không thể chẩn đoán xe hoặc xác nhận an toàn từ xa; với dấu hiệu bất thường, hãy liên hệ garage để được kiểm tra trực tiếp.
+                </div>
               </div>
-              <div
-                style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                <div style="font-size: 0.75rem; color: var(--text-muted);">Độ Trễ Latency</div>
-                <div id="bm-latency" style="font-size: 1.3rem; font-weight: 800; color: #a855f7; margin-top: 0.2rem;">
-                  185 ms</div>
-              </div>
-              <div
-                style="background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                <div style="font-size: 0.75rem; color: var(--text-muted);">Chi Phí Token</div>
-                <div id="bm-cost" style="font-size: 1.3rem; font-weight: 800; color: #ec4899; margin-top: 0.2rem;">
-                  $0.0024</div>
-              </div>
+            </div>
+
+            <!-- Chat Input Bar -->
+            <div style="display: flex; gap: 0.75rem;">
+              <input type="text" id="ai-chat-input" class="form-control"
+                placeholder="Nhập câu hỏi kỹ thuật, yêu cầu báo giá hoặc tra cứu tiến độ..."
+                onkeypress="if(event.key==='Enter') sendAIChatMessage()">
+              <button class="btn btn-ai" onclick="sendAIChatMessage()" style="padding: 0 1.25rem; flex-shrink: 0; background: linear-gradient(135deg, #164e63, #0891b2); border: none;">
+                <i class="fa-solid fa-paper-plane"></i> Gửi AI
+              </button>
             </div>
           </div>
         </div>
@@ -928,68 +627,60 @@
 
   <!-- MODALS SECTION -->
 
-  <!-- Modal AI Result -->
+  <!-- Modal AI Garage Assistant (GarageAI) -->
   <div id="modal-ai-result" class="modal-backdrop">
-    <div class="modal-card" style="max-width: 720px;">
-      <div class="modal-header">
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <div
-            style="width: 36px; height: 36px; border-radius: 10px; background: var(--gradient-ai); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem;">
-            <i class="fa-solid fa-robot"></i>
+    <div class="modal-card garage-ai-modal" style="max-width: 580px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148, 163, 184, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+      
+      <!-- Modal Header -->
+      <div class="garage-ai-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
+          <div class="ai-header-icon" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #164e63 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);">
+            <i class="fa-solid fa-sparkles"></i>
           </div>
           <div>
-            <h3 id="modal-ai-title"
-              style="font-family: 'Outfit'; color: var(--accent-purple); font-size: 1.15rem; margin: 0;">Trợ Lý AI
-              Garage VTV</h3>
-            <span style="font-size: 0.78rem; color: var(--text-muted);">Tư vấn kỹ thuật, báo giá nháp & giải thích quy
-              trình</span>
+            <h3 id="modal-ai-title" style="font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; color: #ffffff; font-size: 1.2rem; font-weight: 700; margin: 0; line-height: 1.2;">Trợ lý GarageAI</h3>
+            <span style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #64748b; text-transform: uppercase; margin-top: 3px; display: block;">TƯ VẤN TRƯỚC KHI ĐẾN GARAGE</span>
           </div>
         </div>
-        <button class="close-btn" onclick="closeModal('modal-ai-result')">&times;</button>
+        <button class="close-btn" onclick="closeModal('modal-ai-result')" style="color: #94a3b8; font-size: 1.35rem; background: transparent; border: none; cursor: pointer; padding: 0.2rem 0.5rem; transition: color 0.2s;" title="Đóng">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
 
-      <!-- Interactive Question Input Box inside Modal -->
-      <div
-        style="margin-bottom: 1rem; background: var(--bg-primary); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-        <label
-          style="font-weight: 700; font-size: 0.83rem; margin-bottom: 0.5rem; display: block; color: var(--text-main);">
-          <i class="fa-solid fa-comments" style="color: var(--accent-purple);"></i> Đặt câu hỏi tự do cho Trợ lý AI:
-        </label>
-        <div style="display: flex; gap: 0.5rem;">
-          <input type="text" id="modal-ai-question-input" class="form-control"
-            placeholder="Nhập câu hỏi (VD: Báo giá nháp / Giải thích cho khách / Kêu gầm xe...)"
-            onkeydown="if(event.key === 'Enter') submitModalAIQuestion()">
-          <button class="btn btn-ai" onclick="submitModalAIQuestion()"><i class="fa-solid fa-paper-plane"></i>
-            Gửi</button>
-        </div>
-
-        <!-- Quick Prompt Shortcuts -->
-        <div class="prompt-pill-container">
-          <span class="prompt-pill" onclick="setModalAIQuestion('Lập báo giá nháp chi tiết cho phiếu sửa chữa này')"><i
-              class="fa-solid fa-calculator"></i> 📋 Báo Giá Nháp</span>
-          <span class="prompt-pill"
-            onclick="setModalAIQuestion('Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa')"><i
-              class="fa-solid fa-user-check"></i> 🚗 Giải Thích Khách</span>
-          <span class="prompt-pill"
-            onclick="setModalAIQuestion('Tóm tắt lịch sử sửa chữa và cảnh báo kỹ thuật cho xe này')"><i
-              class="fa-solid fa-clock-rotate-left"></i> 📌 Lịch Sử Xe</span>
-          <span class="prompt-pill"
-            onclick="setModalAIQuestion('Tư vấn mốc bảo dưỡng 40,000 km gồm những gì và chi phí bao nhiêu?')"><i
-              class="fa-solid fa-wrench"></i> 💡 Bảo Dưỡng 40k km</span>
-        </div>
+      <!-- Security Notice Banner -->
+      <div class="garage-ai-banner" style="background: rgba(255, 255, 255, 0.03); padding: 0.75rem 1.35rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.82rem; color: #94a3b8; line-height: 1.45;">
+        Không nhập mật khẩu, mã OTP hoặc dữ liệu nhạy cảm. AI chỉ tư vấn sơ bộ, không thay thế kỹ thuật viên kiểm tra trực tiếp.
       </div>
 
-      <div id="modal-ai-body" class="ai-output-box" style="max-height: 340px; overflow-y: auto;">Đang xử lý...</div>
-
-      <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-        <span id="modal-ai-model-badge" style="font-size: 0.78rem; color: var(--text-muted);"><i
-            class="fa-solid fa-microchip"></i> Engine: Trợ Lý AI Garage VTV</span>
-        <div>
-          <button class="btn btn-secondary" onclick="closeModal('modal-ai-result')">Đóng</button>
-          <button class="btn btn-primary" onclick="copyAIResult()"><i class="fa-solid fa-copy"></i> Sao Chép Kết
-            Quả</button>
+      <!-- Chat History Area -->
+      <div id="modal-ai-chat-body" class="garage-ai-body" style="padding: 1.35rem; max-height: 380px; min-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; background: #0f172a;">
+        
+        <!-- Default AI Greeting Message matching screenshot -->
+        <div class="garage-ai-msg-row ai-msg" style="display: flex; gap: 0.85rem; align-items: flex-start;">
+          <div class="ai-msg-avatar" style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0; margin-top: 2px;">
+            <i class="fa-solid fa-sparkles"></i>
+          </div>
+          <div class="ai-msg-bubble" style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem 1.25rem; color: #e2e8f0; font-size: 0.92rem; line-height: 1.6; max-width: 88%;">
+            Tôi có thể giải thích dịch vụ, combo bảo dưỡng và quy trình đặt lịch. Bạn có thể nêu loại xe và số km trong câu hỏi để tôi gợi ý sát hơn. Tôi không thể chẩn đoán xe hoặc xác nhận an toàn từ xa; với dấu hiệu bất thường, hãy liên hệ garage để được kiểm tra trực tiếp.
+          </div>
         </div>
+
       </div>
+
+      <!-- Footer Input Area -->
+      <div class="garage-ai-footer" style="padding: 1.15rem 1.35rem; background: #0f172a; border-top: 1px solid rgba(255, 255, 255, 0.06); display: flex; gap: 0.75rem; align-items: flex-end;">
+        <div style="flex: 1;">
+          <textarea id="modal-ai-question-input" class="garage-ai-input" rows="2"
+            placeholder="Ví dụ: Xe máy đã đi 5.000 km nên bảo dưỡng gì?"
+            style="width: 100%; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 14px; color: #f8fafc; padding: 0.85rem 1rem; font-size: 0.92rem; resize: none; font-family: inherit; outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box;"
+            onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submitModalAIQuestion(); }"></textarea>
+        </div>
+        <button class="garage-ai-send-btn" onclick="submitModalAIQuestion()" title="Gửi câu hỏi"
+          style="width: 48px; height: 48px; border-radius: 12px; background: #2b7a8c; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; transition: all 0.2s ease;">
+          <i class="fa-solid fa-paper-plane" style="transform: rotate(10deg);"></i>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -1274,6 +965,11 @@
       <span>Hóa đơn</span>
     </div>
   </nav>
+
+  <!-- Floating GarageAI Assistant Quick Trigger Button -->
+  <button class="floating-ai-trigger" onclick="openAIAssistantModal()" title="Mở Trợ lý GarageAI">
+    <i class="fa-solid fa-sparkles"></i>
+  </button>
 
   <script src="app.js?v=7.0"></script>
 </body>

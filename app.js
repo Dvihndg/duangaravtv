@@ -250,7 +250,9 @@ function getOfflineMockResponse(endpoint, options) {
     const q = (body.question || "").toLowerCase();
     
     let output = "";
-    if (q.includes("rung") || q.includes("vios")) {
+    if (q.includes("5.000") || q.includes("5000") || q.includes("5k")) {
+      output = `### 🛵 Gợi Ý Bảo Dưỡng Định Kỳ Mốc 5.000 km\n\n1. 🔍 **Các hạng mục kiểm tra & thay thế bắt buộc**:\n   - **Thay dầu động cơ (nhớt máy)**: Xả dầu cũ, thay nhớt chính hãng (10W-40 / Synthetic).\n   - **Thay lọc nhớt**: Loại bỏ mạt kim loại bảo vệ buồng đốt động cơ.\n   - **Vệ sinh / Thay lọc gió**: Làm sạch lọc gió động cơ giúp xe chạy êm, bốc hơn và tiết kiệm xăng.\n   - **Kiểm tra phanh (thắng)**: Đo độ mòn má phanh trước/sau & bổ sung dầu phanh nếu thiếu.\n\n2. 💡 **Combo bảo dưỡng tối ưu**:\n   - Thay nhớt + Lọc nhớt + Vệ sinh bugi + Kiểm tra áp suất lốp & xích/dây drive.\n\n3. ⚠️ **Lời khuyên**: Bảo dưỡng định kỳ mỗi 3.000 - 5.000 km giúp kéo dài tuổi thọ động cơ và di chuyển an toàn trên mọi hành trình!`;
+    } else if (q.includes("rung") || q.includes("vios")) {
       output = `### 🛠️ Phân Tích Chẩn Đoán: Toyota Vios 2018 bị rung không tải\n\n1. 🔍 **Các nguyên nhân có khả năng nhất**:\n   - Cao su chân máy / chân hộp số bị lão hóa, xẹp rách làm rung giật cabin.\n   - Bugi đánh lửa yếu hoặc cổ hút muội than carbon làm bỏ máy chập chờn.\n   - Kim phun nhiên liệu bị bẩn clog không tơi dầu.\n\n2. 🛠️ **Các bước kiểm tra đề xuất**:\n   - Bước 1: Kiểm tra độ sụt giảm cao su chân máy.\n   - Bước 2: Đo điện áp bugi & súc rửa cổ hút ga sinh học.\n   - Bước 3: Đọc mã lỗi ECU bằng máy OBD-II.\n\n3. ⚠️ **Mức độ ưu tiên**: **Trung Bình** (Cần xử lý sớm để tránh hỏng chân máy).\n\n4. 🔩 **Bộ phận cần kiểm tra**: Cao su chân máy (PAR-005), Bugi NGK Iridium, Dung dịch súc cổ hút.\n\n🛡️ *Lưu ý: Đây là nhận định sơ bộ của AI hỗ trợ KTV, không thay thế cho quy trình kiểm tra trực tiếp tại garage.*`;
     } else if (q.includes("lịch sử") || q.includes("51h-888.88")) {
       output = `### 📜 Phân Tích Lịch Sử Sửa Chữa Xe 51H-888.88 (Toyota Camry 2.5Q)\n\n- **Odometer hiện tại**: 40,000 km | **Số phiếu đã lập**: 3 phiếu\n\n1. 🔄 **Các lỗi lặp lại**: Tiếng rít má phanh xuất hiện 2 lần ở mốc 25,000 km và 40,000 km.\n2. ⚠️ **Bộ phận có dấu hiệu bất thường**: Má phanh trước mòn vẹt không đều, mâm đĩa phanh bị gợn sóng.\n3. 🛠️ **Hạng mục khuyến nghị lần này**: Láng đĩa phanh 3D Laser & Thay bộ má phanh Brembo cao cấp.\n4. 📅 **Lịch bảo dưỡng đề xuất**: Bảo dưỡng định kỳ mốc 50,000 km sau 6 tháng.`;
@@ -345,6 +347,21 @@ function setupNavigation() {
   });
 }
 
+// AI Sub-Navigation Tab Switcher
+function switchAISubTab(tabName) {
+  document.querySelectorAll(".ai-subtab-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+  document.querySelectorAll(".ai-tab-content").forEach(content => {
+    content.style.display = "none";
+  });
+
+  const activeBtn = document.getElementById(`ai-subtab-btn-${tabName}`);
+  const activeContent = document.getElementById(`ai-tab-content-${tabName}`);
+  if (activeBtn) activeBtn.classList.add("active");
+  if (activeContent) activeContent.style.display = "block";
+}
+
 // Global Event Delegation for Maximum Interaction Reliability
 function setupGlobalEventDelegation() {
   document.addEventListener("click", (e) => {
@@ -390,7 +407,7 @@ function switchView(viewName) {
     customers: "Danh Sách Khách Hàng & Xe",
     inventory: "Kho Phụ Tùng & Danh Mục Dịch Vụ",
     invoices: "Hóa Đơn & Thanh Toán",
-    "ai-studio": "AI Studio & Prompt Engineering Sandbox"
+    "ai-studio": "AI Studio & Trợ Lý Garage Engine"
   };
   const pageTitle = document.getElementById("page-title");
   if (pageTitle) pageTitle.textContent = titleMap[viewName] || "Garage Management";
@@ -834,26 +851,54 @@ async function askAIAssistant(question, repairOrderId = null, vehicleId = null) 
   });
 }
 
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function formatAIMarkdown(text) {
+  if (!text) return '';
+  return text
+    .replace(/### (.*?)\n/g, '<strong style="color: #38bdf8; font-size: 1rem; display: block; margin-bottom: 0.5rem; font-weight: 700;">$1</strong>')
+    .replace(/## (.*?)\n/g, '<strong style="color: #38bdf8; font-size: 1.05rem; display: block; margin-bottom: 0.5rem; font-weight: 700;">$1</strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #ffffff;">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: #38bdf8;">$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+async function askAIAssistant(question, repairOrderId = null, vehicleId = null) {
+  return await apiFetch("/ai/assistant", {
+    method: "POST",
+    body: JSON.stringify({ question, repair_order_id: repairOrderId, vehicle_id: vehicleId })
+  });
+}
+
 async function openAIAssistantModal(title, initialQuestion, repairOrderId = null, vehicleId = null) {
   currentState.activeAIContext = { repair_order_id: repairOrderId, vehicle_id: vehicleId };
 
+  const titleEl = document.getElementById("modal-ai-title");
+  if (titleEl && title) titleEl.textContent = title;
+
+  openModal("modal-ai-result");
+
   const questionInput = document.getElementById("modal-ai-question-input");
-  if (questionInput) questionInput.value = initialQuestion || "";
-
-  showAIModal(title || "Trợ Lý AI Garage VTV", "⏳ Trợ lý AI đang phân tích dữ liệu & xử lý câu hỏi...");
-
-  try {
-    const q = initialQuestion || "Hãy tư vấn các dịch vụ xe và lập báo giá nháp dự kiến";
-    const res = await askAIAssistant(q, repairOrderId, vehicleId);
-    showAIModal(title || "Trợ Lý AI Garage VTV", res.output, res.model_used);
-  } catch (err) {
-    showAIModal("Lỗi AI Assistant Engine", `❌ ${err.message}`);
+  if (initialQuestion) {
+    if (questionInput) questionInput.value = initialQuestion;
+    await submitModalAIQuestion();
+  } else {
+    if (questionInput) questionInput.focus();
   }
 }
 
 async function runAIHistorySummary(vehicleId) {
   await openAIAssistantModal(
-    "AI Tóm Tắt Lịch Sử Xe & Cảnh Báo Kỹ Thuật",
+    "Trợ lý GarageAI",
     "Tóm tắt lịch sử sửa chữa và các lưu ý kỹ thuật cho xe này",
     null,
     vehicleId
@@ -862,7 +907,7 @@ async function runAIHistorySummary(vehicleId) {
 
 async function runAIServiceExplainer(repairOrderId) {
   await openAIAssistantModal(
-    "Trợ Lý AI Garage - Báo Giá & Giải Thích Dịch Vụ",
+    "Trợ lý GarageAI",
     "Giải thích bằng ngôn ngữ dễ hiểu cho khách hàng về các hạng mục sửa chữa",
     repairOrderId
   );
@@ -870,7 +915,7 @@ async function runAIServiceExplainer(repairOrderId) {
 
 async function runAIDraftQuotation(repairOrderId) {
   await openAIAssistantModal(
-    "Trợ Lý AI Garage - Báo Giá & Giải Thích Dịch Vụ",
+    "Trợ lý GarageAI",
     "Lập báo giá nháp chi tiết cho phiếu sửa chữa này",
     repairOrderId
   );
@@ -897,18 +942,82 @@ async function submitModalAIQuestion() {
   if (!input || !input.value.trim()) return;
 
   const question = input.value.trim();
-  const ctx = currentState.activeAIContext || {};
+  input.value = "";
 
-  renderFormattedAIOutput("modal-ai-body", `⏳ Đang gửi câu hỏi: "${question}"...`);
+  const chatBody = document.getElementById("modal-ai-chat-body");
+  if (!chatBody) return;
+
+  // 1. Append User Question Bubble
+  const userRow = document.createElement("div");
+  userRow.className = "garage-ai-msg-row user-msg";
+  userRow.style.cssText = "display: flex; gap: 0.85rem; justify-content: flex-end; align-items: flex-start;";
+  userRow.innerHTML = `
+    <div style="background: rgba(43, 122, 140, 0.35); border: 1px solid rgba(43, 122, 140, 0.5); color: #f8fafc; padding: 0.9rem 1.15rem; border-radius: 14px; max-width: 85%; font-size: 0.92rem; line-height: 1.5;">
+      ${escapeHTML(question)}
+    </div>
+    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(51, 65, 85, 0.7); border: 1px solid rgba(148, 163, 184, 0.2); display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 0.9rem; flex-shrink: 0;">
+      <i class="fa-solid fa-user"></i>
+    </div>
+  `;
+  chatBody.appendChild(userRow);
+
+  // 2. Append Loading Bubble
+  const loadingRow = document.createElement("div");
+  const loadingId = `ai-loading-${Date.now()}`;
+  loadingRow.id = loadingId;
+  loadingRow.className = "garage-ai-msg-row ai-msg";
+  loadingRow.style.cssText = "display: flex; gap: 0.85rem; align-items: flex-start;";
+  loadingRow.innerHTML = `
+    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0;">
+      <i class="fa-solid fa-sparkles fa-spin"></i>
+    </div>
+    <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 0.9rem 1.15rem; color: #94a3b8; font-size: 0.9rem; font-style: italic;">
+      AI đang suy nghĩ và tổng hợp thông tin...
+    </div>
+  `;
+  chatBody.appendChild(loadingRow);
+  chatBody.scrollTop = chatBody.scrollHeight;
 
   try {
+    const ctx = currentState.activeAIContext || {};
     const res = await askAIAssistant(question, ctx.repair_order_id, ctx.vehicle_id);
-    renderFormattedAIOutput("modal-ai-body", res.output);
-    const badge = document.getElementById("modal-ai-model-badge");
-    if (badge) badge.innerHTML = `<i class="fa-solid fa-microchip"></i> Engine: ${res.model_used}`;
+
+    const loadingEl = document.getElementById(loadingId);
+    if (loadingEl) chatBody.removeChild(loadingEl);
+
+    const formattedText = formatAIMarkdown(res.output || "AI không thể đưa ra câu trả lời.");
+
+    const aiRow = document.createElement("div");
+    aiRow.className = "garage-ai-msg-row ai-msg";
+    aiRow.style.cssText = "display: flex; gap: 0.85rem; align-items: flex-start;";
+    aiRow.innerHTML = `
+      <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0; margin-top: 2px;">
+        <i class="fa-solid fa-sparkles"></i>
+      </div>
+      <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem 1.25rem; color: #e2e8f0; font-size: 0.92rem; line-height: 1.6; max-width: 88%;">
+        ${formattedText}
+      </div>
+    `;
+    chatBody.appendChild(aiRow);
   } catch (err) {
-    renderFormattedAIOutput("modal-ai-body", `❌ Lỗi: ${err.message}`);
+    const loadingEl = document.getElementById(loadingId);
+    if (loadingEl) chatBody.removeChild(loadingEl);
+
+    const errRow = document.createElement("div");
+    errRow.className = "garage-ai-msg-row ai-msg";
+    errRow.style.cssText = "display: flex; gap: 0.85rem; align-items: flex-start;";
+    errRow.innerHTML = `
+      <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(225, 29, 72, 0.2); border: 1px solid rgba(225, 29, 72, 0.4); display: flex; align-items: center; justify-content: center; color: #f43f5e; font-size: 1rem; flex-shrink: 0;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(225, 29, 72, 0.3); border-radius: 14px; padding: 1rem 1.15rem; color: #f43f5e; font-size: 0.9rem;">
+        ❌ Lỗi kết nối AI Engine: ${escapeHTML(err.message)}
+      </div>
+    `;
+    chatBody.appendChild(errRow);
   }
+
+  chatBody.scrollTop = chatBody.scrollHeight;
 }
 
 // AI Sandbox Loader
@@ -1722,3 +1831,4 @@ window.triggerQuickPrompt = triggerQuickPrompt;
 window.clearAIChatHistory = clearAIChatHistory;
 window.submitOBDDiagnosticForm = submitOBDDiagnosticForm;
 window.toggleItemSelectType = toggleItemSelectType;
+window.switchAISubTab = switchAISubTab;
