@@ -68,28 +68,29 @@ function checkAuthPermission() {
   const internalRoles = ["manager", "receptionist", "technician", "cashier"];
 
   const path = window.location.pathname.toLowerCase();
-  if (path.endsWith("customer.html") || path.endsWith("login.html")) {
-    return true;
+  
+  // Enforce internal authorization check specifically when accessing admin.html
+  if (path.endsWith("admin.html")) {
+    if (!isLoggedIn || !internalRoles.includes(role)) {
+      const sidebar = document.querySelector(".sidebar");
+      if (sidebar) sidebar.style.display = "none";
+
+      const topBar = document.querySelector(".top-bar");
+      if (topBar) topBar.style.display = "none";
+
+      const mainWrapper = document.querySelector(".main-wrapper");
+      if (mainWrapper) mainWrapper.style.marginLeft = "0";
+
+      switchView("404-error");
+      return false;
+    }
   }
 
-  // If unauthenticated or role is customer (or null), block access to index.html & show 404
-  if (!isLoggedIn || !internalRoles.includes(role)) {
-    const sidebar = document.querySelector(".sidebar");
-    if (sidebar) sidebar.style.display = "none";
-
-    const topBar = document.querySelector(".top-bar");
-    if (topBar) topBar.style.display = "none";
-
-    const mainWrapper = document.querySelector(".main-wrapper");
-    if (mainWrapper) mainWrapper.style.marginLeft = "0";
-
-    switchView("404-error");
-    return false;
+  if (internalRoles.includes(role)) {
+    currentState.currentRole = role;
+    const roleSelect = document.getElementById("role-select");
+    if (roleSelect) roleSelect.value = role;
   }
-
-  currentState.currentRole = role;
-  const roleSelect = document.getElementById("role-select");
-  if (roleSelect) roleSelect.value = role;
 
   return true;
 }
