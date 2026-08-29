@@ -280,6 +280,3 @@ class DemoScenarioResponse(BaseModel):
     estimated_total: float
     warnings: List[str]
     ai_raw_output: str
-
-
-

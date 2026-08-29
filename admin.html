@@ -27,24 +27,14 @@
       </div>
     </div>
 
-    <div class="nav-section-title">Tổng quan</div>
+    <div class="nav-section-title">Quản lý Quản trị</div>
     <ul class="nav-list">
-      <li class="nav-item active" data-view="dashboard">
-        <i class="fa-solid fa-chart-pie"></i> Dashboard
-      </li>
-      <li class="nav-item" data-view="appointments">
-        <i class="fa-solid fa-calendar-check"></i> Lịch Hẹn & Tiếp Nhận
+      <li class="nav-item active" data-view="customer-requests">
+        <i class="fa-solid fa-clipboard-list"></i> Quản Lý Yêu Cầu
+        <span id="nav-badge-requests" style="display:none; margin-left: auto; background: #e11d48; color: white; border-radius: 99px; padding: 2px 8px; font-size: 0.72rem; font-weight: 800;">0</span>
       </li>
       <li class="nav-item" data-view="repair-orders">
         <i class="fa-solid fa-file-invoice-dollar"></i> Phiếu Sửa Chữa
-      </li>
-    </ul>
-
-    <div class="nav-section-title">Danh mục & Khách</div>
-    <ul class="nav-list">
-      <li class="nav-item" data-view="customer-requests">
-        <i class="fa-solid fa-clipboard-list"></i> Quản Lý Yêu Cầu
-        <span id="nav-badge-requests" style="display:none; margin-left: auto; background: #e11d48; color: white; border-radius: 99px; padding: 2px 8px; font-size: 0.72rem; font-weight: 800;">0</span>
       </li>
       <li class="nav-item" data-view="customers">
         <i class="fa-solid fa-users"></i> Khách Hàng & Xe
@@ -117,201 +107,6 @@
 
     <!-- Main Content Area -->
     <div class="content-container">
-
-      <!-- VIEW 1: Dashboard -->
-      <section id="view-dashboard" class="view-section active">
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-info">
-              <h4>Xe Đang Sửa</h4>
-              <div class="val" id="kpi-active-orders">0</div>
-              <div class="kpi-trend up"><i class="fa-solid fa-wrench"></i> Đang sửa chữa tại xưởng</div>
-            </div>
-            <div class="kpi-icon blue"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-info">
-              <h4>Lịch Hẹn Hôm Nay</h4>
-              <div class="val" id="kpi-pending-apts">0</div>
-              <div class="kpi-trend neutral"><i class="fa-solid fa-calendar-check"></i> Chờ tiếp nhận</div>
-            </div>
-            <div class="kpi-icon amber"><i class="fa-solid fa-calendar-days"></i></div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-info">
-              <h4>Doanh Thu Tháng</h4>
-              <div class="val" id="kpi-revenue">0 VNĐ</div>
-              <div class="kpi-trend up"><i class="fa-solid fa-arrow-trend-up"></i> 0% so với tháng trước</div>
-            </div>
-            <div class="kpi-icon emerald"><i class="fa-solid fa-money-bill-wave"></i></div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-info">
-              <h4>Khách Mới Tháng</h4>
-              <div class="val" id="kpi-new-customers">0</div>
-              <div class="kpi-trend up"><i class="fa-solid fa-user-plus"></i> 0 khách mới tuần này</div>
-            </div>
-            <div class="kpi-icon purple"><i class="fa-solid fa-users"></i></div>
-          </div>
-        </div>
-
-        <div class="grid-split-dashboard">
-          <!-- 6-Month Revenue Bar Chart -->
-          <div class="table-card" style="padding: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h3 style="font-family: Arial; font-size: 1.05rem;"><i class="fa-solid fa-chart-column"
-                  style="color: var(--accent-primary);"></i> Doanh Thu 6 Tháng Gần Nhất</h3>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">Đơn vị: VNĐ</span>
-            </div>
-            <div class="chart-container">
-              <div class="chart-bar-group">
-                <span class="chart-val">0Tr</span>
-                <div class="chart-bar" style="height: 0%;"></div>
-                <span class="chart-label">T8</span>
-              </div>
-              <div class="chart-bar-group">
-                <span class="chart-val">0Tr</span>
-                <div class="chart-bar" style="height: 0%;"></div>
-                <span class="chart-label">T9</span>
-              </div>
-              <div class="chart-bar-group">
-                <span class="chart-val">0Tr</span>
-                <div class="chart-bar" style="height: 0%;"></div>
-                <span class="chart-label">T10</span>
-              </div>
-              <div class="chart-bar-group">
-                <span class="chart-val">0Tr</span>
-                <div class="chart-bar" style="height: 0%;"></div>
-                <span class="chart-label">T11</span>
-              </div>
-              <div class="chart-bar-group">
-                <span class="chart-val">0Tr</span>
-                <div class="chart-bar" style="height: 0%;"></div>
-                <span class="chart-label">T12</span>
-              </div>
-              <div class="chart-bar-group">
-                <span class="chart-val">0Tr</span>
-                <div class="chart-bar" style="height: 0%; background: var(--gradient-brand);"></div>
-                <span class="chart-label" style="color: var(--accent-cyan);">T1</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Activity Feed -->
-          <div class="table-card" style="padding: 1.5rem;">
-            <h3 style="font-family: Arial; font-size: 1.05rem; margin-bottom: 1.25rem;"><i
-                class="fa-solid fa-clock-rotate-left" style="color: var(--accent-cyan);"></i> Hoạt Động Gần Đây</h3>
-            <div class="activity-feed" id="dashboard-activity-feed">
-              <div style="text-align: center; color: var(--text-muted); padding: 2.5rem 1rem; font-size: 0.88rem;">
-                <i class="fa-solid fa-clock-rotate-left" style="font-size: 1.8rem; margin-bottom: 0.5rem; display: block; opacity: 0.4;"></i>
-                Chưa có hoạt động mới nào ghi nhận.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent Repair Orders Table Panel -->
-        <div class="table-card">
-          <div class="table-header">
-            <h3 style="font-family: Arial; font-size: 1.05rem;"><i class="fa-solid fa-list-check"></i> Phiếu Sửa Chữa
-              Gần Đây</h3>
-            <button class="btn btn-primary btn-sm" onclick="switchView('repair-orders')">Xem Tất Cả</button>
-          </div>
-          <div class="table-responsive">
-            <table class="custom-table">
-              <thead>
-                <tr>
-                  <th>Mã Phiếu</th>
-                  <th>Khách Hàng</th>
-                  <th>Xe</th>
-                  <th>Trạng Thái</th>
-                  <th>Ngày Tiếp Nhận</th>
-                </tr>
-              </thead>
-              <tbody id="dash-orders-tbody">
-                <!-- Dynamically populated by JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- VIEW 2: Appointments & Vehicle Reception -->
-      <section id="view-appointments" class="view-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-          <div>
-            <h3 style="font-family: Arial; font-size: 1.35rem; display: flex; align-items: center; gap: 0.5rem;">
-              <i class="fa-solid fa-calendar-days" style="color: var(--accent-primary);"></i> Quản Lý Lịch Hẹn & Tiếp
-              Nhận Xe
-              <span class="brand-tag">LIVE VIEW</span>
-            </h3>
-            <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.2rem;">
-              Theo dõi lịch đặt hẹn theo mốc giờ và danh sách đăng ký tiếp nhận xe ô tô.
-            </p>
-          </div>
-          <button class="btn btn-primary" onclick="openModal('modal-new-appointment')"><i class="fa-solid fa-plus"></i>
-            Tạo Lịch Hẹn Mới</button>
-        </div>
-
-        <!-- Filter Bar -->
-        <div
-          style="display: flex; gap: 0.85rem; margin-bottom: 1.25rem; background: var(--bg-sidebar); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); align-items: center;">
-          <div style="flex: 1; position: relative;">
-            <i class="fa-solid fa-magnifying-glass"
-              style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-            <input type="text" id="appointment-search" class="form-control" style="padding-left: 2.5rem;"
-              placeholder="Tìm kiếm lịch hẹn theo biển số xe, tên khách hàng...">
-          </div>
-          <select id="appointment-status-filter" class="form-control" style="width: 180px;">
-            <option value="">Trạng Thái: Tất Cả</option>
-            <option value="pending">Chờ Tiếp Nhận</option>
-            <option value="confirmed">Đã Xác Nhận</option>
-            <option value="completed">Đã Nhận Xe</option>
-            <option value="cancelled">Đã Hủy</option>
-          </select>
-          <input type="date" id="appointment-date-filter" class="form-control" style="width: 160px;">
-        </div>
-
-        <!-- Split View: Schedule Timeline vs Registered Appointments Table -->
-        <div class="grid-split-appointments">
-          <!-- Hourly Timeline Schedule Card -->
-          <div class="table-card" style="padding: 1.5rem;">
-            <h3 style="font-family: Arial; font-size: 1.05rem; margin-bottom: 1.25rem;"><i class="fa-solid fa-clock"
-                style="color: var(--accent-amber);"></i> Thời Gian Biểu Hôm Nay</h3>
-            <div class="schedule-timeline" id="today-schedule-timeline">
-              <div style="text-align: center; color: var(--text-muted); padding: 3rem 1rem; font-size: 0.88rem; border: 1px dashed var(--border-color); border-radius: 12px;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 2rem; margin-bottom: 0.6rem; display: block; opacity: 0.4;"></i>
-                Chưa có lịch hẹn nào trong thời gian biểu hôm nay.
-              </div>
-            </div>
-          </div>
-
-          <!-- Appointments List Table -->
-          <div class="table-card">
-            <div class="table-header">
-              <h3 style="font-family: Arial; font-size: 1.05rem;"><i class="fa-solid fa-list"
-                  style="color: var(--accent-primary);"></i> Danh Sách Lịch Hẹn Đăng Ký</h3>
-            </div>
-            <div class="table-responsive">
-              <table class="custom-table">
-                <thead>
-                  <tr>
-                    <th>Mã</th>
-                    <th>Khách Hàng</th>
-                    <th>Xe</th>
-                    <th>Dịch Vụ Đăng Ký</th>
-                    <th>Thời Gian</th>
-                    <th>Trạng Thái</th>
-                  </tr>
-                </thead>
-                <tbody id="appointments-tbody">
-                  <!-- Populated by JS -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <!-- VIEW 3: Repair Orders (Phiếu Sửa Chữa) -->
       <section id="view-repair-orders" class="view-section">
@@ -393,8 +188,8 @@
         </div>
       </section>
 
-      <!-- VIEW 4.5: Customer Requests Management -->
-      <section id="view-customer-requests" class="view-section">
+      <!-- VIEW 4.5: Customer Requests Management (ACTIVE DEFAULT) -->
+      <section id="view-customer-requests" class="view-section active">
         <!-- KPI Summary Cards -->
         <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 1.5rem;">
           <div class="kpi-card" style="padding: 1.1rem;">
@@ -1260,21 +1055,21 @@
 
   <!-- Mobile Bottom Navigation Bar -->
   <nav class="mobile-bottom-nav">
-    <div class="mobile-nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
-      <i class="fa-solid fa-chart-pie"></i>
-      <span>Tổng quan</span>
+    <div class="mobile-nav-item active" data-view="customer-requests" onclick="switchView('customer-requests')">
+      <i class="fa-solid fa-clipboard-list"></i>
+      <span>Yêu cầu</span>
     </div>
-    <div class="mobile-nav-item" data-view="appointments" onclick="switchView('appointments')">
-      <i class="fa-solid fa-calendar-check"></i>
-      <span>Lịch hẹn</span>
+    <div class="mobile-nav-item" data-view="repair-orders" onclick="switchView('repair-orders')">
+      <i class="fa-solid fa-wrench"></i>
+      <span>Phiếu sửa</span>
     </div>
     <div class="mobile-nav-item ai-tab" data-view="ai-studio" onclick="switchView('ai-studio')">
       <i class="fa-solid fa-robot"></i>
       <span>Trợ lý AI</span>
     </div>
-    <div class="mobile-nav-item" data-view="repair-orders" onclick="switchView('repair-orders')">
-      <i class="fa-solid fa-wrench"></i>
-      <span>Phiếu sửa</span>
+    <div class="mobile-nav-item" data-view="customers" onclick="switchView('customers')">
+      <i class="fa-solid fa-users"></i>
+      <span>Khách hàng</span>
     </div>
     <div class="mobile-nav-item" data-view="invoices" onclick="switchView('invoices')">
       <i class="fa-solid fa-receipt"></i>

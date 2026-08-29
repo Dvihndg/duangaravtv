@@ -6,7 +6,7 @@ const API_BASE = (window.location.origin.includes("localhost") || window.locatio
 let currentState = {
   currentRole: "receptionist",
   token: null,
-  activeView: "dashboard",
+  activeView: "customer-requests",
   customers: [],
   vehicles: [],
   appointments: [],
@@ -873,20 +873,16 @@ function setupFilterListeners() {
 async function loadAllData() {
   try {
     // 1. Render active view immediately
-    if (currentState.activeView === "dashboard") await loadDashboard();
-    else if (currentState.activeView === "customer-requests") await loadCustomerRequestsFromBackend();
-    else if (currentState.activeView === "appointments") await loadAppointments();
+    if (currentState.activeView === "customer-requests") await loadCustomerRequestsFromBackend();
     else if (currentState.activeView === "repair-orders") await loadRepairOrders();
     else if (currentState.activeView === "customers") await loadCustomersAndVehicles();
     else if (currentState.activeView === "inventory") await loadInventory();
     else if (currentState.activeView === "invoices") await loadInvoices();
     else if (currentState.activeView === "ai-studio") await loadAISandboxData();
 
-    // 2. Pre-populate all other tabs in background for instant 0ms tab switching
+    // 2. Pre-populate all active tabs in background for instant 0ms tab switching
     Promise.all([
-      loadDashboard(),
       loadCustomerRequestsFromBackend(),
-      loadAppointments(),
       loadRepairOrders(),
       loadCustomersAndVehicles(),
       loadInventory(),
