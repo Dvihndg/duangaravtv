@@ -476,6 +476,12 @@ function setupGlobalEventDelegation() {
 function switchView(viewName) {
   currentState.activeView = viewName;
 
+  const activeSec = document.getElementById(`view-${viewName}`);
+  if (!activeSec) {
+    // If target view section is not on this page (e.g. Customer Portal), return safely
+    return;
+  }
+
   document.querySelectorAll(".nav-item").forEach(el => {
     if (el.getAttribute("data-view") === viewName) {
       el.classList.add("active");
@@ -496,8 +502,7 @@ function switchView(viewName) {
     sec.classList.remove("active");
   });
 
-  const activeSec = document.getElementById(`view-${viewName}`);
-  if (activeSec) activeSec.classList.add("active");
+  activeSec.classList.add("active");
 
   const titleMap = {
     dashboard: "Tổng Quan Garage",
@@ -512,7 +517,6 @@ function switchView(viewName) {
   if (pageTitle) pageTitle.textContent = titleMap[viewName] || "Garage Management";
 
   toggleMobileSidebar(false);
-  loadAllData();
 }
 
 function toggleMobileSidebar(open = null) {
