@@ -470,21 +470,21 @@
 
         <!-- Request Callback Form -->
         <div
-          style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem; margin-top: 0.25rem;">
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 1.1rem; margin-top: 0.25rem;">
           <h4
-            style="font-family: Arial; font-size: 0.95rem; color: #ffffff; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            style="font-family: Arial; font-size: 0.95rem; color: var(--text-main); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
             <i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8;"></i> Hoặc yêu cầu Garage gọi lại trong 5
             phút:
           </h4>
           <form onsubmit="submitCallbackRequest(event)">
             <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
               <input type="tel" id="cb-phone" class="form-control" placeholder="Nhập SĐT của bạn..." required
-                style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
+                style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-main);">
               <select id="cb-time" class="form-control"
-                style="width: 140px; background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
-                <option value="immediate">Gọi ngay (5p)</option>
-                <option value="morning">Sáng (8h-11h)</option>
-                <option value="afternoon">Chiều (14h-17h)</option>
+                style="width: 140px; background: var(--bg-input); border-color: var(--border-color); color: var(--text-main);">
+                <option value="immediate" style="background: var(--bg-card); color: var(--text-main);">Gọi ngay (5p)</option>
+                <option value="morning" style="background: var(--bg-card); color: var(--text-main);">Sáng (8h-11h)</option>
+                <option value="afternoon" style="background: var(--bg-card); color: var(--text-main);">Chiều (14h-17h)</option>
               </select>
             </div>
             <button type="submit" class="btn btn-primary"

@@ -68,12 +68,16 @@
   box-sizing: border-box;
 }
 
-*, body, h1, h2, h3, h4, h5, h6, input, button, select, textarea, div, span, p, a, label {
-  font-family: Arial, Helvetica, sans-serif !important;
+body, input, button, select, textarea, h1, h2, h3, h4, h5, h6, p, a, label {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+i, .fa, .fa-solid, .fa-regular, .fa-brands, [class*="fa-"] {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif !important;
+  font-family: Arial, Helvetica, sans-serif;
   background: var(--bg-primary);
   color: var(--text-main);
   min-height: 100vh;
