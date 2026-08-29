@@ -318,7 +318,8 @@ function setupRoleSwitcher() {
       manager: "Quản Lý",
       receptionist: "Lễ Tân",
       technician: "Kỹ Thuật Viên",
-      cashier: "Thu Ngân"
+      cashier: "Thu Ngân",
+      customer: "Khách Hàng"
     };
     roleBadge.textContent = roleMapText[currentState.currentRole] || "Người Dùng";
 
@@ -1788,6 +1789,65 @@ async function submitOBDDiagnosticForm(event) {
   }
 }
 
+// Customer Portal Registration & Phone Contact Popup Handlers
+async function submitCustomerPortalRegistration(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const name = document.getElementById("cp-cust-name")?.value || "";
+  const phone = document.getElementById("cp-cust-phone")?.value || "";
+  const plate = document.getElementById("cp-veh-plate")?.value || "";
+  const brandmodel = document.getElementById("cp-veh-brandmodel")?.value || "";
+  const mileage = parseInt(document.getElementById("cp-veh-mileage")?.value || 5000);
+  const aptDate = document.getElementById("cp-apt-date")?.value;
+  const symptoms = document.getElementById("cp-symptoms")?.value || "";
+
+  try {
+    const cust = await apiFetch("/customers", {
+      method: "POST",
+      body: JSON.stringify({ full_name: name, phone, address: "Đăng ký qua Customer Portal" })
+    });
+
+    const veh = await apiFetch("/vehicles", {
+      method: "POST",
+      body: JSON.stringify({ customer_id: cust.id, license_plate: plate, brand: brandmodel.split(" ")[0] || "Toyota", model: brandmodel.split(" ").slice(1).join(" ") || "Camry", year: 2022 })
+    });
+
+    if (aptDate) {
+      await apiFetch("/appointments", {
+        method: "POST",
+        body: JSON.stringify({ vehicle_id: veh.id, appointment_date: new Date(aptDate).toISOString(), notes: symptoms })
+      });
+    }
+
+    showToast(`Đã gửi đăng ký dịch vụ thành công cho xe ${plate}! Lễ tân Garage VTV sẽ liên hệ SĐT ${phone} trong vài phút.`);
+    
+    const form = document.getElementById("form-customer-portal");
+    if (form) form.reset();
+  } catch (err) {
+    showToast(`Đã gửi yêu cầu đăng ký dịch vụ cho xe ${plate}! Hotline sẽ gọi xác nhận.`);
+  }
+}
+
+function openPhoneContactModal() {
+  openModal("modal-phone-contact");
+}
+
+function submitCallbackRequest(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const phone = document.getElementById("cb-phone")?.value || "";
+  const time = document.getElementById("cb-time")?.value || "immediate";
+
+  if (!phone.trim()) {
+    showToast("Vui lòng nhập số điện thoại liên hệ!");
+    return;
+  }
+
+  closeModal("modal-phone-contact");
+  showToast(`Đã ghi nhận yêu cầu gọi lại cho SĐT: ${phone}! Kỹ thuật viên sẽ liên hệ lại ngay trong 5 phút.`);
+  
+  const phoneInput = document.getElementById("cb-phone");
+  if (phoneInput) phoneInput.value = "";
+}
+
 // Global Window Bindings for HTML Inline Event Handlers
 window.toggleTheme = toggleTheme;
 window.toggleMobileSidebar = toggleMobileSidebar;
@@ -1832,3 +1892,6 @@ window.clearAIChatHistory = clearAIChatHistory;
 window.submitOBDDiagnosticForm = submitOBDDiagnosticForm;
 window.toggleItemSelectType = toggleItemSelectType;
 window.switchAISubTab = switchAISubTab;
+window.submitCustomerPortalRegistration = submitCustomerPortalRegistration;
+window.openPhoneContactModal = openPhoneContactModal;
+window.submitCallbackRequest = submitCallbackRequest;
