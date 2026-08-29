@@ -10,21 +10,33 @@ skinparam usecaseBorderColor #38bdf8
 skinparam rectangleBackgroundColor #0f172a
 skinparam rectangleBorderColor #334155
 
+actor "Khách Hàng (Customer)" as Customer
 actor "Lễ Tân (Receptionist)" as Receptionist
 actor "Kỹ Thuật Viên (Technician)" as Technician
 actor "Thu Ngân (Cashier)" as Cashier
 actor "Quản Lý (Manager)" as Manager
 actor "Hệ Thống AI (GarageAI Engine)" as AIEngine
 
-rectangle "Hệ Thống Quản Lý Garage Ô Tô Tích Hợp AI" {
+rectangle "Trang Khách Hàng (Customer Portal - customer.html)" {
+    usecase "UC000: Đăng ký dịch vụ & Đặt lịch online" as UC000
+    usecase "UC000B: Tra cứu tiến độ xe trực tuyến" as UC000B
+    usecase "UC000C: Liên hệ Hotline SĐT & Yêu cầu gọi lại" as UC000C
+    usecase "UC006: Hỏi đáp Trợ lý AI (GarageAI)" as UC006
+}
+
+rectangle "Trang Quản Trị Nội Bộ (Internal Operations - index.html)" {
     usecase "UC001: Đăng ký & Tiếp nhận xe" as UC001
     usecase "UC002: Chẩn đoán & Lập báo giá nháp AI" as UC002
     usecase "UC003: Phê duyệt & Sửa chữa xe" as UC003
     usecase "UC004: Lập hóa đơn & Thanh toán VietQR" as UC004
     usecase "UC005: Quản lý kho phụ tùng & dịch vụ" as UC005
-    usecase "UC006: Tư vấn Trợ lý AI Chat (GarageAI)" as UC006
     usecase "UC007: Báo cáo kinh doanh & Đánh giá AI" as UC007
 }
+
+Customer --> UC000
+Customer --> UC000B
+Customer --> UC000C
+Customer --> UC006
 
 Receptionist --> UC001
 Receptionist --> UC004
@@ -34,8 +46,8 @@ Cashier --> UC004
 Manager --> UC005
 Manager --> UC007
 
-UC002 ..> UC006 : <<include>>
 UC006 --> AIEngine
+UC002 ..> UC006 : <<include>>
 UC007 --> AIEngine
 
 @enduml

@@ -1848,6 +1848,67 @@ function submitCallbackRequest(e) {
   if (phoneInput) phoneInput.value = "";
 }
 
+async function lookupCustomerVehicleProgress() {
+  const input = document.getElementById("cust-search-plate")?.value?.trim();
+  const resContainer = document.getElementById("cust-progress-result");
+  if (!resContainer) return;
+
+  if (!input) {
+    showToast("Vui lòng nhập biển số xe hoặc mã phiếu sửa chữa!");
+    return;
+  }
+
+  resContainer.style.display = "block";
+  resContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 1rem;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tìm kiếm thông tin xe ${input}...</div>`;
+
+  try {
+    const roList = await apiFetch("/repair-orders");
+    const matched = roList.find(ro => 
+      ro.code.toLowerCase().includes(input.toLowerCase()) || 
+      (ro.license_plate && ro.license_plate.toLowerCase().includes(input.toLowerCase()))
+    );
+
+    if (matched) {
+      const statusMap = {
+        received: { text: "Đã Tiếp Nhận Xe", color: "#38bdf8", icon: "fa-car-tunnel" },
+        diagnosing: { text: "KTV Đang Kiểm Tra & Lập Báo Giá", color: "#fbbf24", icon: "fa-stethoscope" },
+        in_progress: { text: "Đang Sửa Chữa Tại Xưởng", color: "#a855f7", icon: "fa-wrench" },
+        completed: { text: "Đã Hoàn Thành - Sẵn Sàng Giao Xe", color: "#34d399", icon: "fa-circle-check" },
+        closed: { text: "Đã Thanh Toán & Đã Giao Xe", color: "#94a3b8", icon: "fa-flag-checkered" }
+      };
+      const st = statusMap[matched.status] || { text: matched.status, color: "#cbd5e1", icon: "fa-info-circle" };
+
+      resContainer.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+          <div>
+            <h4 style="font-family: 'Outfit'; margin: 0; color: var(--text-main); font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-car" style="color: var(--accent-primary);"></i> Xe: ${matched.license_plate || input.toUpperCase()}
+            </h4>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Mã Phiếu: <strong>${matched.code}</strong> | Ngày nhận: ${new Date(matched.created_at || Date.now()).toLocaleDateString('vi-VN')}</span>
+          </div>
+          <span style="background: ${st.color}20; color: ${st.color}; border: 1px solid ${st.color}50; font-size: 0.82rem; font-weight: 700; padding: 4px 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 0.35rem;">
+            <i class="fa-solid ${st.icon}"></i> ${st.text}
+          </span>
+        </div>
+        <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+          <div><strong>Triệu chứng ban đầu:</strong> ${matched.initial_symptoms || 'Bảo dưỡng định kỳ'}</div>
+          <div><strong>Chẩn đoán kỹ thuật:</strong> ${matched.technical_diagnosis || 'KTV đang tiến hành phân tích hạng mục'}</div>
+          <div style="margin-top: 0.5rem; color: var(--accent-cyan); font-weight: 600;">Tổng chi phí dự toán: ${(matched.final_cost || 0).toLocaleString('vi-VN')} VNĐ</div>
+        </div>
+      `;
+    } else {
+      resContainer.innerHTML = `
+        <div style="text-align: center; color: var(--accent-rose); padding: 1rem;">
+          <i class="fa-solid fa-circle-exclamation" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+          <div>Không tìm thấy dữ liệu cho <strong>"${input}"</strong>. Xe mới có thể đang được Lễ tân tiếp nhận tại quầy.</div>
+        </div>
+      `;
+    }
+  } catch (err) {
+    resContainer.innerHTML = `<div style="color: var(--accent-rose); text-align: center;">❌ Đã xảy ra lỗi khi tra cứu. Vui lòng liên hệ Hotline 090.123.4567.</div>`;
+  }
+}
+
 // Global Window Bindings for HTML Inline Event Handlers
 window.toggleTheme = toggleTheme;
 window.toggleMobileSidebar = toggleMobileSidebar;
@@ -1895,3 +1956,4 @@ window.switchAISubTab = switchAISubTab;
 window.submitCustomerPortalRegistration = submitCustomerPortalRegistration;
 window.openPhoneContactModal = openPhoneContactModal;
 window.submitCallbackRequest = submitCallbackRequest;
+window.lookupCustomerVehicleProgress = lookupCustomerVehicleProgress;
