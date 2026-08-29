@@ -6,18 +6,18 @@ root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from sqlalchemy import inspect, text
+from sqlalchemy.orm import Session
 
 from backend.app.config import settings
-from backend.app.database import engine, Base
+from backend.app.database import engine, Base, get_db
 from backend.app.routers import (
     auth, customers, appointments, inventory, repair_orders, invoices, ai, analytics, customer_requests
 )
-
-from sqlalchemy import inspect, text
 
 # Create database tables automatically with fault safety
 try:
@@ -60,7 +60,6 @@ app = FastAPI(
     description="Hệ thống Quản lý Garage Ô tô Tích hợp AI (FastAPI + Modern SPA + Gemini AI)"
 )
 
-
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
@@ -82,8 +81,6 @@ app.include_router(analytics.router)
 app.include_router(customer_requests.router, prefix="/api/v1")
 
 # Serve Frontend from Project Root
-root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-
 @app.get("/")
 def read_root():
     index_path = os.path.join(root_dir, "index.html")
@@ -106,6 +103,27 @@ def read_app_js():
     return {"detail": "App JS not found"}
 
 @app.get("/health")
-def health_check():
-    return {"status": "ok", "project": settings.PROJECT_NAME}
+def health_check(db: Session = Depends(get_db)):
+    db_status = "connected"
+    db_type = "unknown"
+    table_count = 0
+    error_msg = None
+    try:
+        db.execute(text("SELECT 1"))
+        db_type = engine.name
+        inspector = inspect(engine)
+        table_count = len(inspector.get_table_names())
+    except Exception as e:
+        db_status = "error"
+        error_msg = str(e)
 
+    return {
+        "status": "ok" if db_status == "connected" else "degraded",
+        "project": settings.PROJECT_NAME,
+        "database": {
+            "status": db_status,
+            "engine": db_type,
+            "table_count": table_count,
+            "error": error_msg
+        }
+    }
