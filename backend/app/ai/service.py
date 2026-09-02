@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Dict, Optional, Tuple
 
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from backend.app.config import settings
@@ -153,6 +154,7 @@ class AIService:
         # 1. DeepSeek / OpenAI-compatible API
         if settings.DEEPSEEK_API_KEY:
             try:
+                # pyrefly: ignore [missing-import]
                 import httpx
 
                 base_url = (settings.DEEPSEEK_BASE_URL or "").rstrip("/")
@@ -196,6 +198,7 @@ class AIService:
         # 2. Gemini
         if settings.GEMINI_API_KEY:
             try:
+                # pyrefly: ignore [missing-import]
                 import google.generativeai as genai
 
                 genai.configure(api_key=settings.GEMINI_API_KEY)
@@ -252,28 +255,54 @@ class AIService:
                 model_used,
             )
 
+        # DIAGNOSTIC (Ưu tiên chẩn đoán kỹ thuật khi người dùng nêu triệu chứng xe)
+        if any(kw in prompt_lower for kw in ["kêu", "hỏng", "lỗi", "sự cố", "phanh", "dầu", "động cơ", "máy", "rung", "giật", "nóng", "khói", "chẩn đoán", "abs", "điều hòa", "bảo dưỡng"]):
+            specific_advice = ""
+            if "giật" in prompt_lower or "rung" in prompt_lower:
+                specific_advice = (
+                    "🔎 **Chi tiết chẩn đoán sơ bộ cho hiện tượng giật / rung khi tăng tốc:**\n"
+                    "1. **Hệ thống đánh lửa:** Bugi bị mòn điện cực, bô-bin (ignition coil) bị đánh lửa rò hoặc yếu điện áp cao áp.\n"
+                    "2. **Hệ thống nạp & nhiên liệu:** Họng ga (bướm ga) bám muội than, kim phun xăng bị nghẹt tia phun hoặc áp suất bơm xăng tụt.\n"
+                    "3. **Hộp số & Chân máy:** Cao su chân máy/chân số bị lão hóa xẹp gây rung truyền thẳng vào khoang lái khi sang số.\n"
+                )
+            elif "điều hòa" in prompt_lower or "nóng" in prompt_lower:
+                specific_advice = (
+                    "🔎 **Chi tiết chẩn đoán sơ bộ cho hệ thống điều hòa:**\n"
+                    "1. Thiếu hụt môi chất lạnh (Gas R134a) do rò rỉ gioăng phớt hoặc đường ống nhôm.\n"
+                    "2. Lọc gió điều hòa trong cabin bị bám bụi nghẹt lưu lượng gió.\n"
+                    "3. Quạt tản nhiệt dàn nóng phía đầu xe quay yếu hoặc ly hợp lốc lạnh (AC Compressor) bị trượt.\n"
+                )
+            elif "phanh" in prompt_lower or "abs" in prompt_lower:
+                specific_advice = (
+                    "🔎 **Chi tiết chẩn đoán sơ bộ cho hệ thống phanh / ABS:**\n"
+                    "1. Cảm biến tốc độ bánh xe (ABS Wheel Speed Sensor) bị bám bụi kim loại hoặc đứt ngầm dây cáp dẫn tín hiệu.\n"
+                    "2. Má phanh bị mòn dưới 3mm chạm vào lẫy cảnh báo kim loại.\n"
+                    "3. Đĩa phanh bị cong vênh hoặc tạo gờ gây cảm giác giật chân phanh khi đạp rà.\n"
+                )
+            else:
+                specific_advice = (
+                    "🔎 **Khuyến nghị kiểm tra tổng quát:**\n"
+                    "- Quét mã lỗi điện tử OBD-II để đọc các mã sự cố lưu trữ trong hộp điều khiển động cơ (ECU).\n"
+                    "- Chạy thử thực tế với máy đo chuyên dụng và kiểm tra mức các loại dung dịch tuần hoàn.\n"
+                )
+
+            return (
+                "🔍 **BÁO CÁO PHÂN TÍCH KỸ THUẬT TỪ TRỢ LÝ GARAGE VTV**\n\n"
+                f"{specific_advice}\n"
+                "🛠️ **Phương án xử lý khuyến nghị tại xưởng:**\n"
+                "- Kết nối máy quét chẩn đoán chuyên dụng để kiểm tra thông số vận hành động cơ (Live Data Stream).\n"
+                "- Vệ sinh họng ga, buồng đốt và đo điện áp kích hoạt bô-bin trước khi quyết định thay thế linh kiện.\n\n"
+                "⚠️ *Lưu ý an toàn: Nhận định sơ bộ từ trợ lý AI cần được kỹ thuật viên trưởng kiểm tra trực tiếp trên cầu nâng để chốt phương án chính xác.*",
+                model_used,
+            )
+
         # QUOTATION
-        if "báo giá" in prompt_lower or "chi phí" in prompt_lower or "tổng chi phí" in prompt_lower:
+        if "--- số liệu tài chính đã tính bởi hệ thống ---" in prompt_lower or "bảng dự toán" in prompt_lower:
             return (
                 "📋 **BÁO GIÁ NHÁP**\n\n"
                 "Hệ thống đã tính toán chi phí dựa trên các hạng mục được nhập trong phiếu sửa chữa.\n\n"
                 "⚠️ Đây là báo giá nháp. Chi phí thực tế có thể thay đổi sau khi kiểm tra xe và xác nhận phạm vi sửa chữa với khách hàng.\n\n"
                 "Vui lòng đối chiếu số lượng, đơn giá phụ tùng và tiền công trước khi xác nhận sửa chữa.",
-                model_used,
-            )
-
-        # DIAGNOSTIC
-        if any(kw in prompt_lower for kw in ["kêu", "hỏng", "lỗi", "sự cố", "phanh", "dầu", "động cơ", "máy", "rung", "giật", "nóng"]):
-            return (
-                "🔍 **NHẬN ĐỊNH KỸ THUẬT SƠ BỘ**\n\n"
-                "Hiện tượng bạn mô tả có thể liên quan đến một hoặc nhiều bộ phận của xe. Tuy nhiên, chưa thể xác định chính xác nguyên nhân chỉ dựa trên mô tả bằng văn bản.\n\n"
-                "⚠️ Đây chỉ là nhận định sơ bộ.\n\n"
-                "🛠️ **Khuyến nghị:**\n"
-                "- Kiểm tra trực tiếp tại garage.\n"
-                "- Kiểm tra các bộ phận liên quan đến triệu chứng.\n"
-                "- Đọc mã lỗi nếu xe có hệ thống điện tử liên quan.\n"
-                "- Chạy thử xe hoặc đo kiểm thực tế nếu cần.\n\n"
-                "Không nên thay phụ tùng chỉ dựa trên một triệu chứng mà chưa xác nhận nguyên nhân.",
                 model_used,
             )
 

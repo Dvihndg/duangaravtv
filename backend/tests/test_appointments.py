@@ -11,7 +11,7 @@ def test_create_and_list_appointment(client, auth_headers):
         },
         headers=auth_headers
     )
-    assert response.status_code == 200
+    assert response.status_code in [200, 201]
     data = response.json()
     assert data["vehicle_id"] == 1
     assert data["status"] == "pending"

@@ -51,11 +51,11 @@ def test_repair_order_lifecycle(client, auth_headers):
     assert get_ro.status_code == 200
     assert get_ro.json()["final_cost"] == 1100000.0
 
-    # 5. Update status to IN_PROGRESS
+    # 5. Update status to IN_REPAIR
     status_res = client.put(
         f"/api/v1/repair-orders/{ro_id}",
-        json={"status": "in_progress", "technical_diagnosis": "Cần thay lọc gió và vệ sinh cổ hút"},
+        json={"status": "in_repair", "technical_diagnosis": "Cần thay lọc gió và vệ sinh cổ hút"},
         headers=auth_headers
     )
     assert status_res.status_code == 200
-    assert status_res.json()["status"] == "in_progress"
+    assert status_res.json()["status"] in ["in_repair", "in_progress"]

@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: garage_vtv_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=postgresql+pg8000://garage_user:garage_password@postgres:5432/garage_db
+      - SECRET_KEY=garage-vtv-prod-secret-key-32-chars-min
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+      - AI_PROVIDER=fallback
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - VAT_RATE=0.10
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: garage_vtv_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: garage_user
+      POSTGRES_PASSWORD: garage_password
+      POSTGRES_DB: garage_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U garage_user -d garage_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: garage_vtv_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.app.database import get_db
@@ -10,55 +10,21 @@ from backend.app.models import (
 )
 from backend.app.schemas import InvoiceOut, PaymentCreate, PaymentOut
 from backend.app.auth import get_current_user, require_roles
+from backend.app.services.payment_service import PaymentService
 
-router = APIRouter(prefix="/api/v1", tags=["Invoices & Payments"])
+router = APIRouter(tags=["Invoices & Payments"])
 
-def generate_invoice_number(db: Session) -> str:
-    today_str = datetime.utcnow().strftime("%Y%m%d")
-    count = db.query(Invoice).filter(Invoice.invoice_number.like(f"INV-{today_str}-%")).count()
-    return f"INV-{today_str}-{(count + 1):03d}"
-
-@router.post("/repair-orders/{ro_id}/invoice", response_model=InvoiceOut)
+@router.post("/api/v1/repair-orders/{ro_id}/invoice", response_model=InvoiceOut)
+@router.post("/api/v1/invoices/from-ro/{ro_id}", response_model=InvoiceOut)
 def create_invoice_for_repair_order(
     ro_id: int,
-    discount_amount: float = 0.0,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.CASHIER, UserRole.RECEPTIONIST]))
+    current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.CASHIER]))
 ):
-    ro = db.query(RepairOrder).filter(RepairOrder.id == ro_id).first()
-    if not ro:
-        raise HTTPException(status_code=404, detail="Không tìm thấy phiếu sửa chữa")
+    inv = PaymentService.create_invoice_from_repair_order(db, ro_id)
+    return inv
 
-    if ro.invoice:
-        return ro.invoice
-
-    subtotal = sum([item.total_price for item in ro.items])
-    if subtotal == 0 and ro.final_cost > 0:
-        subtotal = ro.final_cost
-
-    tax_amount = (subtotal - discount_amount) * 0.08 # 8% VAT
-    total_amount = (subtotal - discount_amount) + tax_amount
-
-    inv_num = generate_invoice_number(db)
-    invoice = Invoice(
-        invoice_number=inv_num,
-        repair_order_id=ro_id,
-        subtotal=subtotal,
-        discount_amount=discount_amount,
-        tax_amount=tax_amount,
-        total_amount=total_amount,
-        paid_amount=0.0,
-        balance_due=total_amount,
-        status=InvoiceStatus.UNPAID
-    )
-
-    ro.status = RepairOrderStatus.INVOICED
-    db.add(invoice)
-    db.commit()
-    db.refresh(invoice)
-    return invoice
-
-@router.get("/invoices", response_model=List[InvoiceOut])
+@router.get("/api/v1/invoices", response_model=List[InvoiceOut])
 def list_invoices(
     status: Optional[InvoiceStatus] = None,
     db: Session = Depends(get_db),
@@ -69,7 +35,7 @@ def list_invoices(
         query = query.filter(Invoice.status == status)
     return query.order_by(Invoice.issued_date.desc()).all()
 
-@router.get("/invoices/{invoice_id}", response_model=InvoiceOut)
+@router.get("/api/v1/invoices/{invoice_id}", response_model=InvoiceOut)
 def get_invoice(
     invoice_id: int,
     db: Session = Depends(get_db),
@@ -80,37 +46,30 @@ def get_invoice(
         raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn")
     return inv
 
-@router.post("/payments", response_model=PaymentOut)
+@router.post("/api/v1/payments", response_model=PaymentOut)
 def record_payment(
     payment_in: PaymentCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.CASHIER]))
 ):
-    invoice = db.query(Invoice).filter(Invoice.id == payment_in.invoice_id).first()
-    if not invoice:
-        raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn thanh toán")
-
-    if invoice.status == InvoiceStatus.PAID:
-        raise HTTPException(status_code=400, detail="Hóa đơn này đã được thanh toán hoàn tất")
-
-    payment = Payment(
+    payment = PaymentService.process_payment(
+        db=db,
         invoice_id=payment_in.invoice_id,
-        payment_method=payment_in.payment_method,
         amount=payment_in.amount,
+        payment_method=payment_in.payment_method,
         transaction_reference=payment_in.transaction_reference,
-        cashier_id=current_user.id
+        cashier_id=current_user.id,
+        notes=None
     )
-    db.add(payment)
-
-    # Update invoice balances
-    invoice.paid_amount += payment_in.amount
-    invoice.balance_due = max(0.0, invoice.total_amount - invoice.paid_amount)
-
-    if invoice.balance_due <= 0:
-        invoice.status = InvoiceStatus.PAID
-    else:
-        invoice.status = InvoiceStatus.PARTIAL
-
-    db.commit()
-    db.refresh(payment)
     return payment
+
+@router.get("/api/v1/payments", response_model=List[PaymentOut])
+def list_payments(
+    invoice_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.CASHIER]))
+):
+    query = db.query(Payment)
+    if invoice_id:
+        query = query.filter(Payment.invoice_id == invoice_id)
+    return query.order_by(Payment.payment_date.desc()).all()

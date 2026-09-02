@@ -1,111 +1,109 @@
-# 🚘 HỆ THỐNG QUẢN LÝ GARAGE TÍCH HỢP AI (AI GARAGE MANAGEMENT SYSTEM)
+# 🚘 HỆ THỐNG QUẢN LÝ GARAGE VTV TÍCH HỢP AI (GARAGE VTV AI MANAGEMENT SYSTEM)
 
-Hệ thống Quản lý Garage Ô tô Tích hợp Trí tuệ Nhân tạo (AI Engine) hỗ trợ tự động hóa quy trình vận hành từ tiếp nhận xe, chẩn đoán, tóm tắt lịch sử sửa chữa, sinh báo giá nháp đến lập hóa đơn thanh toán và giải thích dịch vụ cho khách hàng bằng ngôn ngữ dễ hiểu.
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com)
+[![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit-FF4B4B.svg)](https://streamlit.io)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%20%2F%20SQLite-336791.svg)](https://www.postgresql.org)
+[![Docker](https://img.shields.io/badge/Container-Docker%20Compose-2496ED.svg)](https://www.docker.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
----
-
-## 🌟 TÍNH NĂNG NỔI BẬT
-
-### 1. Quản lý Quy trình Garage Chuẩn hóa (RBAC 4 Vai trò)
-- **Quản lý (Manager)**: Dashboard thống kê realtime doanh thu, dịch vụ phổ biến, phụ tùng tồn ít, quản lý giá catalog.
-- **Lễ tân (Receptionist)**: Đặt lịch hẹn, tiếp nhận xe vào garage, tra cứu lịch sử sửa chữa theo biển số xe.
-- **Kỹ thuật viên (Technician)**: Nhập ghi chú chẩn đoán kỹ thuật, thêm bớt công sửa chữa và phụ tùng thay thế.
-- **Thu ngân (Cashier)**: Lập hóa đơn (tự tính thuế VAT 8%, chiết khấu), ghi nhận thanh toán tiền mặt / chuyển khoản.
-
-### 2. Trí Tuệ Nhân Tạo (AI Engine Integration)
-- 📌 **AI Tóm tắt lịch sử sửa chữa xe**: Phân tích các lần sửa chữa trước đây và tự động đưa ra cảnh báo các chi tiết hao mòn cho KTV khi tiếp nhận xe.
-- 🗣️ **AI Giải thích dịch vụ dễ hiểu cho khách hàng**: Tự động chuyển đổi thông tin chẩn đoán máy móc phức tạp thành ngôn ngữ bình dân, dễ hiểu cho khách (Sử dụng đúng Prompt System theo bài toán).
-- 📋 **AI Sinh báo giá nháp tự động**: Tính toán chi phí vật tư, tiền công, VAT và trình bày bảng báo giá nháp lịch sự cho khách duyệt.
-- ⚡ **Lớp AI Fallback thông minh**: Đảm bảo hệ thống vận hành 100% không bị ngắt quãng ngay cả khi không có Internet hoặc chưa nhập API Key.
+Hệ thống Quản lý Vận hành Toàn diện cho Chuỗi Garage Ô tô kết hợp Trí Tuệ Nhân Tạo (AI Engine). Hệ thống quản lý khép kín luồng nghiệp vụ:
+**Khách hàng → Phương tiện → Lịch hẹn → Tiếp nhận xe → Khảo sát & Chẩn đoán → Phiếu sửa chữa → Phân công KTV → Dịch vụ & Phụ tùng → Báo giá → Khách duyệt → Sửa chữa → Nghiệm thu KCS → Hóa đơn → Thanh toán → Hoàn thành → Lịch sử bảo dưỡng → Báo cáo BI**.
 
 ---
 
-## 🛠️ HƯỚNG DẪN CÀI ĐẶT & KHỞI CHẠY
+## 🌐 1. ĐỊA CHỈ TRUY CẬP VẬN HÀNH (LIVE PRODUCTION)
+- **Cổng thông tin Khách hàng (Public Portal)**: [https://duangaravtv.vercel.app/](https://duangaravtv.vercel.app/) (Không cần đăng nhập).
+- **Khu vực Quản trị Nội bộ (Internal Admin)**: [https://duangaravtv.vercel.app/admin](https://duangaravtv.vercel.app/admin).
+- **Tài liệu API Tự động (Swagger UI)**: [https://duangaravtv.vercel.app/docs](https://duangaravtv.vercel.app/docs).
 
-### 1. Yêu cầu hệ thống
-- Python 3.10 trở lên
-- Trình duyệt web hiện đại (Chrome, Edge, Firefox, Safari)
+### 🔑 Tài khoản Thử nghiệm 4 Vai trò (RBAC):
+| Vai trò | Tên đăng nhập | Mật khẩu | Quyền hạn chính |
+|---|---|---|---|
+| **Quản lý (Manager)** | `admin` | `admin123` | Toàn quyền cấu hình, xem báo cáo doanh thu, audit logs, AI logs, xóa mềm |
+| **Lễ tân (Receptionist)** | `letan` | `letan123` | Tiếp nhận xe, đặt lịch hẹn, tạo báo giá, gửi khách duyệt, tra cứu tiến độ |
+| **Kỹ thuật viên (Technician)** | `kythuat` | `tech123` | Thực hiện chẩn đoán, đề xuất phụ tùng, cập nhật tiến độ xe được giao (IDOR safe) |
+| **Thu ngân (Cashier)** | `thungan` | `cashier123` | Lập hóa đơn từ RO, ghi nhận thanh toán (tiền mặt / chuyển khoản), in hóa đơn |
 
-### 2. Cài đặt môi trường
-Mở terminal PowerShell/CMD tại thư mục dự án và chạy các lệnh sau:
+---
 
-```powershell
-# 1. Cài đặt các thư viện Python phụ thuộc
-pip install -r requirements.txt
+## 🏗️ 2. KIẾN TRÚC HỆ THỐNG & TÀI LIỆU KỸ THUẬT (DOCUMENTATION)
+Toàn bộ tài liệu thiết kế chi tiết được đặt trong thư mục [`docs/`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs):
+- 📘 [`docs/REQUIREMENTS.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/REQUIREMENTS.md): Đặc tả yêu cầu, Actor, RBAC Permission Matrix, Sơ đồ Use Case, Sequence Workflow và State Machine.
+- 🏛️ [`docs/ARCHITECTURE.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/ARCHITECTURE.md): Kiến trúc Clean Architecture, Layered Services, API-first principles và khả năng di động CSDL.
+- 🗄️ [`docs/DATABASE.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/DATABASE.md): Sơ đồ ERD Mermaid, Từ điển dữ liệu Data Dictionary 18 bảng chuẩn 3NF, Khóa ngoại và Chỉ mục.
+- 📡 [`docs/API.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/API.md): Đặc tả toàn diện các RESTful Endpoints, Request/Response JSON schemas và HTTP Status Codes.
+- 🤖 [`docs/AI.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/AI.md): Kiến trúc AI đa nhà cung cấp, System Prompts, Thẻ `<UNTRUSTED_DATA>`, Khử PII và Fallback Engine.
+- 🛡️ [`docs/SECURITY.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/SECURITY.md): Phòng chống OWASP Top 10, IDOR, SQL Injection, CSRF/XSS và Audit Trail.
+- 🧪 [`docs/TESTING.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/TESTING.md): Chiến lược kiểm thử tự động, danh mục 17 Test Cases bắt buộc (TC01 - TC17).
+- 🚀 [`docs/DEPLOYMENT.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/DEPLOYMENT.md): Hướng dẫn triển khai Docker Compose, Vercel Serverless và Supabase PostgreSQL.
+- 📖 [`docs/USER_GUIDE.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/USER_GUIDE.md): Sổ tay hướng dẫn sử dụng cho Khách hàng, Lễ tân, Kỹ thuật viên, Thu ngân và Quản lý.
+- 📝 [`docs/SDLC_AI_USAGE.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/SDLC_AI_USAGE.md): Báo cáo ứng dụng AI trong cả 4 giai đoạn vòng đời phát triển phần mềm.
 
-# 2. Khởi tạo file môi trường .env (Nếu chưa có)
+---
+
+## ⚡ 3. KHỞI CHẠY BẰNG DOCKER & DOCKER COMPOSE
+
+Chạy toàn bộ hệ thống (FastAPI Backend + PostgreSQL + Redis) chỉ với 1 câu lệnh duy nhất:
+```bash
+# 1. Khởi tạo tệp môi trường
 cp .env.example .env
+
+# 2. Xây dựng và khởi chạy container
+docker compose up -d --build
+
+# 3. Nạp dữ liệu mẫu vào CSDL container
+docker compose exec backend python seed_data.py
+```
+- Truy cập Cổng khách hàng: `http://localhost:8000`
+- Truy cập Swagger API Docs: `http://localhost:8000/docs`
+
+---
+
+## 💻 4. KHỞI CHẠY CỤC BỘ (LOCAL DEVELOPMENT)
+
+### Bước 1: Cài đặt thư viện phụ thuộc
+```powershell
+pip install -r requirements.txt
 ```
 
-> **Ghi chú về AI API Key**: Bạn có thể điền `GEMINI_API_KEY` trong file `.env` để sử dụng Google Gemini LLM thực tế. Nếu để trống, hệ thống sẽ sử dụng **Smart AI Fallback Engine** tích hợp sẵn mà vẫn đảm bảo đầy đủ kết quả theo đúng yêu cầu!
-
-### 3. Nạp dữ liệu mẫu (Seed Data)
-Chạy script nạp dữ liệu mẫu bao gồm tài khoản 4 vai trò, xe ô tô, dịch vụ, phụ tùng và phiếu sửa chữa:
-
+### Bước 2: Nạp dữ liệu mẫu phong phú
+Tạo 22+ khách hàng, 32+ xe, 20+ dịch vụ, 50+ phụ tùng kho, 30+ phiếu sửa chữa, báo giá và hóa đơn:
 ```powershell
 python seed_data.py
 ```
 
-### 4. Chạy Kiểm Thử Tự Động (Run Tests)
-Chạy bộ test suite `pytest` kiểm thử tính năng Lịch hẹn, Phiếu sửa chữa, Hóa đơn và các tính năng AI:
-
+### Bước 3: Chạy Kiểm thử tự động 17 Test Cases (TC01 - TC17)
 ```powershell
-pytest backend/tests/ -v
+pytest backend/tests/test_master_suite.py -v
 ```
 
-### 5. Khởi chạy Hệ thống Web & Streamlit Admin Dashboard
-- **Chạy Streamlit Admin Dashboard (Giao diện Quản trị & AI Analytics bằng Streamlit):**
+### Bước 4: Khởi động máy chủ phát triển
+- **FastAPI Server**:
 ```powershell
-streamlit run streamlit_app.py
+uvicorn backend.app.main:app --reload --port 8000
 ```
-*Truy cập Streamlit Dashboard trên trình duyệt: `http://localhost:8501`*
-
-- **Chạy FastAPI Backend Server:**
+- **Streamlit Analytics Dashboard (Giao diện Quản trị Chuyên sâu)**:
 ```powershell
-python -m uvicorn backend.app.main:app --reload --port 8000
+python -m streamlit run streamlit_app.py
 ```
-
-Truy cập hệ thống trên trình duyệt:
-- 🌐 **Giao diện Web Customer & Admin**: `https://duangaravtv.vercel.app/`
-- 📊 **Giao diện Streamlit Admin Dashboard**: `http://localhost:8501`
-- 📚 **Tài liệu API Swagger**: `http://127.0.0.1:8000/docs`
 
 ---
 
-## 🔑 TÀI KHOẢN ĐĂNG NHẬP MẪU (Hoặc sử dụng Thanh chuyển đổi nhanh trên Web)
-
-| Vai trò | Tên đăng nhập | Mật khẩu |
-|---|---|---|
-| **Quản Lý (Manager)** | `admin` | `admin123` |
-| **Lễ Tân (Receptionist)** | `letan` | `letan123` |
-| **Kỹ Thuật Viên (Technician)** | `kythuat` | `tech123` |
-| **Thu Ngân (Cashier)** | `thungan` | `cashier123` |
-
----
-
-## 📁 CẤU TRÚC THƯ MỤC DỰ ÁN
-
-```text
-demotesthethong/
-├── backend/
-│   ├── app/
-│   │   ├── ai/               # AI Engine, Prompts & Fallback Service
-│   │   ├── routers/          # API Routers (Auth, Customers, Orders, Invoices, AI)
-│   │   ├── auth.py           # JWT Security & RBAC
-│   │   ├── config.py         # Config reader (.env)
-│   │   ├── database.py       # SQLAlchemy Session
-│   │   ├── main.py           # FastAPI entrypoint
-│   │   ├── models.py         # CSDL Models (3NF)
-│   │   └── schemas.py        # Pydantic Schemas
-│   └── tests/                # Test Suite (pytest)
-├── frontend/
-│   ├── index.html            # Web Dashboard SPA
-│   ├── styles.css            # Glassmorphism Design System
-│   └── app.js                # State Management & API Integration
-├── docs/
-│   └── SDLC_REPORT.md        # Báo cáo Kỹ thuật 4 giai đoạn SDLC (KT1-KT4)
-├── seed_data.py              # Script nạp dữ liệu mẫu
-├── requirements.txt          # Thư viện phụ thuộc
-├── .env.example              # Mẫu cấu hình môi trường
-└── README.md                 # Hướng dẫn sử dụng
-```
+## 🔒 5. QUY TẮC AN TOÀN & BẢO VỆ TÀI CHÍNH BẤT BIẾN
+1. **Server-Side Financial Authority**:
+   - `subtotal = sum(labor + parts)`
+   - `vat = (subtotal - discount) * vat_rate`
+   - `total = (subtotal - discount) + vat`
+   - Tuyệt đối không bao giờ tin tưởng số tiền client gửi lên.
+2. **Strict State Machine**:
+   - Vòng đời phiếu sửa chữa tuân thủ chặt chẽ: `RECEIVED` → `INSPECTING` → `QUOTATION_PENDING` → `WAITING_CUSTOMER_APPROVAL` → `APPROVED` → `IN_REPAIR` → `QUALITY_CHECK` → `COMPLETED`.
+   - Không cho phép nhảy cóc trạng thái trái phép.
+3. **No Negative Stock**:
+   - Tồn kho phụ tùng không bao giờ được phép âm (`stock >= 0`). Giao dịch xuất kho được thực hiện với khóa hàng kiểm soát chặt chẽ.
+4. **No Overpayment**:
+   - Số tiền thanh toán không được vượt quá số dư còn lại của hóa đơn (`amount <= balance_due`).
+   - Hóa đơn đã HỦY (`CANCELLED`) tuyệt đối không nhận thanh toán.
+5. **Prompt Injection & PII Protection**:
+   - Mọi dữ liệu do người dùng nhập được bọc trong thẻ `<UNTRUSTED_DATA>...</UNTRUSTED_DATA>`.
+   - Toàn bộ thông tin cá nhân (SĐT, Email) được khử định danh trước khi gửi tới API bên ngoài.
+   - Khi mạng gián đoạn, **Smart Offline Fallback Engine** tự động kích hoạt bảo đảm hoạt động 24/7.
