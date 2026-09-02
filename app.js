@@ -2474,12 +2474,25 @@ function initSSERealtimeStream() {
           if (currentState.activeView === "customer-requests") {
             loadCustomerRequestsFromBackend();
           }
-        } else if (payload.event === "UPDATE_CUSTOMER_REQUEST") {
+        } else if (payload.event === "UPDATE_CUSTOMER_REQUEST" || payload.event === "CONVERT_CUSTOMER_REQUEST") {
           if (currentState.activeView === "customer-requests") {
             loadCustomerRequestsFromBackend();
           }
         }
       } catch (e) { console.error("SSE parse:", e); }
+    };
+    sseEventSource.onerror = () => {
+      if (sseEventSource) {
+        sseEventSource.close();
+        sseEventSource = null;
+      }
+      if (!window._customerReqPollingInterval) {
+        window._customerReqPollingInterval = setInterval(() => {
+          if (currentState.activeView === "customer-requests") {
+            loadCustomerRequestsFromBackend();
+          }
+        }, 10000);
+      }
     };
   } catch (e) {
     console.log("SSE stream notice:", e);

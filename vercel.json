@@ -1,26 +1,25 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
+  "version": 2,
+  "routes": [
     {
-      "source": "/api/v1/(.*)",
-      "destination": "/api/index.py"
+      "src": "/api/v1/(.*)",
+      "dest": "/api/index.py"
     },
     {
-      "source": "/health",
-      "destination": "/api/index.py"
+      "src": "/health",
+      "dest": "/api/index.py"
     },
     {
-      "source": "/admin",
-      "destination": "/admin.html"
+      "src": "/admin",
+      "dest": "/admin.html"
     },
     {
-      "source": "/login",
-      "destination": "/login.html"
+      "src": "/login",
+      "dest": "/login.html"
     },
     {
-      "source": "/customer",
-      "destination": "/customer.html"
+      "src": "/customer",
+      "dest": "/customer.html"
     }
   ]
 }
