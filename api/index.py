@@ -10,11 +10,7 @@ if BASE_DIR not in sys.path:
 db_url = os.getenv("DATABASE_URL", "")
 if not db_url or "sqlite" in db_url:
     try:
-        import shutil
         tmp_db = "/tmp/garage.db"
-        root_db = os.path.join(BASE_DIR, "garage.db")
-        if not os.path.exists(tmp_db) and os.path.exists(root_db):
-            shutil.copy2(root_db, tmp_db)
         os.environ["DATABASE_URL"] = f"sqlite:///{tmp_db}"
     except Exception as e:
         print(f"[Vercel Startup Notice] SQLite /tmp setup: {e}")
