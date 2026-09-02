@@ -138,7 +138,10 @@ function initDatepickers() {
   });
 }
 
-function openModal(modalId, title = null, content = null) {
+async function openModal(modalId, title = null, content = null) {
+  if (modalId === "modal-new-appointment" || modalId === "modal-new-ro") {
+    try { await populateVehicleDropdowns(); } catch (e) { console.error("populateVehicleDropdowns:", e); }
+  }
   const modal = document.getElementById(modalId);
   if (modal) {
     if (title) {
@@ -1498,18 +1501,7 @@ function copyAIResult() {
   }
 }
 
-async function openModal(modalId) {
-  if (modalId === "modal-new-appointment" || modalId === "modal-new-ro") {
-    await populateVehicleDropdowns();
-  }
-  const el = document.getElementById(modalId);
-  if (el) el.classList.add("active");
-}
 
-function closeModal(modalId) {
-  const el = document.getElementById(modalId);
-  if (el) el.classList.remove("active");
-}
 
 // Form Submissions
 async function submitNewAppointment(e) {
