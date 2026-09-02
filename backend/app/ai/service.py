@@ -614,7 +614,8 @@ class AIService:
     @classmethod
     def analyze_technical_troubleshooting(cls, db: Session, symptoms: str, car_model: str = "Chưa rõ") -> Dict[str, Any]:
         """AI Chức năng Chẩn đoán Kỹ thuật cho KTV"""
-        prompt = PROMPT_TECHNICAL_TROUBLESHOOTING.format(symptoms=symptoms, car_model=car_model)
+        untrusted_symptoms = f"<UNTRUSTED_CUSTOMER_DATA>\n{symptoms}\n</UNTRUSTED_CUSTOMER_DATA>"
+        prompt = PROMPT_TECHNICAL_TROUBLESHOOTING.format(symptoms=untrusted_symptoms, car_model=car_model)
         output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, prompt)
         return {
             "success": True,

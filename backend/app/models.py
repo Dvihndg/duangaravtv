@@ -61,7 +61,9 @@ class CustomerRequestStatus(str, enum.Enum):
     CONFIRMED = "Confirmed"
     IN_PROGRESS = "InProgress"
     COMPLETED = "Completed"
+    CONVERTED = "Converted"
     CANCELLED = "Cancelled"
+    REJECTED = "Rejected"
 
 class InspectionCategory(str, enum.Enum):
     ENGINE = "ENGINE"
@@ -535,6 +537,11 @@ class CustomerRequest(Base):
     assigned_employee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     customer_id = Column(Integer, ForeignKey("customers.id"), nullable=True)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True)
+    appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=True)
+    source = Column(String(50), default="CUSTOMER_PORTAL")
+    reviewed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    converted_at = Column(DateTime, nullable=True)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -542,3 +549,5 @@ class CustomerRequest(Base):
     assigned_employee = relationship("User", foreign_keys=[assigned_employee_id])
     customer = relationship("Customer")
     vehicle = relationship("Vehicle")
+    appointment = relationship("Appointment")
+    reviewed_by = relationship("User", foreign_keys=[reviewed_by_id])
