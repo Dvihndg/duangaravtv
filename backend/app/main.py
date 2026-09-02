@@ -93,6 +93,39 @@ def read_root():
         return FileResponse(index_path)
     return {"message": "Garage VTV API Server Operating"}
 
+@app.get("/admin")
+@app.get("/admin.html")
+def read_admin():
+    admin_path = os.path.join(root_dir, "admin.html")
+    if os.path.exists(admin_path):
+        return FileResponse(admin_path)
+    return {"detail": "Admin HTML not found"}
+
+@app.get("/customer")
+@app.get("/customer.html")
+def read_customer():
+    cust_path = os.path.join(root_dir, "customer.html")
+    if not os.path.exists(cust_path):
+        cust_path = os.path.join(root_dir, "index.html")
+    if os.path.exists(cust_path):
+        return FileResponse(cust_path)
+    return {"detail": "Customer HTML not found"}
+
+@app.get("/login")
+@app.get("/login.html")
+def read_login():
+    login_path = os.path.join(root_dir, "login.html")
+    if os.path.exists(login_path):
+        return FileResponse(login_path)
+    return {"detail": "Login HTML not found"}
+
+@app.get("/logo.png")
+def read_logo():
+    logo_path = os.path.join(root_dir, "logo.png")
+    if os.path.exists(logo_path):
+        return FileResponse(logo_path, media_type="image/png")
+    return {"detail": "Logo not found"}
+
 @app.get("/styles.css")
 def read_styles():
     css_path = os.path.join(root_dir, "styles.css")
