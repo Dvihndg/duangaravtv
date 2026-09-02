@@ -764,6 +764,7 @@ function setupGlobalEventDelegation() {
 }
 
 function switchView(viewName) {
+  if (viewName === "appointments") viewName = "customer-requests";
   currentState.activeView = viewName;
 
   const activeSec = document.getElementById(`view-${viewName}`);
@@ -1663,19 +1664,27 @@ async function populateItemCatalogDropdown() {
   select.innerHTML = "";
 
   if (type === "service") {
-    if (!currentState.services.length) currentState.services = await apiFetch("/services");
+    if (!currentState.services || !currentState.services.length) {
+      const sList = await apiFetch("/services");
+      currentState.services = Array.isArray(sList) ? sList : [];
+    }
     currentState.services.forEach(s => {
       const opt = document.createElement("option");
       opt.value = s.id;
-      opt.textContent = `${s.name} (Công: ${s.labor_cost.toLocaleString()}đ)`;
+      const cost = s.price !== undefined ? s.price : (s.labor_cost || 0);
+      opt.textContent = `${s.name} (Công/Giá: ${cost.toLocaleString()}đ)`;
       select.appendChild(opt);
     });
   } else {
-    if (!currentState.parts.length) currentState.parts = await apiFetch("/parts");
+    if (!currentState.parts || !currentState.parts.length) {
+      const pList = await apiFetch("/parts");
+      currentState.parts = Array.isArray(pList) ? pList : [];
+    }
     currentState.parts.forEach(p => {
       const opt = document.createElement("option");
       opt.value = p.id;
-      opt.textContent = `${p.name} (Giá: ${p.unit_price.toLocaleString()}đ - Còn ${p.stock_quantity})`;
+      const price = p.selling_price !== undefined ? p.selling_price : (p.unit_price || 0);
+      opt.textContent = `${p.name} (Giá: ${price.toLocaleString()}đ - Còn ${p.stock_quantity || 0})`;
       select.appendChild(opt);
     });
   }
@@ -2743,31 +2752,22 @@ async function submitSaveCustomerRequestNote(reqId) {
 
 async function convertRequestToRepairOrder(reqId) {
   try {
-    const req = await apiFetch(`/customer-requests/${reqId}`);
-    if (!req) return;
-
-    // Auto-update status to InProgress
-    await apiFetch(`/customer-requests/${reqId}/status`, {
-      method: "PATCH",
-      body: JSON.stringify({ status: "InProgress" })
+    const ro = await apiFetch(`/customer-requests/${reqId}/convert-to-reception`, {
+      method: "POST"
     });
 
     closeModal('modal-ai-dialog');
     switchView('repair-orders');
-    openModal('modal-new-ro');
-    
-    // Auto-fill new RO modal fields
-    setTimeout(() => {
-      const plateEl = document.getElementById('ro-plate-input');
-      if (plateEl) plateEl.value = req.licensePlate;
-      
-      const symEl = document.getElementById('ro-symptoms-input');
-      if (symEl) symEl.value = `[Từ Yêu Cầu ${req.requestCode}] ${req.serviceType}: ${req.description || ''}`;
-    }, 300);
+    await loadRepairOrders();
 
-    showToast(`Đã chuyển yêu cầu ${req.requestCode} sang tạo Phiếu Sửa Chữa (RO)!`);
+    if (ro && ro.id) {
+      openRODetailModal(ro.id);
+      showToast(`🎉 Đã tạo Phiếu Sửa Chữa ${ro.code || ('RO-' + ro.id)} thành công!`);
+    } else {
+      showToast("Đã tiếp nhận yêu cầu sang phiếu sửa chữa!");
+    }
   } catch (err) {
-    showToast("❌ Không thể tạo phiếu sửa chữa từ yêu cầu này!");
+    showToast(`❌ Không thể tạo phiếu sửa chữa: ${err.message || 'Lỗi xử lý'}`);
   }
 }
 
