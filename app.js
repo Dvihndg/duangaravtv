@@ -199,7 +199,6 @@ async function loginAsCurrentRole() {
 
 // Detect static hosting environment (GitHub Pages, Netlify, Vercel, HTTPS live deployment)
 const isLocalhostHost = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-const API_BASE = isLocalhostHost ? "http://127.0.0.1:8000/api/v1" : "/api/v1";
 let isBackendAvailable = true;
 
 // Helper fetch wrapper connecting directly to Online Backend API
@@ -2438,6 +2437,7 @@ window.toggleItemSelectType = toggleItemSelectType;
 window.switchAISubTab = switchAISubTab;
 window.submitCustomerPortalRegistration = submitCustomerPortalRegistration;
 window.openPhoneContactModal = openPhoneContactModal;
+window.openAIAssistantModal = openAIAssistantModal;
 window.submitCallbackRequest = submitCallbackRequest;
 window.lookupCustomerVehicleProgress = lookupCustomerVehicleProgress;
 window.initDatepickers = initDatepickers;
