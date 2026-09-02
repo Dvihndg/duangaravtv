@@ -55,6 +55,71 @@ try:
 except Exception as e:
     print(f"[DB Columns Warning] {e}")
 
+def ensure_default_seed_users():
+    try:
+        from backend.app.models import User, UserRole, Service, Part
+        from backend.app.auth import get_password_hash
+        db = SessionLocal()
+        try:
+            if not db.query(User).filter(User.username == "admin").first():
+                admin_user = User(
+                    username="admin",
+                    email="admin@garage.com",
+                    hashed_password=get_password_hash("admin123"),
+                    full_name="Nguyên Van Quan Ly",
+                    role=UserRole.MANAGER,
+                    phone="0901111111"
+                )
+                letan_user = User(
+                    username="letan",
+                    email="letan@garage.com",
+                    hashed_password=get_password_hash("letan123"),
+                    full_name="Tran Thi Le Tan",
+                    role=UserRole.RECEPTIONIST,
+                    phone="0902222222"
+                )
+                tech_user = User(
+                    username="kythuat",
+                    email="kythuat@garage.com",
+                    hashed_password=get_password_hash("tech123"),
+                    full_name="Le Hoang Ky Thuat",
+                    role=UserRole.TECHNICIAN,
+                    phone="0903333333"
+                )
+                cashier_user = User(
+                    username="thungan",
+                    email="thungan@garage.com",
+                    hashed_password=get_password_hash("cashier123"),
+                    full_name="Pham Thi Thu Ngan",
+                    role=UserRole.CASHIER,
+                    phone="0904444444"
+                )
+                db.add_all([admin_user, letan_user, tech_user, cashier_user])
+                db.commit()
+
+            if not db.query(Service).first():
+                s1 = Service(code="DV-001", name="Bảo dưỡng định kỳ 5,000 km", category="Bảo dưỡng", price=450000, estimated_minutes=60)
+                s2 = Service(code="DV-002", name="Chẩn đoán lỗi động cơ (Scan OBD-II)", category="Chẩn đoán", price=300000, estimated_minutes=45)
+                s3 = Service(code="DV-003", name="Thay dầu nhớt & Lọc nhớt động cơ", category="Bảo dưỡng", price=150000, estimated_minutes=30)
+                db.add_all([s1, s2, s3])
+                db.commit()
+
+            if not db.query(Part).first():
+                p1 = Part(code="PT-001", name="Dầu nhớt Fully Synthetic 5W-30 (Can 4L)", category="Hóa chất / Dầu nhớt", unit="Can", cost_price=650000, selling_price=850000, stock_quantity=45, min_stock=10)
+                p2 = Part(code="PT-002", name="Lọc nhớt động cơ Toyota Camry/Corolla", category="Phụ tùng thay thế", unit="Cái", cost_price=120000, selling_price=180000, stock_quantity=30, min_stock=5)
+                p3 = Part(code="PT-003", name="Má phanh trước Honda CR-V (Bộ 4 miếng)", category="Phụ tùng thay thế", unit="Bộ", cost_price=850000, selling_price=1250000, stock_quantity=15, min_stock=4)
+                db.add_all([p1, p2, p3])
+                db.commit()
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"[DB Auto Seed Notice] {e}")
+
+try:
+    ensure_default_seed_users()
+except Exception as e:
+    print(f"[Auto Seed Exception] {e}")
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
@@ -120,6 +185,7 @@ def read_login():
     return {"detail": "Login HTML not found"}
 
 @app.get("/logo.png")
+@app.get("/favicon.ico")
 def read_logo():
     logo_path = os.path.join(root_dir, "logo.png")
     if os.path.exists(logo_path):
