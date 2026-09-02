@@ -120,11 +120,44 @@ try:
 except Exception as e:
     print(f"[Auto Seed Exception] {e}")
 
+from starlette.types import ASGIApp, Scope, Receive, Send
+from urllib.parse import urlparse
+
+class VercelPathRewriteMiddleware:
+    """
+    Middleware to resolve original Vercel serverless request paths when Vercel rewrites 
+    requests to /api/index.py. Restores scope['path'] from x-matched-path or x-real-url.
+    """
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] in ("http", "websocket"):
+            headers = dict(scope.get("headers", []))
+            raw_path = scope.get("path", "")
+            
+            # If path was rewritten by Vercel to /api/index.py or /api/index
+            if raw_path in ("/api/index.py", "/api/index", "/api", "/api/"):
+                x_matched_path = headers.get(b"x-matched-path", b"").decode("utf-8")
+                x_real_url = headers.get(b"x-real-url", b"").decode("utf-8")
+                
+                if x_matched_path and not x_matched_path.startswith("/api/index"):
+                    scope["path"] = x_matched_path
+                elif x_real_url:
+                    parsed = urlparse(x_real_url)
+                    if parsed.path:
+                        scope["path"] = parsed.path
+                        
+        await self.app(scope, receive, send)
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
     description="Hệ thống Quản lý Garage Ô tô Tích hợp AI (FastAPI + Modern SPA + Gemini AI)"
 )
+
+# Vercel Path Fixer Middleware
+app.add_middleware(VercelPathRewriteMiddleware)
 
 # CORS Middleware
 app.add_middleware(
