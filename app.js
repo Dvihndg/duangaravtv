@@ -599,8 +599,26 @@ function getOfflineMockResponse(endpoint, options) {
     }
     if (subPath === "/invoice") {
       const totalAmount = (ros[idx].final_cost !== undefined && ros[idx].final_cost > 0) ? ros[idx].final_cost : (body.total_amount || 0);
-      const inv = { id: Date.now(), invoice_number: dbPadCode("INV", dbNextId(DB_KEYS.invoices)), repair_order_id: rId, total_amount: totalAmount, status: "unpaid", created_at: new Date().toISOString() };
-      const invList = dbRead(DB_KEYS.invoices); invList.push(inv); dbWrite(DB_KEYS.invoices, invList);
+      const subtotal = Math.round(totalAmount / 1.08);
+      const taxAmount = totalAmount - subtotal;
+      const invId = Date.now();
+      const invCode = dbPadCode("INV", dbNextId(DB_KEYS.invoices));
+      const inv = {
+        id: invId,
+        invoice_number: invCode,
+        repair_order_id: rId,
+        subtotal: subtotal,
+        tax_amount: taxAmount,
+        discount_amount: 0,
+        total_amount: totalAmount,
+        paid_amount: 0,
+        balance_due: totalAmount,
+        status: "unpaid",
+        created_at: new Date().toISOString()
+      };
+      const invList = dbRead(DB_KEYS.invoices);
+      invList.push(inv);
+      dbWrite(DB_KEYS.invoices, invList);
       return inv;
     }
     return ros[idx];
@@ -611,15 +629,45 @@ function getOfflineMockResponse(endpoint, options) {
     if (method === "GET") return dbRead(DB_KEYS.invoices);
     if (method === "POST") {
       const id = dbNextId(DB_KEYS.invoices);
-      const inv = { id, invoice_number: dbPadCode("INV", id), ...body, status: "unpaid", created_at: new Date().toISOString() };
-      const existing = dbRead(DB_KEYS.invoices); existing.push(inv); dbWrite(DB_KEYS.invoices, existing);
+      const totalAmount = body.total_amount || 0;
+      const subtotal = body.subtotal !== undefined ? body.subtotal : Math.round(totalAmount / 1.08);
+      const taxAmount = body.tax_amount !== undefined ? body.tax_amount : (totalAmount - subtotal);
+      const paidAmount = body.paid_amount || 0;
+      const inv = {
+        id,
+        invoice_number: dbPadCode("INV", id),
+        subtotal,
+        tax_amount: taxAmount,
+        discount_amount: body.discount_amount || 0,
+        total_amount: totalAmount,
+        paid_amount: paidAmount,
+        balance_due: body.balance_due !== undefined ? body.balance_due : Math.max(0, totalAmount - paidAmount),
+        status: "unpaid",
+        created_at: new Date().toISOString(),
+        ...body
+      };
+      const existing = dbRead(DB_KEYS.invoices);
+      existing.push(inv);
+      dbWrite(DB_KEYS.invoices, existing);
       return inv;
     }
   }
 
   // Invoice payments
   if (endpoint.includes("/payments") && method === "POST") {
-    return { id: Date.now(), invoice_number: "INV-PAID", status: "paid", paid_amount: body.amount || 0 };
+    const existing = dbRead(DB_KEYS.invoices);
+    const invId = body.invoice_id;
+    const amount = Number(body.amount) || 0;
+    const inv = existing.find(i => i.id === invId || i.invoice_number === body.invoice_number);
+    if (inv) {
+      inv.paid_amount = (inv.paid_amount || 0) + amount;
+      inv.balance_due = Math.max(0, (inv.total_amount || 0) - inv.paid_amount);
+      if (inv.balance_due <= 0) {
+        inv.status = "paid";
+      }
+      dbWrite(DB_KEYS.invoices, existing);
+    }
+    return { id: Date.now(), invoice_number: inv ? inv.invoice_number : "INV-PAID", status: (inv && inv.status) || "paid", paid_amount: amount };
   }
 
   // ----- ANALYTICS DASHBOARD -----
@@ -1219,7 +1267,7 @@ async function loadInventory() {
       tr.innerHTML = `
         <td><code>${s.code}</code></td>
         <td><strong>${s.name}</strong></td>
-        <td style="color: #34d399;">${s.labor_cost.toLocaleString()} VNĐ</td>
+        <td style="color: #34d399;">${(s.labor_cost || 0).toLocaleString('vi-VN')} VNĐ</td>
       `;
       srvTbody.appendChild(tr);
     });
@@ -1236,7 +1284,7 @@ async function loadInventory() {
       tr.innerHTML = `
         <td><code>${p.code}</code></td>
         <td><strong>${p.name}</strong></td>
-        <td style="color: #34d399;">${p.unit_price.toLocaleString()} VNĐ</td>
+        <td style="color: #34d399;">${(p.unit_price || 0).toLocaleString('vi-VN')} VNĐ</td>
         <td>${stockBadge}</td>
       `;
       partsTbody.appendChild(tr);
@@ -1253,17 +1301,23 @@ async function loadInvoices() {
   tbody.innerHTML = "";
 
   currentState.invoices.forEach(inv => {
+    const totalAmount = Number(inv.total_amount) || 0;
+    const subtotal = (inv.subtotal !== undefined && inv.subtotal !== null) ? Number(inv.subtotal) : (totalAmount ? Math.round(totalAmount / 1.08) : 0);
+    const taxAmount = (inv.tax_amount !== undefined && inv.tax_amount !== null) ? Number(inv.tax_amount) : (totalAmount ? (totalAmount - subtotal) : 0);
+    const paidAmount = Number(inv.paid_amount) || 0;
+    const balanceDue = (inv.balance_due !== undefined && inv.balance_due !== null) ? Number(inv.balance_due) : Math.max(0, totalAmount - paidAmount);
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><strong>${inv.invoice_number}</strong></td>
-      <td><code>RO-${inv.repair_order_id}</code></td>
-      <td>${inv.subtotal.toLocaleString()} VNĐ</td>
-      <td>${inv.tax_amount.toLocaleString()} VNĐ</td>
-      <td style="color: #34d399; font-weight: 700;">${inv.total_amount.toLocaleString()} VNĐ</td>
-      <td>${inv.paid_amount.toLocaleString()} VNĐ</td>
-      <td><span class="status-pill ${inv.status}">${formatStatus(inv.status)}</span></td>
+      <td><strong>${inv.invoice_number || 'INV'}</strong></td>
+      <td><code>RO-${inv.repair_order_id || ''}</code></td>
+      <td>${subtotal.toLocaleString('vi-VN')} VNĐ</td>
+      <td>${taxAmount.toLocaleString('vi-VN')} VNĐ</td>
+      <td style="color: #34d399; font-weight: 700;">${totalAmount.toLocaleString('vi-VN')} VNĐ</td>
+      <td>${paidAmount.toLocaleString('vi-VN')} VNĐ</td>
+      <td><span class="status-pill ${inv.status || 'unpaid'}">${formatStatus(inv.status || 'unpaid')}</span></td>
       <td>
-        ${inv.status !== 'paid' ? `<button class="btn btn-primary btn-sm" onclick="openPaymentModal(${inv.id}, '${inv.invoice_number}', ${inv.balance_due})"><i class="fa-solid fa-credit-card"></i> Thu Tiền</button>` : `<span style="color: #10b981; font-weight:600;"><i class="fa-solid fa-check"></i> Hoàn Thành</span>`}
+        ${inv.status !== 'paid' ? `<button class="btn btn-primary btn-sm" onclick="openPaymentModal(${inv.id}, '${inv.invoice_number || ''}', ${balanceDue})"><i class="fa-solid fa-credit-card"></i> Thu Tiền</button>` : `<span style="color: #10b981; font-weight:600;"><i class="fa-solid fa-check"></i> Hoàn Thành</span>`}
       </td>
     `;
     tbody.appendChild(tr);
@@ -2142,9 +2196,9 @@ async function triggerDemoScenarioUI(scenarioId) {
           <td><code>${p.code}</code></td>
           <td>${p.name}</td>
           <td>${p.qty}</td>
-          <td>${p.price.toLocaleString()} VNĐ</td>
+          <td>${(p.price || 0).toLocaleString('vi-VN')} VNĐ</td>
           <td>${stockCol}</td>
-          <td style="color: #34d399; font-weight:700;">${p.total.toLocaleString()} VNĐ</td>
+          <td style="color: #34d399; font-weight:700;">${(p.total || 0).toLocaleString('vi-VN')} VNĐ</td>
         `;
         tbody.appendChild(tr);
       });
@@ -2155,9 +2209,9 @@ async function triggerDemoScenarioUI(scenarioId) {
           <td><code>${s.code}</code></td>
           <td>${s.name} (Dịch vụ)</td>
           <td>1</td>
-          <td>${s.cost.toLocaleString()} VNĐ</td>
+          <td>${(s.cost || 0).toLocaleString('vi-VN')} VNĐ</td>
           <td>-</td>
-          <td style="color: #34d399; font-weight:700;">${s.cost.toLocaleString()} VNĐ</td>
+          <td style="color: #34d399; font-weight:700;">${(s.cost || 0).toLocaleString('vi-VN')} VNĐ</td>
         `;
         tbody.appendChild(tr);
       });
