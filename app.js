@@ -424,6 +424,47 @@ function getOfflineMockResponse(endpoint, options) {
       dbWrite(DB_KEYS.customerRequests, reqs);
       return reqs[idx];
     }
+    if (method === "POST" && subPath === "/convert-to-reception") {
+      reqs[idx].status = "Converted";
+      reqs[idx].updatedAt = new Date().toISOString();
+      dbWrite(DB_KEYS.customerRequests, reqs);
+
+      const roId = dbNextId(DB_KEYS.repairOrders);
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+      const roCode = `RO-${dateStr}-${String(roId).padStart(4, '0')}`;
+
+      const newRO = {
+        id: roId,
+        code: roCode,
+        customer_request_id: rId,
+        license_plate: reqs[idx].licensePlate || "",
+        vehicle_plate: reqs[idx].licensePlate || "",
+        customer_name: reqs[idx].fullName || "",
+        customer_phone: reqs[idx].phone || "",
+        initial_symptoms: `[${reqs[idx].serviceType || 'Dịch vụ'}] ${reqs[idx].description || ''}`.trim(),
+        technical_diagnosis: "",
+        mileage_at_reception: reqs[idx].currentMileage || 40000,
+        status: "received",
+        items: [],
+        final_cost: 0,
+        created_at: new Date().toISOString()
+      };
+
+      const ros = dbRead(DB_KEYS.repairOrders);
+      ros.push(newRO);
+      dbWrite(DB_KEYS.repairOrders, ros);
+
+      return {
+        success: true,
+        message: `Đã chuyển đổi thành công sang Phiếu Sửa Chữa ${roCode}!`,
+        repair_order_id: roId,
+        repair_order_code: roCode,
+        id: roId,
+        code: roCode,
+        ro: newRO
+      };
+    }
     if (method === "DELETE") {
       reqs.splice(idx, 1);
       dbWrite(DB_KEYS.customerRequests, reqs);
@@ -1730,8 +1771,18 @@ async function submitNewCustomer(e) {
 
 // Repair Order Detail Modal Handling
 async function openRODetailModal(roId) {
+  if (!roId) {
+    showToast("Mã phiếu sửa chữa không hợp lệ!");
+    return;
+  }
   currentState.activeROId = roId;
   const ro = await apiFetch(`/repair-orders/${roId}`);
+
+  if (!ro) {
+    console.warn(`Phiếu sửa chữa ID ${roId} không tồn tại hoặc đã bị xóa.`);
+    showToast("Không tìm thấy thông tin phiếu sửa chữa!", "error");
+    return;
+  }
 
   const titleEl = document.getElementById("ro-detail-title");
   if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-wrench"></i> Phiếu Sửa Chữa ${ro.code || ('RO-' + roId)}`;
@@ -1739,7 +1790,7 @@ async function openRODetailModal(roId) {
   const infoEl = document.getElementById("ro-detail-info");
   if (infoEl) {
     infoEl.innerHTML = `
-      <strong>Xe:</strong> ${ro.vehicle ? ro.vehicle.license_plate : (ro.vehicle_plate || 'N/A')} (${ro.vehicle ? ro.vehicle.brand : ''} ${ro.vehicle ? ro.vehicle.model : ''}) | 
+      <strong>Xe:</strong> ${ro.vehicle ? ro.vehicle.license_plate : (ro.vehicle_plate || ro.license_plate || 'N/A')} (${ro.vehicle ? ro.vehicle.brand : ''} ${ro.vehicle ? ro.vehicle.model : ''}) | 
       <strong>Km nhận:</strong> ${(ro.mileage_at_reception || 40000).toLocaleString()} km | 
       <strong>Trạng thái:</strong> <span class="status-pill ${ro.status}">${formatStatus(ro.status)}</span><br>
       <strong>Triệu chứng ban đầu:</strong> ${ro.initial_symptoms || 'Chưa có'}
@@ -2626,8 +2677,8 @@ async function lookupCustomerVehicleProgress(plateParam = "") {
   try {
     const roList = await apiFetch("/repair-orders");
     const matched = roList.find(ro => 
-      ro.code.toLowerCase().includes(input.toLowerCase()) || 
-      (ro.license_plate && ro.license_plate.toLowerCase().includes(input.toLowerCase()))
+      ((ro && ro.code) || "").toLowerCase().includes(input.toLowerCase()) || 
+      (ro && ro.license_plate && ro.license_plate.toLowerCase().includes(input.toLowerCase()))
     );
 
     if (matched) {
@@ -2727,6 +2778,7 @@ window.lookupCustomerVehicleProgress = lookupCustomerVehicleProgress;
 window.initDatepickers = initDatepickers;
 window.logoutUser = logoutUser;
 window.checkAuthPermission = checkAuthPermission;
+window.quickConfirmCustomerRequest = quickConfirmCustomerRequest;
 
 // ----------------------------------------------------
 // CUSTOMER REQUESTS MANAGEMENT & REAL-TIME SSE LOGIC
@@ -2861,7 +2913,7 @@ function renderCustomerRequestsTable() {
 
   const statusMap = {
     Pending: { label: "Mới (Pending)", color: "#fb7185", bg: "rgba(244, 63, 94, 0.15)" },
-    Contacted: { label: "Đã Liên Hệ", color: "#38bdf8", bg: "rgba(56, 189, 248, 0.15)" },
+    Contacted: { label: "Lễ Tân Xác Nhận", color: "#38bdf8", bg: "rgba(56, 189, 248, 0.15)" },
     Confirmed: { label: "Đã Xác Nhận", color: "#2563eb", bg: "rgba(37, 99, 235, 0.15)" },
     InProgress: { label: "Đang Xử Lý", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)" },
     Completed: { label: "Hoàn Thành", color: "#10b981", bg: "rgba(16, 185, 129, 0.15)" },
@@ -2887,7 +2939,12 @@ function renderCustomerRequestsTable() {
           </span>
         </td>
         <td>
-          <div style="display: flex; gap: 0.35rem;">
+          <div style="display: flex; gap: 0.35rem; align-items: center;">
+            ${r.status === 'Pending' ? `
+              <button class="btn btn-sm" onclick="quickConfirmCustomerRequest(${r.id})" title="Lễ Tân Xác Nhận Nhanh" style="background: rgba(16, 185, 129, 0.18); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); font-weight: 700; font-size: 0.76rem; padding: 0.25rem 0.55rem; white-space: nowrap;">
+                <i class="fa-solid fa-check"></i> Lễ Tân Xác Nhận
+              </button>
+            ` : ''}
             <button class="btn btn-secondary btn-sm" onclick="openCustomerRequestDetailModal(${r.id})" title="Xem chi tiết & Xử lý">
               <i class="fa-solid fa-eye"></i> Xem & Xử Lý
             </button>
@@ -2914,8 +2971,8 @@ async function openCustomerRequestDetailModal(reqId) {
           <div>
             <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Cập Nhật Trạng Thái:</label>
             <select id="req-modal-status" class="form-control" style="font-weight: 700; background: var(--bg-card); color: var(--text-main);" onchange="submitUpdateCustomerRequestStatus(${req.id}, this.value)">
-              <option value="Pending" ${req.status === 'Pending' ? 'selected' : ''}>Mới (Pending)</option>
-              <option value="Contacted" ${req.status === 'Contacted' ? 'selected' : ''}>Đã Liên Hệ (Contacted)</option>
+              <option value="Pending" ${req.status === 'Pending' ? 'selected' : ''}>Mới (Chờ Lễ Tân Xác Nhận)</option>
+              <option value="Contacted" ${req.status === 'Contacted' ? 'selected' : ''}>Lễ Tân Xác Nhận (Contacted)</option>
               <option value="Confirmed" ${req.status === 'Confirmed' ? 'selected' : ''}>Đã Xác Nhận Hẹn (Confirmed)</option>
               <option value="InProgress" ${req.status === 'InProgress' ? 'selected' : ''}>Đang Xử Lý tại Xưởng (InProgress)</option>
               <option value="Completed" ${req.status === 'Completed' ? 'selected' : ''}>Hoàn Thành Bàn Giao (Completed)</option>
@@ -2965,7 +3022,7 @@ async function openCustomerRequestDetailModal(reqId) {
           <h4 style="font-family: Arial; font-size: 0.92rem; color: var(--accent-amber); margin-bottom: 0.75rem;"><i class="fa-solid fa-user-gear"></i> XỬ LÝ & GHI CHÚ QUẢN TRỊ</h4>
           <div style="display: flex; flex-direction: column; gap: 0.75rem;">
             <div>
-              <label style="font-size: 0.8rem; color: var(--text-muted);">Ghi Chú Admin (Ví dụ: Đã gọi khách, xác nhận đến lúc 9:00):</label>
+              <label style="font-size: 0.8rem; color: var(--text-muted);">Ghi Chú Admin (Ví dụ: Lễ tân đã xác nhận hẹn với khách lúc 9:00):</label>
               <div style="display: flex; gap: 0.5rem; margin-top: 4px;">
                 <input type="text" id="req-modal-admin-note" class="form-control" value="${req.adminNote || ''}" placeholder="Nhập ghi chú xử lý...">
                 <button class="btn btn-secondary btn-sm" onclick="submitSaveCustomerRequestNote(${req.id})">Lưu Ghi Chú</button>
@@ -2974,8 +3031,13 @@ async function openCustomerRequestDetailModal(reqId) {
           </div>
         </div>
 
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem;">
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem; flex-wrap: wrap;">
           <button class="btn btn-secondary" onclick="closeModal('modal-ai-dialog')">Đóng</button>
+          ${req.status === 'Pending' ? `
+            <button class="btn btn-primary" onclick="quickConfirmCustomerRequest(${req.id})" style="background: linear-gradient(135deg, #059669, #10b981); border: none; font-weight: 700;">
+              <i class="fa-solid fa-clipboard-check"></i> Lễ Tân Xác Nhận
+            </button>
+          ` : ''}
           <button class="btn btn-primary" onclick="convertRequestToRepairOrder(${req.id})">
             <i class="fa-solid fa-file-circle-plus"></i> Tạo Phiếu Sửa Chữa (RO)
           </button>
@@ -3002,6 +3064,19 @@ async function submitUpdateCustomerRequestStatus(reqId, newStatus) {
   }
 }
 
+async function quickConfirmCustomerRequest(reqId) {
+  try {
+    await submitUpdateCustomerRequestStatus(reqId, "Contacted");
+    showToast("🎉 Lễ tân đã xác nhận lịch hẹn thành công!");
+    const dialog = document.getElementById("modal-ai-dialog");
+    if (dialog && dialog.classList.contains("active")) {
+      closeModal("modal-ai-dialog");
+    }
+  } catch (err) {
+    showToast("❌ Không thể cập nhật trạng thái!");
+  }
+}
+
 async function submitSaveCustomerRequestNote(reqId) {
   const note = document.getElementById("req-modal-admin-note")?.value?.trim();
   if (!note) {
@@ -3022,7 +3097,7 @@ async function submitSaveCustomerRequestNote(reqId) {
 
 async function convertRequestToRepairOrder(reqId) {
   try {
-    const ro = await apiFetch(`/customer-requests/${reqId}/convert-to-reception`, {
+    const res = await apiFetch(`/customer-requests/${reqId}/convert-to-reception`, {
       method: "POST"
     });
 
@@ -3030,9 +3105,12 @@ async function convertRequestToRepairOrder(reqId) {
     switchView('repair-orders');
     await loadRepairOrders();
 
-    if (ro && ro.id) {
-      openRODetailModal(ro.id);
-      showToast(`🎉 Đã tạo Phiếu Sửa Chữa ${ro.code || ('RO-' + ro.id)} thành công!`);
+    const targetROId = res?.repair_order_id || (res?.ro ? res.ro.id : (res?.id && typeof res.id === 'number' && res?.code && res.code.startsWith('RO-') ? res.id : null));
+    const targetROCode = res?.repair_order_code || (res?.ro ? res.ro.code : res?.code);
+
+    if (targetROId) {
+      await openRODetailModal(targetROId);
+      showToast(`🎉 Đã tạo Phiếu Sửa Chữa ${targetROCode || ('RO-' + targetROId)} thành công!`);
     } else {
       showToast("Đã tiếp nhận yêu cầu sang phiếu sửa chữa!");
     }
@@ -3051,7 +3129,7 @@ async function openTrackRequestModal(requestCode = "") {
     
     const steps = [
       { key: "Pending", title: "1. Đã Gửi Yêu Cầu", desc: "Hệ thống đã tiếp nhận form đăng ký" },
-      { key: "Contacted", title: "2. Admin Đã Liên Hệ", desc: "Lễ tân đã gọi điện thoại xác nhận" },
+      { key: "Contacted", title: "2. Lễ Tân Xác Nhận", desc: "Lễ tân đã liên hệ và xác nhận lịch hẹn dịch vụ" },
       { key: "Confirmed", title: "3. Đã Xác Nhận Hẹn", desc: "Đã chốt lịch hẹn mang xe đến xưởng" },
       { key: "InProgress", title: "4. Đang Sửa Chữa", desc: "KTV đang bảo dưỡng / sửa chữa tại xưởng" },
       { key: "Completed", title: "5. Hoàn Thành", desc: "Đã bàn giao xe cho khách hàng" }

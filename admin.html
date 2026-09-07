@@ -401,15 +401,15 @@
             <div class="kpi-info">
               <h4 style="font-size: 0.82rem;">Yêu Cầu Mới</h4>
               <div class="val" id="req-kpi-pending" style="font-size: 1.5rem; color: #fb7185;">0</div>
-              <div class="kpi-trend neutral" style="font-size: 0.75rem;"><i class="fa-solid fa-clock"></i> Chờ Lễ tân tiếp nhận</div>
+              <div class="kpi-trend neutral" style="font-size: 0.75rem;"><i class="fa-solid fa-clock"></i> Chờ Lễ tân xác nhận</div>
             </div>
             <div class="kpi-icon" style="background: rgba(244, 63, 94, 0.15); color: #fb7185; width: 44px; height: 44px;"><i class="fa-solid fa-bell"></i></div>
           </div>
           <div class="kpi-card" style="padding: 1.1rem;">
             <div class="kpi-info">
-              <h4 style="font-size: 0.82rem;">Đã Liên Hệ / Xác Nhận</h4>
+              <h4 style="font-size: 0.82rem;">Lễ Tân Đã Xác Nhận</h4>
               <div class="val" id="req-kpi-confirmed" style="font-size: 1.5rem; color: #38bdf8;">0</div>
-              <div class="kpi-trend up" style="font-size: 0.75rem;"><i class="fa-solid fa-phone"></i> Khách đã xác nhận hẹn</div>
+              <div class="kpi-trend up" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-check"></i> Lễ tân đã xác nhận hẹn</div>
             </div>
             <div class="kpi-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; width: 44px; height: 44px;"><i class="fa-solid fa-user-check"></i></div>
           </div>
@@ -441,7 +441,7 @@
               <select id="req-status-filter" class="form-control" style="width: 170px; padding: 0.4rem 0.75rem; font-size: 0.85rem;" onchange="filterCustomerRequestsTable()">
                 <option value="ALL" selected>Tất cả Trạng thái</option>
                 <option value="Pending">Mới (Pending)</option>
-                <option value="Contacted">Đã Liên Hệ</option>
+                <option value="Contacted">Lễ Tân Xác Nhận</option>
                 <option value="Confirmed">Đã Xác Nhận</option>
                 <option value="InProgress">Đang Xử Lý</option>
                 <option value="Completed">Hoàn Thành</option>
@@ -746,7 +746,7 @@
               <div style="text-align: right;">
                 <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem;">Trạng Thái Hồ Sơ</div>
                 <span id="conf-status-badge" class="status-pill pending" style="font-size: 0.9rem; padding: 0.35rem 0.85rem;">
-                  <i class="fa-solid fa-clock"></i> Đã Gửi - Chờ Lễ Tân Gọi Xác Nhận
+                  <i class="fa-solid fa-clock"></i> Đã Gửi - Chờ Lễ Tân Xác Nhận
                 </span>
               </div>
             </div>
@@ -761,8 +761,8 @@
                   <div style="font-size: 0.7rem; color: #10b981;">Hoàn thành</div>
                 </div>
                 <div style="padding: 0.5rem; border-radius: 8px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4);">
-                  <i class="fa-solid fa-phone" style="color: #38bdf8; font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-                  <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8;">2. Lễ Tân Liên Hệ</div>
+                  <i class="fa-solid fa-clipboard-check" style="color: #38bdf8; font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
+                  <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8;">2. Lễ Tân Xác Nhận</div>
                   <div style="font-size: 0.7rem; color: #38bdf8;">Đang xử lý...</div>
                 </div>
                 <div style="padding: 0.5rem; border-radius: 8px; background: var(--bg-card); opacity: 0.6;">
@@ -831,7 +831,7 @@
             <div style="background: rgba(37, 99, 235, 0.08); border: 1px dashed rgba(37, 99, 235, 0.35); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 0.85rem; align-items: flex-start;">
               <i class="fa-solid fa-circle-info" style="color: #38bdf8; font-size: 1.2rem; margin-top: 2px;"></i>
               <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
-                <div>• <strong>Lễ tân Garage VTV</strong> sẽ liên hệ trực tiếp với quý khách theo số điện thoại đã cung cấp để chốt lịch và điều phối khoang sửa chữa.</div>
+                <div>• <strong>Lễ tân Garage VTV</strong> sẽ xác nhận trực tiếp với quý khách theo số điện thoại đã cung cấp để chốt lịch và điều phối khoang sửa chữa.</div>
                 <div>• Quý khách có thể chụp ảnh màn hình hoặc lưu lại <strong>Mã phiếu tiếp nhận</strong> để tra cứu tiến độ xe bất cứ lúc nào qua thanh tra cứu trên cùng.</div>
               </div>
             </div>
@@ -1437,7 +1437,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
-  <script src="app.js?v=9.2"></script>
+  <script src="app.js?v=9.3"></script>
 </body>
 
 
