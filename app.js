@@ -2393,26 +2393,133 @@ async function submitOBDDiagnosticForm(event) {
   }
 }
 
-// Customer Portal Registration & Phone Contact Popup Handlers
+// Customer Portal Registration & Direct Confirmation Page Handlers
+function renderBookingConfirmation(reqData) {
+  const formCard = document.getElementById("card-booking-form");
+  const confCard = document.getElementById("card-booking-confirmation");
+  if (!confCard) return;
+
+  const codeEl = document.getElementById("conf-request-code");
+  if (codeEl) codeEl.innerText = reqData.requestCode || reqData.code || "REQ-SUCCESS";
+
+  const nameEl = document.getElementById("conf-cust-name");
+  if (nameEl) nameEl.innerText = reqData.fullName || reqData.name || "";
+
+  const phoneEl = document.getElementById("conf-cust-phone");
+  if (phoneEl) phoneEl.innerText = reqData.phone || "";
+
+  const emailEl = document.getElementById("conf-cust-email");
+  if (emailEl) emailEl.innerText = reqData.email || "Chưa cung cấp";
+
+  const addrEl = document.getElementById("conf-cust-address");
+  if (addrEl) addrEl.innerText = reqData.address || "Chưa cung cấp";
+
+  const plateEl = document.getElementById("conf-veh-plate");
+  if (plateEl) plateEl.innerText = reqData.licensePlate || reqData.plate || "";
+
+  const brandModelEl = document.getElementById("conf-veh-brandmodel");
+  if (brandModelEl) {
+    const bm = (reqData.vehicleBrand && reqData.vehicleModel) 
+      ? `${reqData.vehicleBrand} ${reqData.vehicleModel}` 
+      : (reqData.brandModel || "Toyota Vios");
+    brandModelEl.innerText = bm;
+  }
+
+  const yearEl = document.getElementById("conf-veh-year");
+  if (yearEl) yearEl.innerText = reqData.manufactureYear || "2020";
+
+  const mileageEl = document.getElementById("conf-veh-mileage");
+  if (mileageEl) mileageEl.innerText = (reqData.currentMileage ? Number(reqData.currentMileage).toLocaleString('vi-VN') : "50,000") + " km";
+
+  const srvEl = document.getElementById("conf-service-type");
+  if (srvEl) srvEl.innerText = reqData.serviceType || "Bảo dưỡng định kỳ";
+
+  const dateEl = document.getElementById("conf-pref-datetime");
+  if (dateEl) {
+    const d = reqData.preferredDate || "";
+    const t = reqData.preferredTime || "09:00";
+    dateEl.innerText = d ? `${t} ngày ${d}` : "Lễ tân xếp lịch sớm nhất";
+  }
+
+  const symEl = document.getElementById("conf-symptoms");
+  if (symEl) symEl.innerText = reqData.description || "Bảo dưỡng & kiểm tra tổng quát";
+
+  const noteEl = document.getElementById("conf-note");
+  if (noteEl) noteEl.innerText = reqData.note || "Không có ghi chú thêm";
+
+  // Switch display directly to confirmation page
+  if (formCard) formCard.style.display = "none";
+  confCard.style.display = "block";
+
+  // Smoothly scroll down to confirmation receipt
+  confCard.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function resetToNewBooking() {
+  const formCard = document.getElementById("card-booking-form");
+  const confCard = document.getElementById("card-booking-confirmation");
+  const form = document.getElementById("form-customer-portal");
+  if (form) form.reset();
+  if (confCard) confCard.style.display = "none";
+  if (formCard) {
+    formCard.style.display = "block";
+    formCard.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function printBookingConfirmation() {
+  window.print();
+}
+
+function copyRequestCode() {
+  const codeEl = document.getElementById("conf-request-code");
+  const code = codeEl ? codeEl.innerText.trim() : "";
+  if (code && navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(() => {
+      showToast(`Đã sao chép mã ${code} vào bộ nhớ tạm!`);
+    }).catch(() => {
+      showToast(`Mã yêu cầu: ${code}`);
+    });
+  } else if (code) {
+    showToast(`Mã yêu cầu: ${code}`);
+  }
+}
+
 async function submitCustomerPortalRegistration(e) {
   if (e && e.preventDefault) e.preventDefault();
   
-  const submitBtn = document.getElementById("btn-submit-request");
+  const submitBtn = document.getElementById("btn-submit-request") || (e?.target ? e.target.querySelector('button[type="submit"]') : null);
   const name = document.getElementById("cp-cust-name")?.value.trim() || "";
   const phone = document.getElementById("cp-cust-phone")?.value.trim() || "";
   const email = document.getElementById("cp-cust-email")?.value.trim() || "";
   const address = document.getElementById("cp-cust-address")?.value.trim() || "";
   
   const plate = document.getElementById("cp-veh-plate")?.value.trim() || "";
-  const brand = document.getElementById("cp-veh-brand")?.value.trim() || "Toyota";
-  const model = document.getElementById("cp-veh-model")?.value.trim() || "Vios";
+  let brand = document.getElementById("cp-veh-brand")?.value.trim() || "";
+  let model = document.getElementById("cp-veh-model")?.value.trim() || "";
+  const brandModelInput = document.getElementById("cp-veh-brandmodel")?.value.trim();
+  if (brandModelInput && (!brand || !model)) {
+    const parts = brandModelInput.split(" ");
+    brand = parts[0] || "Toyota";
+    model = parts.slice(1).join(" ") || "Vios";
+  }
+  if (!brand) brand = "Toyota";
+  if (!model) model = "Vios";
+
   const year = parseInt(document.getElementById("cp-veh-year")?.value || 2020);
   const mileage = parseInt(document.getElementById("cp-veh-mileage")?.value || 50000);
   
   const serviceType = document.getElementById("cp-service-type")?.value || "Bảo dưỡng định kỳ";
   const description = document.getElementById("cp-symptoms")?.value.trim() || "";
-  const preferredDate = document.getElementById("cp-pref-date")?.value || "";
-  const preferredTime = document.getElementById("cp-pref-time")?.value || "09:00";
+  
+  let preferredDate = document.getElementById("cp-pref-date")?.value || "";
+  let preferredTime = document.getElementById("cp-pref-time")?.value || "09:00";
+  const aptDateInput = document.getElementById("cp-apt-date")?.value;
+  if (aptDateInput && !preferredDate) {
+    const [d, t] = aptDateInput.split("T");
+    preferredDate = d || "";
+    preferredTime = t || "09:00";
+  }
   const note = document.getElementById("cp-note")?.value.trim() || "";
 
   // Frontend Validation Check
@@ -2450,31 +2557,23 @@ async function submitCustomerPortalRegistration(e) {
       body: JSON.stringify(payload)
     });
 
-    const reqCode = res.requestCode || res.code || "REQ-SUCCESS";
+    const reqCode = res.requestCode || res.code || dbNextRequestCode();
+    const reqData = {
+      ...payload,
+      requestCode: reqCode,
+      id: res.id,
+      status: res.status || "Pending",
+      createdAt: res.createdAt || new Date().toISOString()
+    };
 
-    // Section 17: UX Success Feedback
-    const modalContent = `
-      <div style="text-align: center; padding: 1rem 0;">
-        <div style="font-size: 3rem; color: #10b981; margin-bottom: 0.5rem;"><i class="fa-solid fa-circle-check"></i></div>
-        <h3 style="font-family: Arial; font-size: 1.35rem; color: var(--text-main); margin-bottom: 0.5rem;">Gửi Yêu Cầu Thành Công!</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Gara VTV sẽ liên hệ với quý khách theo SĐT <strong>${phone}</strong> trong thời gian sớm nhất.</p>
-        <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
-          <div style="font-size: 0.8rem; color: #38bdf8; font-weight: 600; text-transform: uppercase;">Mã Yêu Cầu Của Bạn</div>
-          <div style="font-size: 1.6rem; font-weight: 800; color: var(--accent-cyan); letter-spacing: 0.05em; font-family: monospace;">${reqCode}</div>
-        </div>
-        <div style="display: flex; gap: 0.75rem; justify-content: center;">
-          <button class="btn btn-secondary" onclick="closeModal('modal-ai-dialog')">Đóng</button>
-          <button class="btn btn-primary" onclick="closeModal('modal-ai-dialog'); openTrackRequestModal('${reqCode}');">
-            <i class="fa-solid fa-magnifying-glass"></i> Xem Trạng Thái Yêu Cầu
-          </button>
-        </div>
-      </div>
-    `;
+    // Save to localStorage for persistence
+    try {
+      localStorage.setItem("vtv_last_booking_req", JSON.stringify(reqData));
+    } catch {}
 
-    openModal("modal-ai-dialog", "Thông Báo Tiếp Nhận Yêu Cầu", modalContent);
-    
-    const form = document.getElementById("form-customer-portal");
-    if (form) form.reset();
+    // Section 17: DIRECT TRANSITION TO CONFIRMATION PAGE
+    renderBookingConfirmation(reqData);
+    showToast(`🎉 Tiếp nhận yêu cầu thành công! Mã: ${reqCode}`);
 
   } catch (err) {
     showToast(`❌ Không thể gửi yêu cầu: ${err.message || 'Vui lòng thử lại sau.'}`);
@@ -2507,8 +2606,8 @@ function submitCallbackRequest(e) {
   if (phoneInput) phoneInput.value = "";
 }
 
-async function lookupCustomerVehicleProgress() {
-  const input = document.getElementById("cust-search-plate")?.value?.trim();
+async function lookupCustomerVehicleProgress(plateParam = "") {
+  let input = (typeof plateParam === "string" && plateParam.trim()) ? plateParam.trim() : (document.getElementById("cust-search-plate")?.value?.trim() || "");
   const resContainer = document.getElementById("cust-progress-result");
   if (!resContainer) return;
 
@@ -2517,7 +2616,11 @@ async function lookupCustomerVehicleProgress() {
     return;
   }
 
+  const searchInputEl = document.getElementById("cust-search-plate");
+  if (searchInputEl) searchInputEl.value = input;
+
   resContainer.style.display = "block";
+  resContainer.scrollIntoView({ behavior: "smooth", block: "center" });
   resContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 1rem;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tìm kiếm thông tin xe ${input}...</div>`;
 
   try {
@@ -2613,6 +2716,10 @@ window.submitOBDDiagnosticForm = submitOBDDiagnosticForm;
 window.toggleItemSelectType = toggleItemSelectType;
 window.switchAISubTab = switchAISubTab;
 window.submitCustomerPortalRegistration = submitCustomerPortalRegistration;
+window.renderBookingConfirmation = renderBookingConfirmation;
+window.resetToNewBooking = resetToNewBooking;
+window.printBookingConfirmation = printBookingConfirmation;
+window.copyRequestCode = copyRequestCode;
 window.openPhoneContactModal = openPhoneContactModal;
 window.openAIAssistantModal = openAIAssistantModal;
 window.submitCallbackRequest = submitCallbackRequest;
