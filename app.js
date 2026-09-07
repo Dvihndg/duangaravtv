@@ -1,6 +1,9 @@
-const API_BASE = (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")) 
-  ? "http://127.0.0.1:8000/api/v1" 
-  : "/api/v1";
+const configuredApiBase = window.GARAGE_API_BASE || localStorage.getItem("garage_api_base");
+const API_BASE = configuredApiBase || (
+  (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")) 
+    ? "http://127.0.0.1:8000/api/v1" 
+    : "/api/v1"
+);
 
 // Application State
 let currentState = {
@@ -165,8 +168,20 @@ function closeModal(modalId) {
     modal.style.display = "none";
   }
 }
+// Detect static hosting environment (GitHub Pages / Custom Domain without server backend)
+const isKnownStaticHost = (
+  window.location.hostname.includes("github.io") || 
+  window.location.hostname.includes("dvinhdev.id.vn")
+) && !configuredApiBase;
+
+let isBackendAvailable = !isKnownStaticHost;
+
 // Auth & Role Handler
 async function loginAsCurrentRole() {
+  if (!isBackendAvailable) {
+    console.info("💡 Hệ thống đang chạy trên Static Hosting (Chế độ Local Engine - Không gửi request backend).");
+    return;
+  }
   const creds = ROLE_CREDENTIALS[currentState.currentRole];
   if (!creds) return;
   try {
@@ -175,7 +190,7 @@ async function loginAsCurrentRole() {
     formData.append("password", creds.password);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for Vercel serverless
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
 
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
@@ -190,19 +205,22 @@ async function loginAsCurrentRole() {
       currentState.token = data.access_token;
       isBackendAvailable = true;
     } else {
-      console.warn("Chưa đăng nhập Backend: Dùng thông tin phiên làm việc hiện tại.");
+      isBackendAvailable = false;
+      console.info("💡 Backend server không phản hồi (404/Offline). Chuyển sang Local Storage Engine.");
     }
   } catch (err) {
-    console.warn("Kết nối Backend Online đang khởi động:", err);
+    isBackendAvailable = false;
+    console.info("💡 Không thể kết nối Backend. Chuyển sang Local Storage Engine.");
   }
 }
 
-// Detect static hosting environment (GitHub Pages, Netlify, Vercel, HTTPS live deployment)
-const isLocalhostHost = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-let isBackendAvailable = true;
-
 // Helper fetch wrapper connecting directly to Online Backend API
 async function apiFetch(endpoint, options = {}) {
+  // Nếu đã phát hiện backend không khả dụng, gọi ngay Local Storage Mock không gửi fetch 404
+  if (!isBackendAvailable) {
+    return getOfflineMockResponse(endpoint, options);
+  }
+
   const headers = options.headers || {};
   if (currentState.token) {
     headers["Authorization"] = `Bearer ${currentState.token}`;
@@ -211,7 +229,7 @@ async function apiFetch(endpoint, options = {}) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for Vercel Serverless cold start
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
 
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
@@ -221,13 +239,16 @@ async function apiFetch(endpoint, options = {}) {
     clearTimeout(timeoutId);
 
     if (!res.ok) {
+      if (res.status === 404) {
+        isBackendAvailable = false;
+      }
       const errData = await res.json().catch(() => ({ detail: "Lỗi kết nối máy chủ" }));
       throw new Error(errData.detail || "Thao tác thất bại");
     }
     isBackendAvailable = true;
     return await res.json();
   } catch (err) {
-    console.warn(`[Online Backend Notice] Falling back to local engine for ${endpoint}:`, err);
+    isBackendAvailable = false;
     return getOfflineMockResponse(endpoint, options);
   }
 }
@@ -524,14 +545,61 @@ function getOfflineMockResponse(endpoint, options) {
     const ros = dbRead(DB_KEYS.repairOrders);
     const idx = ros.findIndex(r => r.id === rId);
     if (idx === -1) return null;
+
+    // 1. Thêm hạng mục vào phiếu sửa chữa (POST /repair-orders/:id/items)
+    if (subPath === "/items" && method === "POST") {
+      if (!Array.isArray(ros[idx].items)) ros[idx].items = [];
+      const itemId = Date.now();
+      const qty = parseFloat(body.quantity) || 1;
+      const unitPrice = parseFloat(body.unit_price) || 0;
+      const laborCost = parseFloat(body.labor_cost) || 0;
+      const totalPrice = (unitPrice * qty) + laborCost;
+
+      const newItem = {
+        id: itemId,
+        repair_order_id: rId,
+        item_type: body.item_type || "service",
+        service_id: body.service_id || null,
+        part_id: body.part_id || null,
+        name: body.name || "Hạng mục",
+        quantity: qty,
+        unit_price: unitPrice,
+        labor_cost: laborCost,
+        total_price: totalPrice,
+        notes: body.notes || ""
+      };
+
+      ros[idx].items.push(newItem);
+      ros[idx].final_cost = ros[idx].items.reduce((sum, itm) => sum + (itm.total_price || 0), 0);
+      dbWrite(DB_KEYS.repairOrders, ros);
+      return newItem;
+    }
+
+    // 2. Xóa hạng mục khỏi phiếu sửa chữa (DELETE /repair-orders/:id/items/:itemId)
+    const itemDeleteMatch = subPath.match(/^\/items\/(\d+)$/);
+    if (itemDeleteMatch && method === "DELETE") {
+      const itmId = parseInt(itemDeleteMatch[1]);
+      if (Array.isArray(ros[idx].items)) {
+        ros[idx].items = ros[idx].items.filter(it => it.id !== itmId);
+        ros[idx].final_cost = ros[idx].items.reduce((sum, itm) => sum + (itm.total_price || 0), 0);
+        dbWrite(DB_KEYS.repairOrders, ros);
+      }
+      return { success: true };
+    }
+
     if (method === "PATCH" || method === "PUT") {
       Object.assign(ros[idx], body, { id: rId });
       dbWrite(DB_KEYS.repairOrders, ros);
       return ros[idx];
     }
-    if (method === "DELETE") { ros.splice(idx, 1); dbWrite(DB_KEYS.repairOrders, ros); return { success: true }; }
+    if (method === "DELETE" && !subPath) {
+      ros.splice(idx, 1);
+      dbWrite(DB_KEYS.repairOrders, ros);
+      return { success: true };
+    }
     if (subPath === "/invoice") {
-      const inv = { id: Date.now(), invoice_number: dbPadCode("INV", dbNextId(DB_KEYS.invoices)), repair_order_id: rId, total_amount: body.total_amount || 0, status: "unpaid", created_at: new Date().toISOString() };
+      const totalAmount = (ros[idx].final_cost !== undefined && ros[idx].final_cost > 0) ? ros[idx].final_cost : (body.total_amount || 0);
+      const inv = { id: Date.now(), invoice_number: dbPadCode("INV", dbNextId(DB_KEYS.invoices)), repair_order_id: rId, total_amount: totalAmount, status: "unpaid", created_at: new Date().toISOString() };
       const invList = dbRead(DB_KEYS.invoices); invList.push(inv); dbWrite(DB_KEYS.invoices, invList);
       return inv;
     }
@@ -1640,16 +1708,22 @@ function renderROItems(items) {
   if (!tbody) return;
   tbody.innerHTML = "";
 
+  if (!items || items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.2rem;">Chưa có hạng mục nào. Chọn dịch vụ / phụ tùng ở trên rồi nhấn <strong>+ Thêm</strong>.</td></tr>`;
+    return;
+  }
+
   items.forEach(item => {
     const tr = document.createElement("tr");
-    const itemPrice = item.unit_price > 0 ? item.unit_price : item.labor_cost;
+    const itemPrice = (item.unit_price > 0 ? item.unit_price : item.labor_cost) || 0;
+    const itemTotal = item.total_price !== undefined ? item.total_price : ((item.quantity || 1) * itemPrice);
     tr.innerHTML = `
       <td><strong>${item.name}</strong></td>
       <td><span class="status-pill ${item.item_type === 'service' ? 'received' : 'finished'}">${item.item_type === 'service' ? 'Dịch Vụ' : 'Phụ Tùng'}</span></td>
       <td>${item.quantity}</td>
-      <td>${itemPrice.toLocaleString()} VNĐ</td>
-      <td style="color: #34d399; font-weight:600;">${item.total_price.toLocaleString()} VNĐ</td>
-      <td><button class="btn btn-secondary btn-sm" style="color: #f43f5e;" onclick="deleteROItem(${item.id})">&times;</button></td>
+      <td>${itemPrice.toLocaleString('vi-VN')} VNĐ</td>
+      <td style="color: #34d399; font-weight:600;">${itemTotal.toLocaleString('vi-VN')} VNĐ</td>
+      <td><button type="button" class="btn btn-secondary btn-sm" style="color: #f43f5e;" onclick="deleteROItem(${item.id})">&times;</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -1672,7 +1746,7 @@ async function populateItemCatalogDropdown() {
       const opt = document.createElement("option");
       opt.value = s.id;
       const cost = s.price !== undefined ? s.price : (s.labor_cost || 0);
-      opt.textContent = `${s.name} (Công/Giá: ${cost.toLocaleString()}đ)`;
+      opt.textContent = `${s.name} (Công/Giá: ${cost.toLocaleString('vi-VN')}đ)`;
       select.appendChild(opt);
     });
   } else {
@@ -1683,22 +1757,27 @@ async function populateItemCatalogDropdown() {
     currentState.parts.forEach(p => {
       const opt = document.createElement("option");
       opt.value = p.id;
-      const price = p.selling_price !== undefined ? p.selling_price : (p.unit_price || 0);
-      opt.textContent = `${p.name} (Giá: ${price.toLocaleString()}đ - Còn ${p.stock_quantity || 0})`;
+      const price = p.unit_price !== undefined ? p.unit_price : (p.selling_price || 0);
+      opt.textContent = `${p.name} (Giá: ${price.toLocaleString('vi-VN')}đ - Còn ${p.stock_quantity || 0})`;
       select.appendChild(opt);
     });
   }
 }
 
-function toggleItemSelectType() {
-  populateItemCatalogDropdown();
+async function toggleItemSelectType() {
+  await populateItemCatalogDropdown();
 }
 
 async function addItemToRO() {
-  if (!currentState.activeROId) return;
+  if (!currentState.activeROId) {
+    showToast("Không tìm thấy mã phiếu sửa chữa đang mở!", "warning");
+    return;
+  }
   const type = document.getElementById("item-type-select")?.value || "service";
-  const catalogId = parseInt(document.getElementById("item-catalog-select")?.value || 0);
-  const qty = parseFloat(document.getElementById("item-qty")?.value || 1);
+  const catalogSelect = document.getElementById("item-catalog-select");
+  const catalogId = parseInt(catalogSelect?.value || 0);
+  const qtyInput = document.getElementById("item-qty");
+  const qty = Math.max(1, parseFloat(qtyInput?.value || 1));
 
   let payload = {
     item_type: type,
@@ -1708,19 +1787,40 @@ async function addItemToRO() {
   };
 
   if (type === "service") {
-    const srv = currentState.services.find(s => s.id === catalogId);
+    if (!currentState.services || !currentState.services.length) {
+      const sList = await apiFetch("/services");
+      currentState.services = Array.isArray(sList) ? sList : [];
+    }
+    let srv = currentState.services.find(s => s.id === catalogId);
+    if (!srv && catalogSelect && catalogSelect.selectedIndex >= 0) {
+      const optText = catalogSelect.options[catalogSelect.selectedIndex].text;
+      srv = { id: catalogId, name: optText.split("(")[0].trim(), labor_cost: 150000 };
+    }
     if (srv) {
       payload.service_id = srv.id;
       payload.name = srv.name;
-      payload.labor_cost = srv.labor_cost;
+      payload.labor_cost = srv.labor_cost !== undefined ? srv.labor_cost : (srv.price || 0);
     }
   } else {
-    const part = currentState.parts.find(p => p.id === catalogId);
+    if (!currentState.parts || !currentState.parts.length) {
+      const pList = await apiFetch("/parts");
+      currentState.parts = Array.isArray(pList) ? pList : [];
+    }
+    let part = currentState.parts.find(p => p.id === catalogId);
+    if (!part && catalogSelect && catalogSelect.selectedIndex >= 0) {
+      const optText = catalogSelect.options[catalogSelect.selectedIndex].text;
+      part = { id: catalogId, name: optText.split("(")[0].trim(), unit_price: 200000 };
+    }
     if (part) {
       payload.part_id = part.id;
       payload.name = part.name;
-      payload.unit_price = part.unit_price;
+      payload.unit_price = part.unit_price !== undefined ? part.unit_price : (part.selling_price || 0);
     }
+  }
+
+  if (!payload.name) {
+    showToast("Vui lòng chọn một dịch vụ hoặc phụ tùng!", "warning");
+    return;
   }
 
   try {
@@ -1728,6 +1828,7 @@ async function addItemToRO() {
       method: "POST",
       body: JSON.stringify(payload)
     });
+    showToast(`Đã thêm "${payload.name}" vào phiếu sửa chữa!`);
     await openRODetailModal(currentState.activeROId);
     await loadRepairOrders();
   } catch (err) {
@@ -1736,9 +1837,13 @@ async function addItemToRO() {
 }
 
 async function deleteROItem(itemId) {
-  if (!currentState.activeROId) return;
+  if (!currentState.activeROId) {
+    showToast("Không tìm thấy mã phiếu sửa chữa đang mở!", "warning");
+    return;
+  }
   try {
     await apiFetch(`/repair-orders/${currentState.activeROId}/items/${itemId}`, { method: "DELETE" });
+    showToast("Đã xóa hạng mục!");
     await openRODetailModal(currentState.activeROId);
     await loadRepairOrders();
   } catch (err) {
@@ -1747,7 +1852,10 @@ async function deleteROItem(itemId) {
 }
 
 async function saveTechDiagnosis() {
-  if (!currentState.activeROId) return;
+  if (!currentState.activeROId) {
+    showToast("Không tìm thấy mã phiếu sửa chữa đang mở!", "warning");
+    return;
+  }
   const diag = document.getElementById("ro-tech-diagnosis")?.value || "";
   try {
     await apiFetch(`/repair-orders/${currentState.activeROId}`, {
@@ -1762,7 +1870,10 @@ async function saveTechDiagnosis() {
 }
 
 async function triggerAIFromRODetail(feature) {
-  if (!currentState.activeROId) return;
+  if (!currentState.activeROId) {
+    showToast("Không tìm thấy mã phiếu sửa chữa đang mở!", "warning");
+    return;
+  }
   await openAIAssistantModal(
     "Trợ Lý AI Garage - Báo Giá & Giải Thích Dịch Vụ",
     "Lập báo giá nháp chi tiết và giải thích dịch vụ cho phiếu sửa chữa này",
@@ -1771,12 +1882,15 @@ async function triggerAIFromRODetail(feature) {
 }
 
 async function createInvoiceFromRODetail() {
-  if (!currentState.activeROId) return;
+  if (!currentState.activeROId) {
+    showToast("Không tìm thấy mã phiếu sửa chữa đang mở!", "warning");
+    return;
+  }
   try {
     const inv = await apiFetch(`/repair-orders/${currentState.activeROId}/invoice`, { method: "POST" });
     closeModal("modal-ro-detail");
     switchView("invoices");
-    showToast(`Đã lập thành công Hóa đơn ${inv.invoice_number}!`);
+    showToast(`Đã lập thành công Hóa đơn ${inv.invoice_number || 'INV'}!`);
   } catch (err) {
     alert(`Lỗi lập hóa đơn: ${err.message}`);
   }
@@ -2460,7 +2574,7 @@ window.checkAuthPermission = checkAuthPermission;
 let sseEventSource = null;
 
 function initSSERealtimeStream() {
-  if (sseEventSource) return;
+  if (!isBackendAvailable || sseEventSource) return;
   const streamUrl = `${API_BASE}/customer-requests/stream`;
   try {
     sseEventSource = new EventSource(streamUrl);
@@ -2495,16 +2609,11 @@ function initSSERealtimeStream() {
         sseEventSource.close();
         sseEventSource = null;
       }
-      if (!window._customerReqPollingInterval) {
-        window._customerReqPollingInterval = setInterval(() => {
-          if (currentState.activeView === "customer-requests") {
-            loadCustomerRequestsFromBackend();
-          }
-        }, 10000);
-      }
+      isBackendAvailable = false;
+      console.info("💡 Realtime SSE không khả dụng trên hosting tĩnh. Đã chuyển sang Local Storage.");
     };
   } catch (e) {
-    console.log("SSE stream notice:", e);
+    // Silent fail for static host
   }
 }
 

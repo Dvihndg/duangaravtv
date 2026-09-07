@@ -379,3 +379,32 @@ def add_item_to_repair_order(
     db.commit()
     db.refresh(item)
     return item
+
+@router.delete("/{ro_id}/items/{item_id}")
+def delete_item_from_repair_order(
+    ro_id: int,
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    item = db.query(RepairOrderItem).filter(
+        RepairOrderItem.id == item_id,
+        RepairOrderItem.repair_order_id == ro_id
+    ).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Không tìm thấy hạng mục cần xóa")
+
+    # Hoàn trả tồn kho nếu là phụ tùng
+    if item.item_type == RepairOrderItemType.PART and item.part_id:
+        part = db.query(Part).filter(Part.id == item.part_id).first()
+        if part:
+            part.stock_quantity += int(item.quantity)
+
+    ro = db.query(RepairOrder).filter(RepairOrder.id == ro_id).first()
+    if ro:
+        ro.final_cost = max(0.0, (ro.final_cost or 0.0) - (item.total_price or 0.0))
+
+    db.delete(item)
+    db.commit()
+    return {"message": "Đã xóa hạng mục thành công"}
+

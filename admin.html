@@ -317,7 +317,7 @@
       <section id="view-repair-orders" class="view-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
           <h3 style="font-family: Arial;"><i class="fa-solid fa-wrench"></i> Phiếu Sửa Chữa & Chẩn Đoán Kỹ Thuật</h3>
-          <button class="btn btn-primary" onclick="openModal('modal-new-ro')"><i class="fa-solid fa-folder-plus"></i>
+          <button type="button" class="btn btn-primary" onclick="openModal('modal-new-ro')"><i class="fa-solid fa-folder-plus"></i> Tạo Phiếu Tiếp Nhận</button>
         </div>
 
         <!-- Filter Bar for Repair Orders -->
@@ -989,7 +989,7 @@
       <div class="modal-header">
         <h3 id="ro-detail-title" style="font-family: Arial;"><i class="fa-solid fa-wrench"></i> Chi Tiết Phiếu Sửa
           Chữa</h3>
-        <button class="close-btn" onclick="closeModal('modal-ro-detail')">&times;</button>
+        <button type="button" class="close-btn" onclick="closeModal('modal-ro-detail')">&times;</button>
       </div>
 
       <div id="ro-detail-info" style="margin-bottom: 1rem; line-height: 1.6; font-size: 0.93rem;"></div>
@@ -998,7 +998,7 @@
         <label>Chẩn Đoán Kỹ Thuật (KTV Điền):</label>
         <textarea id="ro-tech-diagnosis" class="form-control" rows="2"
           placeholder="Ghi chú chẩn đoán kỹ thuật..."></textarea>
-        <button class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;" onclick="saveTechDiagnosis()">Lưu Ghi Chú
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;" onclick="saveTechDiagnosis()">Lưu Ghi Chú
           Kỹ Thuật</button>
       </div>
 
@@ -1012,7 +1012,7 @@
         </select>
         <select id="item-catalog-select" class="form-control"></select>
         <input type="number" id="item-qty" class="form-control" value="1" min="1" placeholder="SL">
-        <button class="btn btn-primary" onclick="addItemToRO()"><i class="fa-solid fa-plus"></i> Thêm</button>
+        <button type="button" id="btn-add-ro-item" class="btn btn-primary" onclick="addItemToRO()"><i class="fa-solid fa-plus"></i> Thêm</button>
       </div>
 
       <div class="table-responsive">
@@ -1036,9 +1036,9 @@
             style="font-family: Arial; font-size: 1.3rem; color: var(--accent-emerald); font-weight: 800;">0
             VNĐ</span></div>
         <div style="display: flex; gap: 0.5rem;">
-          <button class="btn btn-ai" onclick="triggerAIFromRODetail('assistant')"><i class="fa-solid fa-robot"></i> Trợ
+          <button type="button" class="btn btn-ai" onclick="triggerAIFromRODetail('assistant')"><i class="fa-solid fa-robot"></i> Trợ
             Lý AI Garage</button>
-          <button class="btn btn-primary" onclick="createInvoiceFromRODetail()"><i class="fa-solid fa-file-invoice"></i>
+          <button type="button" class="btn btn-primary" onclick="createInvoiceFromRODetail()"><i class="fa-solid fa-file-invoice"></i>
             Lập Hóa Đơn</button>
         </div>
       </div>
@@ -1179,6 +1179,7 @@
         </div>
       </form>
     </div>
+  </div>
   <!-- Modal New Service -->
   <div id="modal-new-service" class="modal-backdrop">
     <div class="modal-card" style="max-width: 480px;">
@@ -1289,7 +1290,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
-  <script src="app.js?v=8.2"></script>
+  <script src="app.js?v=9.0"></script>
 </body>
 
 

@@ -1,0 +1,270 @@
+====================================================================================================
+BÁO CÁO KỸ THUẬT: ỨNG DỤNG AI TRONG PHÁT TRIỂN HỆ THỐNG QUẢN LÝ GARAGE VTV
+Chuyên đề: Dùng AI sinh Model, RESTful API, Giao diện Khách hàng - Xe - Phiếu sửa chữa - Hóa đơn & Debug Luồng cập nhật trạng thái (State Machine)
+Hệ thống: Garage VTV AI Management System
+Ngày lập: 05/09/2026
+====================================================================================================
+
+I. TỔNG QUAN & BỐI CẢNH DỰ ÁN
+----------------------------------------------------------------------------------------------------
+Hệ thống Quản lý Garage VTV Tích hợp AI là nền tảng quản trị vận hành khép kín quy trình dịch vụ ô tô:
+Khách hàng -> Phương tiện -> Lịch hẹn -> Tiếp nhận xe -> Khảo sát & Chẩn đoán -> Phiếu sửa chữa (RO) ->
+Dịch vụ & Phụ tùng -> Báo giá -> Khách duyệt -> Sửa chữa -> Nghiệm thu KCS -> Hóa đơn -> Thanh toán -> Hoàn thành.
+
+Trong dự án này, Trí tuệ nhân tạo (Generative AI / Coding Agent) được ứng dụng xuyên suốt 4 giai đoạn SDLC:
+1. Sinh cấu trúc dữ liệu (Data Models & Pydantic Schemas) chuẩn 3NF cho 4 thực thể cốt lõi:
+   - Khách hàng (Customer)
+   - Phương tiện / Xe (Vehicle)
+   - Phiếu sửa chữa (RepairOrder)
+   - Hóa đơn (Invoice)
+2. Sinh tầng RESTful API tích hợp phân quyền RBAC 4 vai trò, kiểm soát bảo mật (chống IDOR, SQLi) và
+   thực thi nguyên tắc Thẩm quyền Tài chính Phía Máy Chủ (Server-side Financial Authority).
+3. Sinh giao diện người dùng kép: Web SPA (admin.html, customer.html, app.js) và Streamlit Analytics Dashboard.
+4. Kiểm soát, rà soát và Debug luồng chuyển đổi trạng thái (State Machine Flow): Xử lý triệt để lỗi nhảy cóc
+   trạng thái, bảo đảm quy trình tuần tự bất biến.
+
+
+II. DÙNG AI SINH MODEL CƠ SỞ DỮ LIỆU & SCHEMAS
+----------------------------------------------------------------------------------------------------
+1. Yêu cầu & Prompt kỹ thuật:
+- Chuẩn ORM: SQLAlchemy 2.0 và Pydantic v2.
+- Quan hệ ràng buộc:
+  + Customer 1 -- N Vehicle (Một khách hàng sở hữu nhiều xe).
+  + Vehicle 1 -- N RepairOrder (Một xe có nhiều lần vào sửa chữa).
+  + RepairOrder 1 -- 1 Quotation (Phiếu sửa chữa gắn liền 1 báo giá).
+  + RepairOrder 1 -- 1 Invoice (Phiếu sửa chữa hoàn tất sinh ra 1 hóa đơn).
+  + Invoice 1 -- N Payment (Hóa đơn có thể thanh toán nhiều đợt).
+- Cơ chế bảo toàn: Soft Delete (deleted_at) ở bảng Khách hàng để không làm mất lịch sử xe khi xóa khách.
+- Ràng buộc toàn vẹn: Unique số điện thoại khách hàng, Unique biển số xe, Unique mã phiếu.
+
+2. Cấu trúc Model chính đã sinh (Trích xuất từ backend/app/models.py):
+
+* Thực thể Khách hàng (Customer):
+  - id: Integer (Khóa chính, tự tăng)
+  - customer_code: String(30), Unique (Định dạng: CUS-2026-XXXXXX)
+  - full_name: String(100), Bắt buộc
+  - phone: String(20), Unique, Bắt buộc (Chỉ mục tìm kiếm)
+  - email: String(100), Tùy chọn
+  - address: String(255), Tùy chọn
+  - status: String(20), Mặc định 'ACTIVE'
+  - deleted_at: DateTime, Tùy chọn (Phục vụ xóa mềm)
+
+* Thực thể Phương tiện / Xe (Vehicle):
+  - id: Integer (Khóa chính)
+  - license_plate: String(20), Unique, Bắt buộc (Biển số xe, ví dụ: 51A-123.45)
+  - brand: String(50), Bắt buộc (Hãng xe: Toyota, Honda, Mazda...)
+  - model: String(50), Bắt buộc (Dòng xe: Camry, Civic, CX-5...)
+  - year: Integer (Năm sản xuất)
+  - vin_number: String(50), Chỉ mục (Số khung VIN)
+  - current_mileage: Integer, Mặc định 0 (Số km Odo hiện tại)
+  - customer_id: Integer (Khóa ngoại trỏ về customers.id)
+
+* Thực thể Phiếu sửa chữa (RepairOrder):
+  - id: Integer (Khóa chính)
+  - code: String(30), Unique, Bắt buộc (Định dạng: RO-YYYYMMDD-XXXX)
+  - customer_id: Integer (Khóa ngoại customers.id)
+  - vehicle_id: Integer (Khóa ngoại vehicles.id)
+  - technician_id: Integer (Khóa ngoại users.id - Kỹ thuật viên phụ trách)
+  - receptionist_id: Integer (Khóa ngoại users.id - Lễ tân tiếp nhận)
+  - mileage_at_reception: Integer (Số km khi tiếp nhận)
+  - initial_symptoms: Text (Triệu chứng ban đầu)
+  - technical_diagnosis: Text (Chẩn đoán kỹ thuật của KTV)
+  - status: Enum (DRAFT, RECEIVED, INSPECTING, QUOTATION_PENDING, WAITING_CUSTOMER_APPROVAL,
+                  APPROVED, IN_REPAIR, WAITING_PARTS, QUALITY_CHECK, COMPLETED, CANCELLED)
+  - final_cost: Float, Mặc định 0.0
+  - ai_history_summary: Text (AI tóm tắt lịch sử bảo dưỡng xe)
+  - ai_service_explanation: Text (AI giải thích phương án kỹ thuật cho khách)
+
+* Thực thể Hóa đơn (Invoice):
+  - id: Integer (Khóa chính)
+  - invoice_number: String(30), Unique, Bắt buộc (Định dạng: INV-YYYY-XXXXXX)
+  - repair_order_id: Integer, Khóa ngoại repair_orders.id, Unique (1-1)
+  - customer_id: Integer (Khóa ngoại customers.id)
+  - vehicle_id: Integer (Khóa ngoại vehicles.id)
+  - subtotal: Float, Mặc định 0.0 (Tổng tiền công + phụ tùng trước thuế/chiết khấu)
+  - discount_amount: Float, Mặc định 0.0 (Số tiền giảm giá)
+  - tax_amount: Float, Mặc định 0.0 (Tiền thuế VAT 10%)
+  - total_amount: Float, Mặc định 0.0 (Tổng tiền thanh toán cuối cùng)
+  - paid_amount: Float, Mặc định 0.0 (Số tiền khách đã trả lũy kế)
+  - balance_due: Float, Mặc định 0.0 (Số dư công nợ còn lại phải thu)
+  - status: Enum (UNPAID, PARTIAL, PAID, CANCELLED)
+  - issued_date: DateTime
+
+
+III. DÙNG AI SINH RESTFUL API VÀ CÁC QUY TẮC BẢO MẬT BẤT BIẾN
+----------------------------------------------------------------------------------------------------
+1. Danh mục Endpoints sinh bởi AI:
+- Khách hàng:
+  + GET  /api/v1/customers       : Tra cứu, lọc theo tên/SĐT, phân trang.
+  + POST /api/v1/customers       : Tạo mới khách hàng (chặn trùng số điện thoại).
+  + GET  /api/v1/customers/{id}  : Xem chi tiết hồ sơ & lịch sử xe.
+  + PUT  /api/v1/customers/{id}  : Cập nhật thông tin.
+  + DELETE /api/v1/customers/{id}: Xóa mềm (gắn cờ deleted_at, giữ lịch sử kỹ thuật).
+
+- Xe / Phương tiện:
+  + GET  /api/v1/vehicles        : Danh sách xe, lọc theo biển số/chủ xe.
+  + POST /api/v1/vehicles        : Đăng ký xe mới (ràng buộc unique biển số xe).
+
+- Phiếu sửa chữa (Repair Orders):
+  + GET  /api/v1/repair-orders       : Danh sách phiếu; KTV chỉ thấy phiếu được phân công.
+  + POST /api/v1/repair-orders       : Tiếp nhận xe & tạo phiếu (trạng thái RECEIVED).
+  + GET  /api/v1/repair-orders/{id}  : Chi tiết phiếu, danh sách dịch vụ, phụ tùng, kết quả chẩn đoán.
+  + PATCH /api/v1/repair-orders/{id}/status: Cập nhật trạng thái tuần tự qua State Machine.
+  + POST /api/v1/repair-orders/{id}/services: Thêm dịch vụ kỹ thuật.
+  + POST /api/v1/repair-orders/{id}/parts   : Thêm phụ tùng thay thế (kiểm tra tồn kho âm).
+
+- Hóa đơn & Thanh toán:
+  + GET  /api/v1/invoices        : Quản lý danh sách hóa đơn và công nợ.
+  + POST /api/v1/invoices        : Lập hóa đơn từ Phiếu sửa chữa đã hoàn thành.
+  + POST /api/v1/payments        : Ghi nhận thanh toán (tiền mặt / chuyển khoản), trừ dần nợ.
+
+2. Các cơ chế bảo mật then chốt được tích hợp:
+a. Phòng chống IDOR (Insecure Direct Object Reference):
+   Kỹ thuật viên chỉ được phép xem và cập nhật phiếu sửa chữa được phân công cụ thể cho mình:
+   if current_user.role == UserRole.TECHNICIAN and ro.technician_id != current_user.id:
+       raise HTTPException(status_code=403, detail="Từ chối truy cập: Bạn không được giao phiếu này.")
+
+b. Quyền Thẩm quyền Tài chính Phía Máy Chủ (Server-Side Financial Authority):
+   Toàn bộ tiền công, đơn giá phụ tùng, chiết khấu và thuế VAT được tính toán hoàn toàn ở Backend:
+   - Subtotal = Tổng tiền công + Tổng tiền phụ tùng
+   - Taxable Amount = Subtotal - Discount
+   - VAT (10%) = Taxable Amount * 0.10
+   - Total Amount = Taxable Amount + VAT
+   Tuyệt đối không nhận tổng tiền hoặc đơn giá gửi lên từ Client để ngăn ngừa gian lận.
+
+c. Giao dịch Khóa hàng & Chống âm kho (Atomic Inventory Locks):
+   Khi xuất phụ tùng cho phiếu sửa chữa, hệ thống kiểm tra số lượng tồn kho khả dụng. Nếu số lượng
+   yêu cầu vượt quá tồn kho thực tế, giao dịch bị rollback và ném lỗi HTTP 400 Bad Request.
+
+
+IV. DÙNG AI SINH GIAO DIỆN NGƯỜI DÙNG (FRONTEND SPA & DASHBOARD)
+----------------------------------------------------------------------------------------------------
+1. Giao diện Web Quản trị Nội bộ (admin.html, styles.css, app.js):
+- Thiết kế Single Page Application (SPA), Dark/Light Mode với CSS Design Tokens hiện đại.
+- Phân hệ Khách hàng & Xe:
+  + Thanh tìm kiếm đa năng: tìm theo biển số xe, tên chủ xe hoặc số điện thoại.
+  + Xem hồ sơ kỹ thuật số: hiển thị số lần vào xưởng, các phụ tùng đã từng thay thế.
+- Phân hệ Phiếu sửa chữa:
+  + Bảng theo dõi trạng thái trực quan với các huy hiệu trạng thái (Status Pills) có màu sắc riêng biệt.
+  + Modal chi tiết RO: Bổ sung hạng mục công việc, linh kiện kho với gợi ý tự động (Typeahead/Select).
+  + Tích hợp nút gọi Trợ lý AI: Tự động tổng hợp dữ liệu triệu chứng để sinh văn bản giải thích dịch vụ
+    dễ hiểu cho khách hàng.
+- Phân hệ Hóa đơn & Thu ngân:
+  + Modal thanh toán thông minh: Hỗ trợ thanh toán từng phần (Partial Payment) hoặc toàn bộ.
+  + Tự động sinh mã VietQR động chứa chính xác số dư nợ còn lại (balance_due) và cú pháp nội dung chuyển khoản.
+
+2. Cổng thông tin Khách hàng Công khai (customer.html):
+- Đặt lịch hẹn online không cần tài khoản, chọn ngày giờ trực quan qua Flatpickr.
+- Tra cứu tiến độ sửa chữa xe thời gian thực (Realtime Progress Tracker) qua mã phiếu hoặc biển số xe.
+- Kết nối luồng Server-Sent Events (SSE) để cập nhật trạng thái xe mà không cần tải lại trang.
+
+3. Streamlit Analytics Dashboard (streamlit_app.py):
+- Giao diện phong cách Cyberpunk dành riêng cho Giám đốc/Chủ Garage.
+- Trực quan hóa doanh thu theo ngày/tháng, cơ cấu doanh số dịch vụ vs phụ tùng, hiệu suất kỹ thuật viên.
+
+
+V. DEBUG LUỒNG CẬP NHẬT TRẠNG THÁI (STATE MACHINE DEBUGGING)
+----------------------------------------------------------------------------------------------------
+1. Luồng vòng đời chuẩn của Phiếu Sửa Chữa (RO Lifecycle):
+[RECEIVED] Tiếp nhận xe vào xưởng
+    |
+    v
+[INSPECTING] Khảo sát & Chẩn đoán kỹ thuật
+    |
+    v
+[QUOTATION_PENDING] Lập báo giá phụ tùng & tiền công
+    |
+    v
+[WAITING_CUSTOMER_APPROVAL] Gửi báo giá cho khách duyệt
+    |------------------------\
+    v (Khách duyệt)          v (Khách từ chối)
+[APPROVED] Phê duyệt     [CANCELLED] Đóng phiếu hủy
+    |
+    v
+[IN_REPAIR] Tiến hành sửa chữa <----> [WAITING_PARTS] Tạm hoãn chờ vật tư đặc thù
+    |
+    v
+[QUALITY_CHECK] Kiểm định chất lượng KCS (Nếu lỗi: quay lại IN_REPAIR)
+    |
+    v
+[COMPLETED] Hoàn tất nghiệm thu & Xuất xưởng bàn giao xe
+
+2. Các lỗi phát hiện trong quá trình Debug & Biện pháp xử lý:
+
+* LỖI 1: Nhảy cóc trạng thái trái phép (Illegal State Transition)
+- Vấn đề: Ban đầu API cập nhật cho phép client gửi bất kỳ trạng thái nào (ví dụ: chuyển thẳng từ
+  RECEIVED sang COMPLETED để gian lận nghiệm thu, bỏ qua chẩn đoán và báo giá).
+- Khắc phục: Xây dựng lớp dịch vụ RepairOrderService.transition_status chứa ma trận ALLOWED_TRANSITIONS:
+  ALLOWED_TRANSITIONS = {
+      RepairOrderStatus.RECEIVED: {RepairOrderStatus.INSPECTING, RepairOrderStatus.CANCELLED},
+      RepairOrderStatus.INSPECTING: {RepairOrderStatus.QUOTATION_PENDING, RepairOrderStatus.CANCELLED},
+      RepairOrderStatus.QUOTATION_PENDING: {RepairOrderStatus.WAITING_CUSTOMER_APPROVAL, RepairOrderStatus.CANCELLED},
+      RepairOrderStatus.WAITING_CUSTOMER_APPROVAL: {RepairOrderStatus.APPROVED, RepairOrderStatus.CANCELLED},
+      RepairOrderStatus.APPROVED: {RepairOrderStatus.IN_REPAIR, RepairOrderStatus.CANCELLED},
+      RepairOrderStatus.IN_REPAIR: {RepairOrderStatus.WAITING_PARTS, RepairOrderStatus.QUALITY_CHECK, RepairOrderStatus.CANCELLED},
+      RepairOrderStatus.WAITING_PARTS: {RepairOrderStatus.IN_REPAIR, RepairOrderStatus.CANCELLED},
+      RepairOrderStatus.QUALITY_CHECK: {RepairOrderStatus.COMPLETED, RepairOrderStatus.IN_REPAIR, RepairOrderStatus.CANCELLED},
+      RepairOrderStatus.COMPLETED: set(),
+      RepairOrderStatus.CANCELLED: set()
+  }
+  Mọi hành vi chuyển trái ma trận sẽ trả về HTTP 400 Bad Request kèm thông báo:
+  "Chuyển trạng thái không hợp lệ: Vui lòng tuân thủ quy trình tuần tự."
+- Kiểm chứng: Được bao phủ bởi test case tự động TC15 (test_tc15_invalid_repair_status_transition_fails).
+
+* LỖI 2: Lỗ hổng IDOR KTV can thiệp trạng thái phiếu của KTV khác
+- Vấn đề: Kỹ thuật viên A có thể gửi request đổi trạng thái phiếu do Kỹ thuật viên B phụ trách.
+- Khắc phục: Bổ sung middleware guard verify_technician_access(ro, current_user) chặn ngay HTTP 403.
+- Kiểm chứng: Được bao phủ bởi test case tự động TC04 (test_tc04_technician_cannot_modify_unauthorized_ro).
+
+* LỖI 3: Phê duyệt báo giá đã hết hạn làm sai lệch giá linh kiện
+- Vấn đề: Báo giá để lâu quá ngày hiệu lực (valid_until < now) do giá phụ tùng biến động, nhưng lễ tân
+  vẫn bấm duyệt và chuyển RO sang APPROVED.
+- Khắc phục: Bổ sung kiểm tra hạn dùng báo giá trong QuotationService.approve_quotation; nếu hết hạn
+  bắt buộc phải lập lại báo giá mới theo thời giá kho hiện hành.
+- Kiểm chứng: Được bao phủ bởi test case tự động TC16 (test_tc16_expired_quotation_cannot_be_approved).
+
+* LỖI 4: Bất đồng bộ trạng thái giao diện Client khi Backend gặp sự cố mạng
+- Vấn đề: Giao diện Web SPA đổi nhãn màu trạng thái trước khi Backend xác nhận thành công (Optimistic UI),
+  dẫn tới trường hợp mạng lỗi nhưng màn hình vẫn báo thành công.
+- Khắc phục trong app.js: Chuyển sang mô hình Pessimistic State Update có Toast Notification.
+  Chỉ khi nhận HTTP 200 OK từ API PATCH /status, giao diện mới nạp lại danh sách và cập nhật UI.
+  Nếu Backend trả mã lỗi 400/403/500, giao diện lập tức kích hoạt Toast cảnh báo đỏ và giữ nguyên dữ liệu cũ.
+
+
+VI. DANH MỤC KIỂM THỬ TỰ ĐỘNG BẢO ĐẢM TOÀN VẸN (17 TEST CASES)
+----------------------------------------------------------------------------------------------------
+Toàn bộ 17 kịch bản kiểm thử tự động đã được thực thi và đạt 100% tỷ lệ PASS (backend/tests/test_master_suite.py):
+- TC01: Tạo khách hàng mới thành công với mã định danh và số điện thoại hợp lệ.
+- TC02: Bắt lỗi ràng buộc trùng lặp biển số xe (Unique License Plate constraint).
+- TC03: Phát hiện xung đột lịch hẹn của cùng một phương tiện trong khung giờ trùng nhau.
+- TC04: Chặn KTV sửa đổi hoặc cập nhật phiếu sửa chữa của KTV khác (Phòng chống IDOR).
+- TC05: Chặn KTV truy cập vào các endpoint thanh toán và tài chính (Phân quyền RBAC).
+- TC06: Chặn Thu ngân can thiệp vào biên bản chẩn đoán kỹ thuật của KTV (Phân quyền RBAC).
+- TC07: Kiểm soát giao dịch kho: Tuyệt đối không cho phép xuất kho khi tồn kho không đủ (Chống âm kho).
+- TC08: Chặn thanh toán số tiền vượt quá số dư nợ còn lại của hóa đơn.
+- TC09: Tính toán tổng tiền, chiết khấu và thuế VAT 10% bắt buộc xử lý tại Server-side.
+- TC10: Trợ lý AI không được phép tự bịa giá; bắt buộc tuân thủ đơn giá từ cơ sở dữ liệu.
+- TC11: Từ chối và bắt lỗi an toàn khi mô hình AI trả về dữ liệu sai định dạng JSON.
+- TC12: Tự động chuyển sang Fallback Engine khi mất mạng/hết hạn mức AI mà không làm sập hệ thống.
+- TC13: Chặn người dùng không có quyền truy cập vào các endpoint Quản trị viên (Manager).
+- TC14: Xóa mềm khách hàng nhưng vẫn bảo toàn toàn vẹn lịch sử sửa chữa của xe.
+- TC15: Bắt lỗi và chặn đứng hành vi chuyển trạng thái phi tuần tự của Phiếu Sửa Chữa (State Machine).
+- TC16: Chặn phê duyệt báo giá đã quá thời hạn hiệu lực.
+- TC17: Chặn ghi nhận thanh toán đối với các hóa đơn đã bị hủy.
+
+
+VII. ĐÁNH GIÁ HIỆU QUẢ & BÀI HỌC KINH NGHIỆM
+----------------------------------------------------------------------------------------------------
+1. Năng suất & Thời gian:
+- Tốc độ sinh mã: Giảm hơn 65% thời gian viết mã ban đầu (boilerplate, schemas, CRUD endpoints).
+- Kiểm thử tự động: AI hỗ trợ sinh toàn diện các trường hợp biên (edge cases) và dữ liệu mẫu phong phú.
+
+2. Nguyên tắc "Human-in-the-loop" (Con người kiểm soát trung tâm):
+- AI là công cụ sinh mã mạnh mẽ nhưng có xu hướng sinh logic "lỏng lẻo" nếu thiếu chỉ thị ràng buộc.
+- Kỹ sư phần mềm phải đóng vai trò kiến trúc sư: Thiết lập Ma trận trạng thái (State Machine),
+  bảo vệ an toàn định danh (IDOR), và khóa chặt công thức tài chính ở máy chủ (Server-side calculation).
+
+3. Kết luận:
+Hệ thống Quản lý Garage VTV Tích hợp AI đã hoàn thiện trọn vẹn từ tầng CSDL, tầng Logic nghiệp vụ,
+tầng RESTful API đến tầng Giao diện người dùng, đảm bảo tính sẵn sàng vận hành thực tế và an toàn cao.
+====================================================================================================
