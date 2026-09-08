@@ -306,6 +306,20 @@ class AIService:
                 model_used,
             )
 
+        # GREETING / SMALL TALK
+        greeting_keywords = ["alo", "hello", "hi ", "hey", "xin chào", "chào", "ơi", "bạn ơi", "có ai", "test", "thử"]
+        if any(kw in prompt_lower for kw in greeting_keywords) or len(prompt_lower.strip()) <= 10:
+            return (
+                "👋 **Xin chào! Tôi là Trợ Lý AI Garage VTV** — luôn sẵn sàng phục vụ bạn!\n\n"
+                "Bạn có thể hỏi tôi về:\n"
+                "🔧 **Chẩn đoán xe** — mô tả triệu chứng, tôi phân tích ngay\n"
+                "💰 **Báo giá dịch vụ** — phụ tùng, tiền công, VAT minh bạch\n"
+                "📋 **Lịch sử sửa chữa** — tra cứu phiếu, mốc bảo dưỡng sắp tới\n"
+                "📍 **Tiến độ sửa xe** — xe đang ở bước nào, dự kiến giao lúc mấy giờ\n\n"
+                "Xe bạn đang gặp vấn đề gì? Cứ nói tôi nghe nhé! 🚗",
+                model_used,
+            )
+
         # GENERAL
         return (
             "🤖 **TRỢ LÝ AI GARAGE VTV**\n\n"
