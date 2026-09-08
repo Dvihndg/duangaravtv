@@ -2316,21 +2316,49 @@ async function sendAIChatMessage() {
   appendChatMessage("user", text);
   if (inputEl) inputEl.value = "";
 
-  const typingId = appendChatMessage("ai", "<em>AI Assistant đang phân tích dữ liệu...</em>");
+  const typingId = appendChatMessage("ai", "<em>Trợ Lý AI đang phân tích...</em>");
 
   try {
-    const res = await apiFetch("/ai/assistant", {
+    // Gọi thẳng backend API thật — bypass mock engine
+    const headers = { "Content-Type": "application/json" };
+    if (currentState.token) headers["Authorization"] = `Bearer ${currentState.token}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    const res = await fetch(`${API_BASE}/ai/assistant`, {
       method: "POST",
-      body: JSON.stringify({ question: text })
+      headers,
+      body: JSON.stringify({
+        question: text,
+        repair_order_id: currentState.activeAIContext?.repair_order_id || null,
+        vehicle_id: currentState.activeAIContext?.vehicle_id || null
+      }),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     const streamEl = document.getElementById("ai-chat-stream");
     const typingBubble = document.getElementById(typingId);
     if (typingBubble && streamEl) streamEl.removeChild(typingBubble);
 
-    appendChatMessage("ai", res.output || "AI không thể đưa ra phản hồi.");
+    if (res.ok) {
+      const data = await res.json();
+      appendChatMessage("ai", data.output || "AI không thể đưa ra phản hồi.");
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      appendChatMessage("ai", `⚠️ **AI Engine lỗi (${res.status})**: ${errData.detail || "Không thể kết nối máy chủ."}`);
+    }
   } catch (err) {
-    appendChatMessage("ai", `❌ Lỗi kết nối AI Engine: ${err.message}`);
+    const streamEl = document.getElementById("ai-chat-stream");
+    const typingBubble = document.getElementById(typingId);
+    if (typingBubble && streamEl) streamEl.removeChild(typingBubble);
+
+    if (err.name === "AbortError") {
+      appendChatMessage("ai", "⏱️ **Hết thời gian chờ.** AI Engine đang bận — vui lòng thử lại sau ít giây.");
+    } else {
+      appendChatMessage("ai", "❌ **Không thể kết nối AI Engine.** Vui lòng kiểm tra kết nối mạng hoặc liên hệ kỹ thuật viên.");
+    }
   }
 }
 
