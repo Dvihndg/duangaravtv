@@ -35,6 +35,24 @@ def ask_ai_assistant(
         raise HTTPException(status_code=400, detail=res.get("output", "Lỗi AI"))
     return res
 
+@router.post("/assistant/open", response_model=AIResponse)
+def ask_ai_assistant_open(
+    req: AIAssistantRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Trợ Lý AI Garage — Endpoint mở (không yêu cầu đăng nhập), dùng cho AI chat trên giao diện.
+    """
+    res = AIService.ask_assistant(
+        db,
+        question=req.question,
+        repair_order_id=req.repair_order_id,
+        vehicle_id=req.vehicle_id
+    )
+    if not res.get("success", False):
+        raise HTTPException(status_code=400, detail=res.get("output", "Lỗi AI"))
+    return res
+
 @router.post("/summarize-history", response_model=AIResponse)
 @router.post("/history-summary", response_model=AIResponse)
 def summarize_vehicle_history(

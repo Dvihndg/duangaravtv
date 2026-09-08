@@ -2319,14 +2319,15 @@ async function sendAIChatMessage() {
   const typingId = appendChatMessage("ai", "<em>Trợ Lý AI đang phân tích...</em>");
 
   try {
-    // Gọi thẳng backend API thật — bypass mock engine
+    // Dùng endpoint mở nếu chưa đăng nhập, endpoint bảo mật nếu đã có token
+    const aiEndpoint = currentState.token ? "/ai/assistant" : "/ai/assistant/open";
     const headers = { "Content-Type": "application/json" };
     if (currentState.token) headers["Authorization"] = `Bearer ${currentState.token}`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    const res = await fetch(`${API_BASE}/ai/assistant`, {
+    const res = await fetch(`${API_BASE}${aiEndpoint}`, {
       method: "POST",
       headers,
       body: JSON.stringify({
