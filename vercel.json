@@ -1,20 +1,6 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.12",
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  },
-  "redirects": [
-    {
-      "source": "/api/index.py",
-      "destination": "/api/v1/health",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/v1/:path*",
