@@ -1,6 +1,5 @@
 import os
 import sys
-from urllib.parse import urlparse
 
 # Root path resolution for Vercel Serverless environment
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,24 +32,4 @@ except Exception as e:
     def api_fallback(path: str):
         return {"status": "degraded", "fallback_active": True, "path": path, "error": str(e)}
 
-async def handler(scope, receive, send):
-    if scope.get("type") in ("http", "websocket"):
-        headers = dict(scope.get("headers", []))
-        raw_path = scope.get("path", "")
-        
-        if raw_path in ("/api/index.py", "/api/index", "/api", "/api/", "/index.py", ""):
-            for h in (b"x-forwarded-uri", b"x-invoke-path", b"x-matched-path", b"x-real-url"):
-                val = headers.get(h, b"").decode("utf-8", errors="ignore")
-                if val and not val.startswith("/api/index") and not val.startswith("/index.py"):
-                    if "://" in val:
-                        parsed = urlparse(val)
-                        if parsed.path:
-                            scope["path"] = parsed.path
-                            break
-                    else:
-                        scope["path"] = val.split("?")[0]
-                        break
-
-    await app(scope, receive, send)
-
-__all__ = ["app", "handler"]
+__all__ = ["app"]

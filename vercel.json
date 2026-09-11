@@ -3,16 +3,12 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/api/v1/:patch*",
+      "source": "/api/v1/:path*",
       "destination": "/api/index.py"
     },
     {
       "source": "/health",
       "destination": "/api/index.py"
-    },
-    {
-      "source": "/favicon.ico",
-      "destination": "/logo.png"
     },
     {
       "source": "/admin",
