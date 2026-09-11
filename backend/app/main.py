@@ -148,8 +148,13 @@ def init_db_background():
     except Exception as e:
         print(f"[DB Auto Seed Notice] {e}")
 
-# Run in daemon background thread to keep cold start under 50ms
-threading.Thread(target=init_db_background, daemon=True).start()
+# Run initialization on local server or non-serverless environments
+if not os.getenv("VERCEL"):
+    try:
+        init_db_background()
+    except Exception as e:
+        print(f"[DB Init Notice] {e}")
+
 
 from starlette.types import ASGIApp, Scope, Receive, Send
 from urllib.parse import urlparse
