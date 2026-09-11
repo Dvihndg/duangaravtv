@@ -220,8 +220,9 @@ async function loginAsCurrentRole() {
 
 // Helper fetch wrapper connecting directly to Online Backend API
 async function apiFetch(endpoint, options = {}) {
-  // Nếu đã phát hiện backend không khả dụng, gọi ngay Local Storage Mock không gửi fetch 404
-  if (!isBackendAvailable) {
+  const isAiCall = endpoint.includes("/ai/");
+  // Nếu đã phát hiện backend không khả dụng (cho các bảng tĩnh), dùng offline mock
+  if (!isBackendAvailable && !isAiCall) {
     return getOfflineMockResponse(endpoint, options);
   }
 
@@ -231,9 +232,11 @@ async function apiFetch(endpoint, options = {}) {
   }
   headers["Content-Type"] = "application/json";
 
+  const timeoutMs = isAiCall ? 45000 : 10000;
+
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
@@ -243,15 +246,18 @@ async function apiFetch(endpoint, options = {}) {
     clearTimeout(timeoutId);
 
     if (!res.ok) {
-      if (res.status === 404) {
+      if (res.status === 404 && !isAiCall) {
         isBackendAvailable = false;
       }
-      const errData = await res.json().catch(() => ({ detail: "Lỗi kết nối máy chủ" }));
+      const errData = await res.json().catch(() => ({ detail: `Lỗi kết nối máy chủ (${res.status})` }));
       throw new Error(errData.detail || "Thao tác thất bại");
     }
     isBackendAvailable = true;
     return await res.json();
   } catch (err) {
+    if (isAiCall) {
+      throw err;
+    }
     isBackendAvailable = false;
     return getOfflineMockResponse(endpoint, options);
   }
@@ -825,20 +831,13 @@ function getOfflineMockResponse(endpoint, options) {
     };
     return scenarios[sId] || scenarios[1];
   }
-  if (endpoint === "/ai/assistant") {
-    const q = (body.question || "").toLowerCase();
-    let output = "";
-    if (q.includes("5.000") || q.includes("5000") || q.includes("5k")) output = `### 🛵 Gợi Ý Bảo Dưỡng Định Kỳ Mốc 5.000 km\n\n1. 🔍 **Các hạng mục bắt buộc**: Thay dầu động cơ, Thay lọc nhớt, Vệ sinh lọc gió.\n2. 💡 **Combo tối ưu**: Thay nhớt + Lọc nhớt + Kiểm tra phanh + Áp suất lốp.\n3. ⚠️ **Lời khuyên**: Bảo dưỡng đúng mốc giúp kéo dài tuổi thọ động cơ!`;
-    else if (q.includes("rung") || q.includes("vios")) output = `### 🛠️ Phân Tích: Toyota Vios bị rung không tải\n\n1. **Nguyên nhân có thể**: Cao su chân máy lão hóa, bugi yếu, kim phun bẩn.\n2. **Bước kiểm tra**: 1. Kiểm tra cao su chân máy → 2. Đo điện áp bugi → 3. Đọc OBD-II.\n3. **Mức độ ưu tiên**: Trung bình - cần xử lý sớm.`;
-    else if (q.includes("doanh thu") || q.includes("tháng")) {
-      const invoices = dbRead(DB_KEYS.invoices);
-      const revenue = invoices.reduce((s, i) => s + (i.total_amount || 0), 0);
-      const customers = dbRead(DB_KEYS.customers);
-      const reqs = dbRead(DB_KEYS.customerRequests);
-      output = `### 📊 Báo Cáo Kinh Doanh Thực Tế\n\n- **Tổng khách hàng**: ${customers.length} khách\n- **Yêu cầu dịch vụ**: ${reqs.length} yêu cầu\n- **Doanh thu đã thu**: ${revenue.toLocaleString("vi-VN")} VNĐ\n- **Tỷ lệ yêu cầu mới (Pending)**: ${reqs.filter(r => r.status === "Pending").length} yêu cầu chưa xử lý`;
-    }
-    else output = `### 🤖 Trợ Lý AI Garage VTV\n\nTôi đã ghi nhận câu hỏi: "*${q}*".\n\n- **Tư vấn Kỹ thuật**: Khuyến nghị KTV kiểm tra áp suất nén và đọc máy chẩn đoán OBD-II.\n- **Đảm bảo giá**: Đơn giá được liên kết trực tiếp với Database chuẩn niêm yết (Sai lệch giá = 0%).`;
-    return { success: true, feature: "ai_assistant", output, model_used: "gemini-2.5-flash-garage-vtv" };
+  if (endpoint === "/ai/assistant" || endpoint === "/ai/assistant/open") {
+    return {
+      success: false,
+      feature: "ai_assistant",
+      output: "⚠️ Hiện tại máy chủ AI đang bận hoặc chưa thể kết nối. Quý khách vui lòng gửi câu hỏi qua form đặt lịch để kỹ thuật viên kiểm tra trực tiếp xe!",
+      model_used: "offline_notice"
+    };
   }
   if (endpoint === "/ai/obd-diagnostic") {
     return {
@@ -1448,7 +1447,8 @@ function showToast(message) {
 
 // AI Functions Implementation
 async function askAIAssistant(question, repairOrderId = null, vehicleId = null) {
-  return await apiFetch("/ai/assistant", {
+  const endpoint = currentState.token ? "/ai/assistant" : "/ai/assistant/open";
+  return await apiFetch(endpoint, {
     method: "POST",
     body: JSON.stringify({
       question: question,
@@ -1477,13 +1477,6 @@ function formatAIMarkdown(text) {
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`([^`]+)`/g, '<code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: #38bdf8;">$1</code>')
     .replace(/\n/g, '<br>');
-}
-
-async function askAIAssistant(question, repairOrderId = null, vehicleId = null) {
-  return await apiFetch("/ai/assistant", {
-    method: "POST",
-    body: JSON.stringify({ question, repair_order_id: repairOrderId, vehicle_id: vehicleId })
-  });
 }
 
 async function openAIAssistantModal(title, initialQuestion, repairOrderId = null, vehicleId = null) {
