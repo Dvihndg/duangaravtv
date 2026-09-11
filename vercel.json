@@ -1,55 +1,30 @@
 {
-  "version": 2,
-  "builds": [
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+      "source": "/api/v1/:path*",
+      "destination": "/api?__vpath__=/api/v1/:path*"
     },
     {
-      "src": "*.html",
-      "use": "@vercel/static"
+      "source": "/api/:path*",
+      "destination": "/api?__vpath__=/api/:path*"
     },
     {
-      "src": "*.js",
-      "use": "@vercel/static"
+      "source": "/health",
+      "destination": "/api?__vpath__=/health"
     },
     {
-      "src": "*.css",
-      "use": "@vercel/static"
+      "source": "/admin",
+      "destination": "/admin.html"
     },
     {
-      "src": "*.png",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/v1/(.*)",
-      "dest": "api/index.py"
+      "source": "/customer",
+      "destination": "/customer.html"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/health",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/admin",
-      "dest": "/admin.html"
-    },
-    {
-      "src": "/customer",
-      "dest": "/customer.html"
-    },
-    {
-      "src": "/login",
-      "dest": "/login.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/login",
+      "destination": "/login.html"
     }
   ]
 }
