@@ -156,99 +156,12 @@ if not os.getenv("VERCEL"):
         print(f"[DB Init Notice] {e}")
 
 
-from starlette.types import ASGIApp, Scope, Receive, Send
-from urllib.parse import urlparse
-
-def _safe_decode(val):
-    if isinstance(val, bytes):
-        return val.decode("utf-8", errors="ignore")
-    return str(val) if val is not None else ""
-
-class GlobalErrorCatchMiddleware:
-    def __init__(self, app: ASGIApp):
-        self.app = app
-
-    async def __call__(self, scope: Scope, receive: Receive, send: Send):
-        try:
-            await self.app(scope, receive, send)
-        except Exception as exc:
-            import traceback
-            tb = traceback.format_exc()
-            print(f"[Unhandled Server Error]: {tb}")
-            from starlette.responses import JSONResponse
-            response = JSONResponse(
-                status_code=500,
-                content={
-                    "error": "Unhandled Server Exception",
-                    "detail": str(exc),
-                    "traceback": tb.split("\n")
-                },
-                headers={"Access-Control-Allow-Origin": "*"}
-            )
-            await response(scope, receive, send)
-
-class VercelPathRewriteMiddleware:
-    """
-    Middleware to resolve original Vercel serverless request paths when Vercel rewrites 
-    requests to /api. Restores scope['path'] from x-forwarded-uri, x-original-uri,
-    x-vercel-matched-path, or __vpath__.
-    """
-    def __init__(self, app: ASGIApp):
-        self.app = app
-
-    async def __call__(self, scope: Scope, receive: Receive, send: Send):
-        if scope["type"] in ("http", "websocket"):
-            try:
-                raw_headers = scope.get("headers", [])
-                headers = {}
-                for item in raw_headers:
-                    if isinstance(item, (list, tuple)) and len(item) >= 2:
-                        k_str = _safe_decode(item[0]).lower()
-                        v_str = _safe_decode(item[1])
-                        headers[k_str] = v_str
-
-                detected_path = None
-                for hk in ("x-forwarded-uri", "x-original-uri", "x-real-url", "x-vercel-matched-path"):
-                    h_val = headers.get(hk, "")
-                    if h_val:
-                        if "://" in h_val:
-                            h_val = urlparse(h_val).path
-                        else:
-                            h_val = h_val.split("?")[0]
-                        if (h_val.startswith("/api/v1/") or h_val.startswith("/api/")) and len(h_val) > 5:
-                            detected_path = h_val
-                            break
-
-                raw_qs = scope.get("query_string", b"")
-                query_str = _safe_decode(raw_qs)
-                if "__vpath__=" in query_str:
-                    from urllib.parse import parse_qs, urlencode
-                    qs = parse_qs(query_str)
-                    if "__vpath__" in qs:
-                        vpath = qs.pop("__vpath__")[0]
-                        if not detected_path:
-                            detected_path = vpath
-                        new_qs = urlencode(qs, doseq=True)
-                        scope["query_string"] = new_qs.encode("utf-8") if isinstance(raw_qs, bytes) else new_qs
-
-                if detected_path:
-                    scope["path"] = detected_path
-            except Exception as ex:
-                print(f"[Vercel Path Rewrite Middleware Notice]: {ex}")
-                        
-        await self.app(scope, receive, send)
-
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
     description="Hệ thống Quản lý Garage Ô tô Tích hợp AI (FastAPI + Modern SPA + Gemini AI)"
 )
 
-# Global Error Catch Middleware (outermost)
-app.add_middleware(GlobalErrorCatchMiddleware)
-
-# Vercel Path Fixer Middleware
-app.add_middleware(VercelPathRewriteMiddleware)
 
 
 # Cấu hình CORS cho phép Live Server kết nối
