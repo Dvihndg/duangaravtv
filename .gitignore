@@ -4,5 +4,6 @@ __pycache__/
 .pytest_cache/
 .env
 *.db
+!garage.db
 .vscode/
 .idea/
