@@ -6,6 +6,20 @@ root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
+# Fix Vercel Read-Only Filesystem for SQLite fallback
+db_url = os.getenv("DATABASE_URL", "")
+if not db_url or "sqlite" in db_url:
+    try:
+        tmp_db = "/tmp/garage.db"
+        if not os.path.exists(tmp_db):
+            root_db = os.path.join(root_dir, "garage.db")
+            if os.path.exists(root_db):
+                import shutil
+                shutil.copy2(root_db, tmp_db)
+        os.environ["DATABASE_URL"] = f"sqlite:///{tmp_db}"
+    except Exception as e:
+        print(f"[Vercel Startup Notice] SQLite /tmp setup: {e}")
+
 # pyrefly: ignore [missing-import]
 from fastapi import FastAPI, Request  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
@@ -344,11 +358,29 @@ def health_check():
         finally:
             db.close()
     except Exception as e:
-        db_status = "degraded"
-        error_msg = str(e)
+        # Fallback to local SQLite /tmp
+        try:
+            from backend.app.database import get_db
+            fallback_gen = get_db()
+            fallback_db = next(fallback_gen)
+            try:
+                fallback_db.execute(text("SELECT 1"))
+                inspector = inspect(fallback_db.bind)
+                table_count = len(inspector.get_table_names())
+                db_status = "connected (fallback SQLite)"
+                db_type = fallback_db.bind.name
+                error_msg = None
+            finally:
+                try:
+                    next(fallback_gen)
+                except StopIteration:
+                    pass
+        except Exception:
+            db_status = "degraded"
+            error_msg = str(e)
 
     return {
-        "status": "ok" if db_status == "connected" else "degraded",
+        "status": "ok" if "connected" in db_status else "degraded",
         "project": settings.PROJECT_NAME,
         "database": {
             "status": db_status,

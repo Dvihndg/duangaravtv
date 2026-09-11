@@ -3,26 +3,6 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/api/v1/:path*",
-      "destination": "/api?__vpath__=/api/v1/:path*"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api?__vpath__=/api/:path*"
-    },
-    {
-      "source": "/health",
-      "destination": "/api?__vpath__=/health"
-    },
-    {
-      "source": "/docs",
-      "destination": "/api?__vpath__=/docs"
-    },
-    {
-      "source": "/openapi.json",
-      "destination": "/api?__vpath__=/openapi.json"
-    },
-    {
       "source": "/admin",
       "destination": "/admin.html"
     },
@@ -33,6 +13,18 @@
     {
       "source": "/login",
       "destination": "/login.html"
+    },
+    {
+      "source": "/api/v1/:path*",
+      "destination": "/api/v1/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/v1/health"
     }
   ]
 }
