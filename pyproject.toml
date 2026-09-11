@@ -17,13 +17,8 @@ dependencies = [
     "requests>=2.31.0",
     "email-validator>=2.0.0",
     "pg8000>=1.30.0",
-    "streamlit>=1.30.0",
-    "pandas>=2.0.0",
-    "plotly>=5.18.0"
+    "mangum>=0.17.0"
 ]
-
-[tool.vercel]
-entrypoint = "api.index:app"
 
 [tool.pyright]
 reportMissingImports = "none"

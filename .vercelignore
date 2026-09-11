@@ -1,0 +1,13 @@
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+garage.db
+streamlit_app.py
+requirements-streamlit.txt
+diagram
+docs
+Dockerfile
+docker-compose.yml
+.git
+.github

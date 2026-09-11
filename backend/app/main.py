@@ -257,6 +257,20 @@ app.include_router(audit_logs.router)
 app.include_router(settings_router.router)
 
 # Serve Frontend from Project Root
+@app.get("/api")
+@app.get("/api/")
+@app.get("/api/index.py")
+def read_api_root():
+    return {
+        "status": "ok",
+        "message": "Garage VTV Backend API is running on Vercel",
+        "endpoints": {
+            "health": "/api/v1/health",
+            "docs": "/docs",
+            "ai_open": "/api/v1/ai/assistant/open"
+        }
+    }
+
 @app.get("/")
 def read_root():
     index_path = os.path.join(root_dir, "index.html")
