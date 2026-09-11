@@ -172,11 +172,8 @@ function closeModal(modalId) {
     modal.style.display = "none";
   }
 }
-// Detect static hosting environment (GitHub Pages / Custom Domain without server backend)
-const isKnownStaticHost = (
-  window.location.hostname.includes("github.io") ||
-  window.location.hostname.includes("dvinhdev.id.vn")
-) && !configuredApiBase;
+// Detect static hosting environment (Only true static hosts like GitHub Pages without API)
+const isKnownStaticHost = window.location.hostname.includes("github.io") && !configuredApiBase;
 
 let isBackendAvailable = !isKnownStaticHost;
 

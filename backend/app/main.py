@@ -162,7 +162,8 @@ from urllib.parse import urlparse
 class VercelPathRewriteMiddleware:
     """
     Middleware to resolve original Vercel serverless request paths when Vercel rewrites 
-    requests to /api/index.py. Restores scope['path'] from x-forwarded-uri, x-invoke-path, x-matched-path or x-real-url.
+    requests to /api/index.py. Restores scope['path'] from __vpath__, x-vercel-matched-path,
+    x-forwarded-uri, x-invoke-path, x-matched-path or x-real-url.
     """
     def __init__(self, app: ASGIApp):
         self.app = app
@@ -172,9 +173,26 @@ class VercelPathRewriteMiddleware:
             headers = dict(scope.get("headers", []))
             raw_path = scope.get("path", "")
             
-            # If path was rewritten by Vercel to /api/index.py or /api/index
+            # 1. Query parameter override (__vpath__)
+            query_str = scope.get("query_string", b"").decode("utf-8", errors="ignore")
+            if "__vpath__=" in query_str:
+                from urllib.parse import parse_qs, urlencode
+                qs = parse_qs(query_str)
+                if "__vpath__" in qs:
+                    scope["path"] = qs.pop("__vpath__")[0]
+                    scope["query_string"] = urlencode(qs, doseq=True).encode("utf-8")
+                    raw_path = scope["path"]
+
+            # 2. If path was rewritten by Vercel to /api/index.py or /api/index
             if raw_path in ("/api/index.py", "/api/index", "/api", "/api/", "/index.py", ""):
-                for header_key in (b"x-forwarded-uri", b"x-invoke-path", b"x-matched-path", b"x-real-url"):
+                for header_key in (
+                    b"x-vercel-matched-path",
+                    b"x-forwarded-uri",
+                    b"x-invoke-path",
+                    b"x-matched-path",
+                    b"x-real-url",
+                    b"x-original-uri"
+                ):
                     val = headers.get(header_key, b"").decode("utf-8", errors="ignore")
                     if val and not val.startswith("/api/index") and not val.startswith("/index.py"):
                         if "://" in val:
