@@ -35,13 +35,14 @@ from backend.app.routers import (
     receptions, quotations, audit_logs, settings as settings_router
 )
 
-# Create database tables automatically with fault safety
-try:
-    Base.metadata.create_all(bind=engine)
-except Exception as e:
-    print(f"[DB Warning] Unable to auto-create tables on startup: {e}")
+import threading
 
-def ensure_db_columns():
+def init_db_background():
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"[DB Warning] Unable to auto-create tables: {e}")
+
     try:
         inspector = inspect(engine)
         tables = inspector.get_table_names()
@@ -100,12 +101,6 @@ def ensure_db_columns():
     except Exception as e:
         print(f"Migration notice: {e}")
 
-try:
-    ensure_db_columns()
-except Exception as e:
-    print(f"[DB Columns Warning] {e}")
-
-def ensure_default_seed_users():
     try:
         from backend.app.models import User, UserRole, Service, Part
         from backend.app.auth import get_password_hash
@@ -113,36 +108,24 @@ def ensure_default_seed_users():
         try:
             if not db.query(User).filter(User.username == "admin").first():
                 admin_user = User(
-                    username="admin",
-                    email="admin@garage.com",
+                    username="admin", email="admin@garage.com",
                     hashed_password=get_password_hash("admin123"),
-                    full_name="Nguyễn Văn Quản Lý",
-                    role=UserRole.MANAGER,
-                    phone="0901111111"
+                    full_name="Nguyễn Văn Quản Lý", role=UserRole.MANAGER, phone="0901111111"
                 )
                 letan_user = User(
-                    username="letan",
-                    email="letan@garage.com",
+                    username="letan", email="letan@garage.com",
                     hashed_password=get_password_hash("letan123"),
-                    full_name="Trần Thị Lễ Tân",
-                    role=UserRole.RECEPTIONIST,
-                    phone="0902222222"
+                    full_name="Trần Thị Lễ Tân", role=UserRole.RECEPTIONIST, phone="0902222222"
                 )
                 tech_user = User(
-                    username="kythuat",
-                    email="kythuat@garage.com",
+                    username="kythuat", email="kythuat@garage.com",
                     hashed_password=get_password_hash("tech123"),
-                    full_name="Lê Hoàng Kỹ Thuật",
-                    role=UserRole.TECHNICIAN,
-                    phone="0903333333"
+                    full_name="Lê Hoàng Kỹ Thuật", role=UserRole.TECHNICIAN, phone="0903333333"
                 )
                 cashier_user = User(
-                    username="thungan",
-                    email="thungan@garage.com",
+                    username="thungan", email="thungan@garage.com",
                     hashed_password=get_password_hash("cashier123"),
-                    full_name="Phạm Thị Thu Ngân",
-                    role=UserRole.CASHIER,
-                    phone="0904444444"
+                    full_name="Phạm Thị Thu Ngân", role=UserRole.CASHIER, phone="0904444444"
                 )
                 db.add_all([admin_user, letan_user, tech_user, cashier_user])
                 db.commit()
@@ -165,10 +148,8 @@ def ensure_default_seed_users():
     except Exception as e:
         print(f"[DB Auto Seed Notice] {e}")
 
-try:
-    ensure_default_seed_users()
-except Exception as e:
-    print(f"[Auto Seed Exception] {e}")
+# Run in daemon background thread to keep cold start under 50ms
+threading.Thread(target=init_db_background, daemon=True).start()
 
 from starlette.types import ASGIApp, Scope, Receive, Send
 from urllib.parse import urlparse
