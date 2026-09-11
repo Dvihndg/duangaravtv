@@ -1,15 +1,20 @@
 import os
 import secrets
-try:
-    # pyrefly: ignore [missing-import]
-    from pydantic_settings import BaseSettings  # type: ignore
-except ImportError:
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pydantic_settings import BaseSettings
+else:
     try:
         # pyrefly: ignore [missing-import]
-        from pydantic import BaseSettings  # type: ignore
+        from pydantic_settings import BaseSettings  # type: ignore
     except ImportError:
-        # pyrefly: ignore [missing-import]
-        from pydantic import BaseModel as BaseSettings  # type: ignore
+        try:
+            # pyrefly: ignore [missing-import]
+            from pydantic import BaseSettings  # type: ignore
+        except ImportError:
+            # pyrefly: ignore [missing-import]
+            from pydantic import BaseModel as BaseSettings  # type: ignore
 
 # Tự động nạp các file .env từ cả backend/ lẫn thư mục gốc vào os.environ
 def _load_env_files():

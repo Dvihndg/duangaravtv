@@ -522,7 +522,7 @@ class AIService:
         user_prompt = PROMPT_SERVICE_EXPLAINER.format(repair_order=repair_order_data)
         output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, user_prompt)
 
-        ro.ai_service_explanation = output_text
+        ro.ai_service_explanation = output_text  # type: ignore
         cls._save_ai_log(
             db=db,
             feature="service_explainer",
@@ -584,8 +584,8 @@ class AIService:
 
         output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, user_prompt)
 
-        ro.estimated_cost = grand_total
-        ro.ai_draft_quotation_notes = output_text
+        ro.estimated_cost = grand_total  # type: ignore
+        ro.ai_draft_quotation_notes = output_text  # type: ignore
 
         cls._save_ai_log(
             db=db,

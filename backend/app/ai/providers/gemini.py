@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 # pyrefly: ignore [missing-import]
 import httpx
 
@@ -11,7 +11,7 @@ from backend.app.config import settings
 class GeminiProvider(AIProvider):
     """Adapter tích hợp Google Gemini AI qua REST API / SDK"""
 
-    def __init__(self, api_key: str = None, model_name: str = "gemini-1.5-flash"):
+    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-1.5-flash"):
         self.api_key = api_key or getattr(settings, "GEMINI_API_KEY", "")
         # Nếu key không phải chuẩn Google (AIza...), vô hiệu hóa để tránh treo timeout 25s
         if self.api_key and not self.api_key.startswith("AIza"):
