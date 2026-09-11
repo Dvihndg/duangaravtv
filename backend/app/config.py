@@ -40,6 +40,15 @@ def _load_env_files():
 
 _load_env_files()
 
+# Tự động làm sạch các biến môi trường rỗng (empty string) để Pydantic không báo lỗi int parsing
+int_env_defaults = {
+    "ACCESS_TOKEN_EXPIRE_MINUTES": "1440",
+}
+for key, def_val in int_env_defaults.items():
+    cur_val = os.getenv(key)
+    if cur_val is not None and not cur_val.strip().isdigit():
+        os.environ[key] = def_val
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Hệ thống Quản lý Garage Tích hợp AI"
     # SECRET_KEY: Use env var in production. Fallback generates a random key (not persistent across restarts!)
@@ -63,4 +72,10 @@ class Settings(BaseSettings):
         env_file = ".env"
         extra = "ignore"
 
-settings = Settings()
+try:
+    settings = Settings()
+except Exception:
+    for key, def_val in int_env_defaults.items():
+        os.environ[key] = def_val
+    settings = Settings()
+
