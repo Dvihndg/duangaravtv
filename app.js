@@ -1,7 +1,10 @@
 const configuredApiBase = window.GARAGE_API_BASE || localStorage.getItem("garage_api_base");
+const _origin = window.location.origin;
+const _isLocalFile = _origin === "null" || _origin === "" || _origin.startsWith("file:");
+const _isLocalhost = _origin.includes("localhost") || _origin.includes("127.0.0.1");
 const API_BASE = configuredApiBase || (
-  (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")) 
-    ? "http://127.0.0.1:8000/api/v1" 
+  (_isLocalFile || _isLocalhost)
+    ? "http://127.0.0.1:8000/api/v1"
     : "/api/v1"
 );
 

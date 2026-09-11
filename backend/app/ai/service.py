@@ -149,12 +149,59 @@ class AIService:
     def _call_llm(system_prompt: str, user_prompt: str) -> Tuple[str, str]:
         """
         Gửi request tới AI provider.
-        Thứ tự: 1. DeepSeek / OpenAI API, 2. Gemini, 3. Fallback nội bộ
+        Thứ tự: 1. Gemini REST API (httpx), 2. DeepSeek / OpenAI-compatible, 3. Fallback nội bộ
         """
-        # 1. DeepSeek / OpenAI-compatible API
+        # 1. Google Gemini REST API (primary) — dùng X-goog-api-key như cURL
+        if settings.GEMINI_API_KEY:
+            try:
+                import httpx
+
+                model_name = settings.AI_MODEL_NAME or "gemini-flash-latest"
+                url = (
+                    f"https://generativelanguage.googleapis.com/v1beta/models/"
+                    f"{model_name}:generateContent"
+                )
+                headers = {
+                    "Content-Type": "application/json",
+                    "X-goog-api-key": settings.GEMINI_API_KEY,
+                }
+                # system_instruction truyền riêng → prompt mẫu từ prompts.py được giữ nguyên
+                payload = {
+                    "system_instruction": {
+                        "parts": [{"text": system_prompt}]
+                    },
+                    "contents": [
+                        {
+                            "parts": [{"text": user_prompt}]
+                        }
+                    ],
+                    "generationConfig": {
+                        "temperature": 0.4,
+                        "maxOutputTokens": 2048,
+                    },
+                }
+
+                response = httpx.post(url, headers=headers, json=payload, timeout=8.0)
+                if response.status_code == 200:
+                    data = response.json()
+                    candidates = data.get("candidates") or []
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts") or []
+                        text = "".join(p.get("text", "") for p in parts).strip()
+                        if text:
+                            return text, f"Gemini ({model_name})"
+                else:
+                    logger.warning(
+                        "Gemini REST API trả về HTTP %s: %s",
+                        response.status_code,
+                        response.text[:500],
+                    )
+            except Exception:
+                logger.exception("Lỗi gọi Gemini REST API.")
+
+        # 2. DeepSeek / OpenAI-compatible API (fallback)
         if settings.DEEPSEEK_API_KEY:
             try:
-                # pyrefly: ignore [missing-import]
                 import httpx
 
                 base_url = (settings.DEEPSEEK_BASE_URL or "").rstrip("/")
@@ -167,11 +214,11 @@ class AIService:
 
                 model_name = settings.AI_MODEL_NAME or "deepseek-chat"
 
-                headers = {
+                ds_headers = {
                     "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}",
                     "Content-Type": "application/json",
                 }
-                payload = {
+                ds_payload = {
                     "model": model_name,
                     "messages": [
                         {"role": "system", "content": system_prompt},
@@ -181,9 +228,9 @@ class AIService:
                     "max_tokens": 2000,
                 }
 
-                response = httpx.post(api_url, headers=headers, json=payload, timeout=30.0)
-                if response.status_code == 200:
-                    data = response.json()
+                ds_response = httpx.post(api_url, headers=ds_headers, json=ds_payload, timeout=30.0)
+                if ds_response.status_code == 200:
+                    data = ds_response.json()
                     choices = data.get("choices") or []
                     if choices:
                         content = choices[0].get("message", {}).get("content")
@@ -191,31 +238,13 @@ class AIService:
                             model_used = data.get("model", model_name)
                             return content.strip(), f"AI API ({model_used})"
 
-                logger.warning("AI API trả về HTTP %s: %s", response.status_code, response.text[:500])
+                logger.warning("AI API trả về HTTP %s: %s", ds_response.status_code, ds_response.text[:500])
             except Exception:
                 logger.exception("Lỗi gọi DeepSeek/OpenAI-compatible API.")
 
-        # 2. Gemini
-        if settings.GEMINI_API_KEY:
-            try:
-                # pyrefly: ignore [missing-import]
-                import google.generativeai as genai
-
-                genai.configure(api_key=settings.GEMINI_API_KEY)
-                model_name = settings.AI_MODEL_NAME or "gemini-2.0-flash"
-                model = genai.GenerativeModel(
-                    model_name=model_name,
-                    system_instruction=system_prompt,
-                )
-
-                response = model.generate_content(user_prompt)
-                if response and getattr(response, "text", None):
-                    return response.text.strip(), f"Gemini ({model_name})"
-            except Exception:
-                logger.exception("Lỗi gọi Gemini API.")
-
         # 3. Internal fallback
         return AIService._fallback_engine(system_prompt, user_prompt)
+
 
     # ============================================================
     # FALLBACK ENGINE

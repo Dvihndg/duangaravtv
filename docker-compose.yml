@@ -10,11 +10,13 @@ services:
     environment:
       - APP_ENV=production
       - DATABASE_URL=postgresql+pg8000://garage_user:garage_password@postgres:5432/garage_db
-      - SECRET_KEY=garage-vtv-prod-secret-key-32-chars-min
+      - SECRET_KEY=${SECRET_KEY:-garage-vtv-prod-secret-key-32-chars-min}
       - ACCESS_TOKEN_EXPIRE_MINUTES=1440
-      - AI_PROVIDER=fallback
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - AI_MODEL_NAME=${AI_MODEL_NAME:-gemini-flash-latest}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL}
       - VAT_RATE=0.10
     depends_on:
       postgres:

@@ -9,12 +9,25 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 
-    # AI Configuration
-    DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "sk-9vWcOHQtsCZ5J0gu9wYTU7YawMLVDc80HoMilS9hOHgiQ9ks")
-    DEEPSEEK_BASE_URL: str = os.getenv("DEEPSEEK_BASE_URL", "https://seekai.cc/v1")
+    # AI Configuration — Google Gemini (primary)
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+
+    # Đọc AI_MODEL_NAME hoặc GEMINI_MODEL (Railway dùng GEMINI_MODEL)
+    AI_MODEL_NAME: str = (
+        os.getenv("AI_MODEL_NAME")
+        or os.getenv("GEMINI_MODEL")
+        or "gemini-flash-latest"
+    )
+
+    # Tương thích biến AI_PROVIDER cũ (Railway có thể đã set)
+    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "gemini")
+
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    AI_MODEL_NAME: str = os.getenv("AI_MODEL_NAME", "deepseek-v4-pro")
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+    # DeepSeek / OpenAI-compatible (dự phòng, để trống nếu không dùng)
+    DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
+    DEEPSEEK_BASE_URL: str = os.getenv("DEEPSEEK_BASE_URL", "")
 
     class Config:
         env_file = ".env"

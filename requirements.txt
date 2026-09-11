@@ -13,3 +13,4 @@ pg8000>=1.30.0
 streamlit>=1.30.0
 pandas>=2.0.0
 plotly>=5.18.0
+google-generativeai>=0.8.0
