@@ -1,18 +1,24 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "functions": {
+    "api/index.py": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "/api?__vpath__=/api/v1/:path*"
+      "destination": "/api/index.py"
     },
     {
       "source": "/api/:path*",
-      "destination": "/api?__vpath__=/api/:path*"
+      "destination": "/api/index.py"
     },
     {
       "source": "/health",
-      "destination": "/api?__vpath__=/health"
+      "destination": "/api/index.py"
     },
     {
       "source": "/admin",

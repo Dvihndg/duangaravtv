@@ -22,11 +22,6 @@ if not db_url or "sqlite" in db_url:
 
 try:
     from backend.app.main import app
-    try:
-        from mangum import Mangum
-        handler = Mangum(app, lifespan="off")
-    except Exception:
-        handler = app
 except Exception as e:
     import traceback
     print(f"[Vercel Serverless Startup Exception]: {e}")
@@ -36,10 +31,5 @@ except Exception as e:
     @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
     def api_fallback(path: str):
         return {"status": "degraded", "fallback_active": True, "path": path, "error": str(e)}
-    try:
-        from mangum import Mangum
-        handler = Mangum(app, lifespan="off")
-    except Exception:
-        handler = app
 
-__all__ = ["app", "handler"]
+__all__ = ["app"]
