@@ -176,8 +176,8 @@ from urllib.parse import urlparse
 class VercelPathRewriteMiddleware:
     """
     Middleware to resolve original Vercel serverless request paths when Vercel rewrites 
-    requests to /api/index.py. Restores scope['path'] from __vpath__, x-vercel-matched-path,
-    x-forwarded-uri, x-invoke-path, x-matched-path or x-real-url.
+    requests to /api. Restores scope['path'] from x-forwarded-uri, x-original-uri,
+    x-vercel-matched-path, or __vpath__.
     """
     def __init__(self, app: ASGIApp):
         self.app = app
@@ -185,38 +185,33 @@ class VercelPathRewriteMiddleware:
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope["type"] in ("http", "websocket"):
             headers = dict(scope.get("headers", []))
-            raw_path = scope.get("path", "")
+            detected_path = None
             
-            # 1. Query parameter override (__vpath__)
+            # 1. Check original request URI from Vercel headers
+            for hk in (b"x-forwarded-uri", b"x-original-uri", b"x-real-url", b"x-vercel-matched-path"):
+                h_val = headers.get(hk, b"").decode("utf-8", errors="ignore")
+                if h_val:
+                    if "://" in h_val:
+                        h_val = urlparse(h_val).path
+                    else:
+                        h_val = h_val.split("?")[0]
+                    if (h_val.startswith("/api/v1/") or h_val.startswith("/api/")) and len(h_val) > 5:
+                        detected_path = h_val
+                        break
+
+            # 2. Query parameter override (__vpath__)
             query_str = scope.get("query_string", b"").decode("utf-8", errors="ignore")
             if "__vpath__=" in query_str:
                 from urllib.parse import parse_qs, urlencode
                 qs = parse_qs(query_str)
                 if "__vpath__" in qs:
-                    scope["path"] = qs.pop("__vpath__")[0]
+                    vpath = qs.pop("__vpath__")[0]
+                    if not detected_path:
+                        detected_path = vpath
                     scope["query_string"] = urlencode(qs, doseq=True).encode("utf-8")
-                    raw_path = scope["path"]
 
-            # 2. If path was rewritten by Vercel to /api/index.py or /api/index
-            if raw_path in ("/api/index.py", "/api/index", "/api", "/api/", "/index.py", ""):
-                for header_key in (
-                    b"x-vercel-matched-path",
-                    b"x-forwarded-uri",
-                    b"x-invoke-path",
-                    b"x-matched-path",
-                    b"x-real-url",
-                    b"x-original-uri"
-                ):
-                    val = headers.get(header_key, b"").decode("utf-8", errors="ignore")
-                    if val and not val.startswith("/api/index") and not val.startswith("/index.py"):
-                        if "://" in val:
-                            parsed = urlparse(val)
-                            if parsed.path:
-                                scope["path"] = parsed.path
-                                break
-                        else:
-                            scope["path"] = val.split("?")[0]
-                            break
+            if detected_path:
+                scope["path"] = detected_path
                         
         await self.app(scope, receive, send)
 
@@ -271,6 +266,16 @@ app.include_router(audit_logs.router)
 app.include_router(settings_router.router)
 
 # Serve Frontend from Project Root
+@app.api_route("/api/debug", methods=["GET", "POST"])
+@app.api_route("/api/v1/debug", methods=["GET", "POST"])
+def debug_endpoint(request: Request):
+    return {
+        "scope_path": request.scope.get("path"),
+        "scope_query": request.scope.get("query_string", b"").decode("utf-8", errors="ignore"),
+        "method": request.method,
+        "headers": dict(request.headers)
+    }
+
 @app.get("/api")
 @app.get("/api/")
 @app.get("/api/index.py")
