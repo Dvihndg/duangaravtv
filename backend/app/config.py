@@ -1,6 +1,7 @@
 import os
 import secrets
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
 
 if TYPE_CHECKING:
     from pydantic_settings import BaseSettings
@@ -54,7 +55,8 @@ class Settings(BaseSettings):
     # SECRET_KEY: Use env var in production. Fallback generates a random key (not persistent across restarts!)
     SECRET_KEY: str = os.getenv("SECRET_KEY", "garage-vtv-must-set-secret-key-in-prod-env")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    ACCESS_TOKEN_EXPIRE_MINUTES: Any = 1440
+
 
     # AI Configuration — Google Gemini (primary)
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")

@@ -21,6 +21,12 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text, inspect
 
+app = FastAPI(
+    title="Hệ thống Quản lý Garage Ô tô Tích hợp AI",
+    version="1.0.0",
+    description="Hệ thống Quản lý Garage Ô tô Tích hợp AI"
+)
+
 from backend.app.config import settings
 from backend.app.database import engine, SessionLocal
 from backend.app.routers import (
@@ -28,11 +34,6 @@ from backend.app.routers import (
     customer_requests, receptions, quotations, audit_logs, settings as settings_router
 )
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version="1.0.0",
-    description="Hệ thống Quản lý Garage Ô tô Tích hợp AI"
-)
 
 app.add_middleware(
     CORSMiddleware,
