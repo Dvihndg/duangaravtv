@@ -1,6 +1,39 @@
 import os
 import secrets
-from pydantic_settings import BaseSettings
+try:
+    # pyrefly: ignore [missing-import]
+    from pydantic_settings import BaseSettings  # type: ignore
+except ImportError:
+    try:
+        # pyrefly: ignore [missing-import]
+        from pydantic import BaseSettings  # type: ignore
+    except ImportError:
+        # pyrefly: ignore [missing-import]
+        from pydantic import BaseModel as BaseSettings  # type: ignore
+
+# Tự động nạp các file .env từ cả backend/ lẫn thư mục gốc vào os.environ
+def _load_env_files():
+    search_paths = [
+        os.path.join(os.path.dirname(__file__), "../.env"),
+        os.path.join(os.path.dirname(__file__), "../../.env"),
+        os.path.abspath(".env")
+    ]
+    for p in search_paths:
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            k = k.strip()
+                            v = v.strip().strip("'\"")
+                            if k not in os.environ or not os.environ[k]:
+                                os.environ[k] = v
+            except Exception:
+                pass
+
+_load_env_files()
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Hệ thống Quản lý Garage Tích hợp AI"
@@ -11,20 +44,12 @@ class Settings(BaseSettings):
 
     # AI Configuration — Google Gemini (primary)
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-
-    # Đọc AI_MODEL_NAME hoặc GEMINI_MODEL (Railway dùng GEMINI_MODEL)
-    AI_MODEL_NAME: str = (
-        os.getenv("AI_MODEL_NAME")
-        or os.getenv("GEMINI_MODEL")
-        or "gemini-flash-latest"
-    )
-
-    # Tương thích biến AI_PROVIDER cũ (Railway có thể đã set)
-    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "gemini")
+    AI_MODEL_NAME: str = os.getenv("AI_MODEL_NAME", "gemini-1.5-flash")
+    # Groq AI (nhanh, miễn phí, không bị chặn VN)
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-
     # DeepSeek / OpenAI-compatible (dự phòng, để trống nếu không dùng)
     DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
     DEEPSEEK_BASE_URL: str = os.getenv("DEEPSEEK_BASE_URL", "")

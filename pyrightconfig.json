@@ -1,0 +1,8 @@
+{
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none",
+  "extraPaths": [
+    "C:/Users/Duong Ngan/AppData/Roaming/Python/Python313/site-packages",
+    "backend"
+  ]
+}

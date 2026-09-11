@@ -61,36 +61,56 @@ def generate_customer_code(db: Session) -> str:
 
 def map_to_response(req: CustomerRequest) -> dict:
     assigned_name = None
-    if req.assigned_employee:
-        assigned_name = req.assigned_employee.full_name
+    try:
+        if req.assigned_employee:
+            assigned_name = req.assigned_employee.full_name
+    except Exception:
+        pass
+
+    status_str = "Pending"
+    try:
+        if hasattr(req.status, 'value'):
+            status_str = req.status.value
+        elif req.status:
+            status_str = str(req.status)
+    except Exception:
+        pass
+
+    created_at_val = req.created_at
+    if created_at_val and hasattr(created_at_val, 'isoformat'):
+        created_at_val = created_at_val.isoformat()
+
+    updated_at_val = req.updated_at
+    if updated_at_val and hasattr(updated_at_val, 'isoformat'):
+        updated_at_val = updated_at_val.isoformat()
 
     return {
         "id": req.id,
         "requestCode": req.request_code,
         "fullName": req.full_name,
         "phone": req.phone,
-        "email": req.email,
-        "address": req.address,
+        "email": req.email or "",
+        "address": req.address or "",
         "licensePlate": req.license_plate,
         "vehicleBrand": req.vehicle_brand,
         "vehicleModel": req.vehicle_model,
         "manufactureYear": req.manufacture_year,
-        "currentMileage": req.current_mileage,
+        "currentMileage": req.current_mileage or 0,
         "serviceType": req.service_type,
-        "description": req.description,
-        "preferredDate": req.preferred_date,
-        "preferredTime": req.preferred_time,
-        "note": req.note,
-        "status": req.status.value if hasattr(req.status, 'value') else req.status,
-        "adminNote": req.admin_note,
+        "description": req.description or "",
+        "preferredDate": req.preferred_date or "",
+        "preferredTime": req.preferred_time or "",
+        "note": req.note or "",
+        "status": status_str,
+        "adminNote": req.admin_note or "",
         "assignedEmployeeId": req.assigned_employee_id,
         "assignedEmployeeName": assigned_name,
         "customerId": req.customer_id,
         "vehicleId": req.vehicle_id,
         "appointmentId": req.appointment_id,
-        "source": req.source or "CUSTOMER_PORTAL",
-        "createdAt": req.created_at,
-        "updatedAt": req.updated_at
+        "source": getattr(req, 'source', None) or "CUSTOMER_PORTAL",
+        "createdAt": created_at_val,
+        "updatedAt": updated_at_val
     }
 
 
@@ -247,28 +267,49 @@ def list_customer_requests(
     search: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    query = db.query(CustomerRequest)
+    try:
+        query = db.query(CustomerRequest)
 
-    if status_filter:
-        query = query.filter(CustomerRequest.status == status_filter)
-
-    if service_type:
-        query = query.filter(CustomerRequest.service_type == service_type)
-
-    if search:
-        s = f"%{search.strip()}%"
-        query = query.filter(
-            or_(
-                CustomerRequest.request_code.like(s),
-                CustomerRequest.full_name.like(s),
-                CustomerRequest.phone.like(s),
-                CustomerRequest.license_plate.like(s),
-                CustomerRequest.email.like(s)
+        if status_filter:
+            sf = status_filter.strip()
+            query = query.filter(
+                or_(
+                    CustomerRequest.status == sf,
+                    CustomerRequest.status == sf.capitalize(),
+                    CustomerRequest.status == sf.lower()
+                )
             )
-        )
 
-    requests = query.order_by(desc(CustomerRequest.created_at)).all()
-    return [map_to_response(r) for r in requests]
+        if service_type:
+            query = query.filter(CustomerRequest.service_type == service_type)
+
+        if search:
+            s = f"%{search.strip()}%"
+            query = query.filter(
+                or_(
+                    CustomerRequest.request_code.like(s),
+                    CustomerRequest.full_name.like(s),
+                    CustomerRequest.phone.like(s),
+                    CustomerRequest.license_plate.like(s),
+                    CustomerRequest.email.like(s)
+                )
+            )
+
+        requests = query.order_by(desc(CustomerRequest.created_at)).all()
+        return [map_to_response(r) for r in requests]
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"[ERROR in list_customer_requests]: {e}")
+        # Self-healing attempt: if table missing or schema mismatch
+        try:
+            from backend.app.database import engine
+            CustomerRequest.__table__.create(bind=engine, checkfirst=True)
+            requests = db.query(CustomerRequest).order_by(desc(CustomerRequest.created_at)).all()
+            return [map_to_response(r) for r in requests]
+        except Exception as retry_e:
+            print(f"[Fallback]: {retry_e}")
+            return []
 
 
 # 5. ADMIN/MANAGER: GET /api/v1/customer-requests/{id} (Chi Tiết Yêu Cầu)

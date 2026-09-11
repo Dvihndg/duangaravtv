@@ -2,6 +2,7 @@ const configuredApiBase = window.GARAGE_API_BASE || localStorage.getItem("garage
 const _origin = window.location.origin;
 const _isLocalFile = _origin === "null" || _origin === "" || _origin.startsWith("file:");
 const _isLocalhost = _origin.includes("localhost") || _origin.includes("127.0.0.1");
+const API_BASE_URL = "https://127.0.0.1:8000";
 const API_BASE = configuredApiBase || (
   (_isLocalFile || _isLocalhost)
     ? "http://127.0.0.1:8000/api/v1"
@@ -43,7 +44,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const path = window.location.pathname.toLowerCase();
   const isCustomerPage = path.endsWith("index.html") || path.endsWith("customer.html") || path.endsWith("/");
-  
+
   if (!isCustomerPage) {
     try { await loginAsCurrentRole(); } catch (e) { console.error("loginAsCurrentRole:", e); }
     try { await populateVehicleDropdowns(); } catch (e) { console.error("populateVehicleDropdowns:", e); }
@@ -81,7 +82,7 @@ function checkAuthPermission() {
   const internalRoles = ["manager", "receptionist", "technician", "cashier"];
 
   const path = window.location.pathname.toLowerCase();
-  
+
   // Enforce internal authorization check specifically when accessing admin.html or /admin
   if (path.endsWith("admin.html") || path.endsWith("/admin")) {
     if (!isLoggedIn || !internalRoles.includes(role)) {
@@ -173,7 +174,7 @@ function closeModal(modalId) {
 }
 // Detect static hosting environment (GitHub Pages / Custom Domain without server backend)
 const isKnownStaticHost = (
-  window.location.hostname.includes("github.io") || 
+  window.location.hostname.includes("github.io") ||
   window.location.hostname.includes("dvinhdev.id.vn")
 ) && !configuredApiBase;
 
@@ -261,14 +262,14 @@ async function apiFetch(endpoint, options = {}) {
 // All customer form submissions stored & retrieved from here
 // ============================================================
 const DB_KEYS = {
-  customers:        "vtv_db_customers",
-  vehicles:         "vtv_db_vehicles",
-  appointments:     "vtv_db_appointments",
-  repairOrders:     "vtv_db_repair_orders",
-  invoices:         "vtv_db_invoices",
+  customers: "vtv_db_customers",
+  vehicles: "vtv_db_vehicles",
+  appointments: "vtv_db_appointments",
+  repairOrders: "vtv_db_repair_orders",
+  invoices: "vtv_db_invoices",
   customerRequests: "vtv_db_customer_requests",
-  services:         "vtv_db_services",
-  parts:            "vtv_db_parts"
+  services: "vtv_db_services",
+  parts: "vtv_db_parts"
 };
 
 // Purge all old demo data from localStorage (Keep Services & Parts catalog intact)
@@ -569,7 +570,7 @@ function getOfflineMockResponse(endpoint, options) {
     if (method === "POST") {
       const id = dbNextId(DB_KEYS.repairOrders);
       const ro = {
-        id, code: `RO-${new Date().getFullYear()}-${String(id).padStart(4,'0')}`,
+        id, code: `RO-${new Date().getFullYear()}-${String(id).padStart(4, '0')}`,
         license_plate: body.license_plate || "", initial_symptoms: body.initial_symptoms || "",
         technical_diagnosis: "", status: "received",
         final_cost: 0, created_at: new Date().toISOString()
@@ -725,7 +726,7 @@ function getOfflineMockResponse(endpoint, options) {
     return {
       kpi: {
         total_revenue: totalRevenue,
-        active_repair_orders: ros.filter(r => ["received","diagnosing","in_progress"].includes(r.status)).length,
+        active_repair_orders: ros.filter(r => ["received", "diagnosing", "in_progress"].includes(r.status)).length,
         pending_appointments: apts.filter(a => a.status === "pending").length,
         low_stock_parts_count: 2,
         new_customer_requests: reqs.filter(r => r.status === "Pending").length,
@@ -861,7 +862,7 @@ function setupRoleSwitcher() {
   roleSelect.addEventListener("change", async (e) => {
     currentState.currentRole = e.target.value;
     roleBadge.className = `role-badge ${currentState.currentRole}`;
-    
+
     const roleMapText = {
       manager: "Quản Lý",
       receptionist: "Lễ Tân",
@@ -1046,7 +1047,7 @@ async function loadAllData() {
       loadCustomersAndVehicles(),
       loadInventory(),
       loadInvoices()
-    ]).catch(() => {});
+    ]).catch(() => { });
   } catch (err) {
     console.error("Lỗi tải dữ liệu:", err);
   }
@@ -1144,7 +1145,7 @@ function filterAppointments() {
 
     const matchesQuery = !query || custName.includes(query) || plate.includes(query) || brandModel.includes(query) || service.includes(query);
     const matchesStatus = !statusFilter || apt.status === statusFilter;
-    
+
     let matchesDate = true;
     if (dateFilter && apt.appointment_date) {
       const aptDateStr = new Date(apt.appointment_date).toISOString().split('T')[0];
@@ -2038,7 +2039,7 @@ function openPaymentModal(invId, invNumber, balanceDue) {
 function updateQRAmountLive() {
   const amountInput = document.getElementById("pay-amount");
   const amount = amountInput ? (parseFloat(amountInput.value) || 0) : 0;
-  
+
   const qrAmountVal = document.getElementById("qr-amount-val");
   if (qrAmountVal) {
     qrAmountVal.innerHTML = `
@@ -2160,7 +2161,7 @@ async function submitWizardScreen1() {
       method: "POST",
       body: JSON.stringify({ question: `Lập dự thảo báo giá nháp cho triệu chứng: ${symptoms}` })
     });
-    
+
     renderFormattedAIOutput("wz-ai-diag-output", res.output);
     switchWizardStep(2);
   } catch (err) {
@@ -2218,15 +2219,15 @@ async function triggerDemoScenarioUI(scenarioId) {
   try {
     const res = await apiFetch(`/ai/demo-scenarios/${scenarioId}`, { method: "POST" });
     wizardState.activeData = res;
-    
+
     const symEl = document.getElementById("wz-symptoms-input");
     if (symEl) symEl.value = res.symptoms;
-    
-    const warnHtml = res.warnings && res.warnings.length > 0 ? 
+
+    const warnHtml = res.warnings && res.warnings.length > 0 ?
       `<div style="background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3); padding: 0.85rem; border-radius: var(--radius-md); margin-top: 1rem; color: #f43f5e; font-weight: 700;">
         ${res.warnings.join('<br>')}
       </div>` : '';
-      
+
     const diagOut = document.getElementById("wz-ai-diag-output");
     if (diagOut) {
       diagOut.innerHTML = `
@@ -2242,8 +2243,8 @@ async function triggerDemoScenarioUI(scenarioId) {
     if (tbody) {
       tbody.innerHTML = "";
       (res.suggested_parts || []).forEach(p => {
-        const stockCol = p.stock === 0 ? 
-          `<span style="color: #f43f5e; font-weight:800;">0 (⚠️ HẾT HÀNG KHO)</span>` : 
+        const stockCol = p.stock === 0 ?
+          `<span style="color: #f43f5e; font-weight:800;">0 (⚠️ HẾT HÀNG KHO)</span>` :
           `<span style="color: #10b981; font-weight:700;">${p.stock} (Còn hàng)</span>`;
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -2328,7 +2329,7 @@ async function sendAIChatMessage() {
     if (currentState.token) headers["Authorization"] = `Bearer ${currentState.token}`;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     const res = await fetch(`${API_BASE}${aiEndpoint}`, {
       method: "POST",
@@ -2502,8 +2503,8 @@ function renderBookingConfirmation(reqData) {
 
   const brandModelEl = document.getElementById("conf-veh-brandmodel");
   if (brandModelEl) {
-    const bm = (reqData.vehicleBrand && reqData.vehicleModel) 
-      ? `${reqData.vehicleBrand} ${reqData.vehicleModel}` 
+    const bm = (reqData.vehicleBrand && reqData.vehicleModel)
+      ? `${reqData.vehicleBrand} ${reqData.vehicleModel}`
       : (reqData.brandModel || "Toyota Vios");
     brandModelEl.innerText = bm;
   }
@@ -2570,13 +2571,13 @@ function copyRequestCode() {
 
 async function submitCustomerPortalRegistration(e) {
   if (e && e.preventDefault) e.preventDefault();
-  
+
   const submitBtn = document.getElementById("btn-submit-request") || (e?.target ? e.target.querySelector('button[type="submit"]') : null);
   const name = document.getElementById("cp-cust-name")?.value.trim() || "";
   const phone = document.getElementById("cp-cust-phone")?.value.trim() || "";
   const email = document.getElementById("cp-cust-email")?.value.trim() || "";
   const address = document.getElementById("cp-cust-address")?.value.trim() || "";
-  
+
   const plate = document.getElementById("cp-veh-plate")?.value.trim() || "";
   let brand = document.getElementById("cp-veh-brand")?.value.trim() || "";
   let model = document.getElementById("cp-veh-model")?.value.trim() || "";
@@ -2591,10 +2592,10 @@ async function submitCustomerPortalRegistration(e) {
 
   const year = parseInt(document.getElementById("cp-veh-year")?.value || 2020);
   const mileage = parseInt(document.getElementById("cp-veh-mileage")?.value || 50000);
-  
+
   const serviceType = document.getElementById("cp-service-type")?.value || "Bảo dưỡng định kỳ";
   const description = document.getElementById("cp-symptoms")?.value.trim() || "";
-  
+
   let preferredDate = document.getElementById("cp-pref-date")?.value || "";
   let preferredTime = document.getElementById("cp-pref-time")?.value || "09:00";
   const aptDateInput = document.getElementById("cp-apt-date")?.value;
@@ -2652,7 +2653,7 @@ async function submitCustomerPortalRegistration(e) {
     // Save to localStorage for persistence
     try {
       localStorage.setItem("vtv_last_booking_req", JSON.stringify(reqData));
-    } catch {}
+    } catch { }
 
     // Section 17: DIRECT TRANSITION TO CONFIRMATION PAGE
     renderBookingConfirmation(reqData);
@@ -2684,7 +2685,7 @@ function submitCallbackRequest(e) {
 
   closeModal("modal-phone-contact");
   showToast(`Đã ghi nhận yêu cầu gọi lại cho SĐT: ${phone}! Kỹ thuật viên sẽ liên hệ lại ngay trong 5 phút.`);
-  
+
   const phoneInput = document.getElementById("cb-phone");
   if (phoneInput) phoneInput.value = "";
 }
@@ -2708,8 +2709,8 @@ async function lookupCustomerVehicleProgress(plateParam = "") {
 
   try {
     const roList = await apiFetch("/repair-orders");
-    const matched = roList.find(ro => 
-      ((ro && ro.code) || "").toLowerCase().includes(input.toLowerCase()) || 
+    const matched = roList.find(ro =>
+      ((ro && ro.code) || "").toLowerCase().includes(input.toLowerCase()) ||
       (ro && ro.license_plate && ro.license_plate.toLowerCase().includes(input.toLowerCase()))
     );
 
@@ -2829,7 +2830,7 @@ function initSSERealtimeStream() {
         if (payload.event === "NEW_CUSTOMER_REQUEST") {
           const req = payload.data;
           showToast(`🔔 CÓ YÊU CẦU MỚI: ${req.fullName} - ${req.vehicleBrand} ${req.vehicleModel} (${req.licensePlate})!`);
-          
+
           // Increment badge count
           const badge = document.getElementById("nav-badge-requests");
           if (badge) {
@@ -2837,7 +2838,7 @@ function initSSERealtimeStream() {
             badge.textContent = count;
             badge.style.display = "inline-block";
           }
-          
+
           // Refresh table if active view is customer-requests
           if (currentState.activeView === "customer-requests") {
             loadCustomerRequestsFromBackend();
@@ -2866,7 +2867,7 @@ async function loadCustomerRequestsFromBackend() {
   try {
     const list = await apiFetch("/customer-requests");
     currentState.customerRequests = Array.isArray(list) ? list : [];
-    
+
     // Update KPI counters
     let pending = 0, confirmed = 0, inprogress = 0, completed = 0;
     currentState.customerRequests.forEach(r => {
@@ -2878,13 +2879,13 @@ async function loadCustomerRequestsFromBackend() {
 
     const pEl = document.getElementById("req-kpi-pending");
     if (pEl) pEl.textContent = pending;
-    
+
     const cEl = document.getElementById("req-kpi-confirmed");
     if (cEl) cEl.textContent = confirmed;
-    
+
     const iEl = document.getElementById("req-kpi-inprogress");
     if (iEl) iEl.textContent = inprogress;
-    
+
     const dEl = document.getElementById("req-kpi-completed");
     if (dEl) dEl.textContent = completed;
 
@@ -2923,7 +2924,7 @@ function renderCustomerRequestsTable() {
   }
 
   if (search) {
-    list = list.filter(r => 
+    list = list.filter(r =>
       (r.requestCode && r.requestCode.toLowerCase().includes(search)) ||
       (r.fullName && r.fullName.toLowerCase().includes(search)) ||
       (r.phone && r.phone.toLowerCase().includes(search)) ||
@@ -3158,7 +3159,7 @@ async function openTrackRequestModal(requestCode = "") {
 
   try {
     const req = await apiFetch(`/customer-requests/code/${codePrompt.trim().toUpperCase()}`);
-    
+
     const steps = [
       { key: "Pending", title: "1. Đã Gửi Yêu Cầu", desc: "Hệ thống đã tiếp nhận form đăng ký" },
       { key: "Contacted", title: "2. Lễ Tân Xác Nhận", desc: "Lễ tân đã liên hệ và xác nhận lịch hẹn dịch vụ" },

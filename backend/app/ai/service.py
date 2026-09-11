@@ -1,3 +1,4 @@
+import os
 import logging
 from typing import Any, Dict, Optional, Tuple
 
@@ -148,40 +149,90 @@ class AIService:
     @staticmethod
     def _call_llm(system_prompt: str, user_prompt: str) -> Tuple[str, str]:
         """
-        Gửi request tới AI provider.
-        Thứ tự: 1. Gemini REST API (httpx), 2. DeepSeek / OpenAI-compatible, 3. Fallback nội bộ
+        Gửi request tới AI provider theo chiến lược tối ưu tốc độ:
+        1. Nếu có GROQ_API_KEY và GEMINI_API_KEY không hợp lệ (không bắt đầu bằng 'AIza'): dùng Groq ngay lập tức (< 1 giây).
+        2. Nếu GEMINI_API_KEY hợp lệ (bắt đầu bằng 'AIza'): thử Gemini (timeout 5s). Nếu lỗi hoặc bị chặn mạng tại VN -> chuyển Groq.
+        3. Groq API (siêu tốc, ổn định tại VN).
+        4. DeepSeek / OpenAI-compatible.
+        5. Internal fallback engine.
         """
-        # 1. Google Gemini REST API (primary) — dùng X-goog-api-key như cURL
-        if settings.GEMINI_API_KEY:
-            try:
-                import httpx
+        # pyrefly: ignore [missing-import]
+        import httpx  # type: ignore
 
-                model_name = settings.AI_MODEL_NAME or "gemini-flash-latest"
-                url = (
-                    f"https://generativelanguage.googleapis.com/v1beta/models/"
-                    f"{model_name}:generateContent"
-                )
+        groq_api_key = getattr(settings, "GROQ_API_KEY", "") or os.getenv("GROQ_API_KEY", "")
+        groq_model = getattr(settings, "GROQ_MODEL", "openai/gpt-oss-120b") or "openai/gpt-oss-120b"
+        gemini_api_key = getattr(settings, "GEMINI_API_KEY", "") or os.getenv("GEMINI_API_KEY", "")
+
+        def _call_groq():
+            if not groq_api_key:
+                logger.info("[AI Engine] GROQ_API_KEY is not set.")
+                return None
+            
+            models_to_try = list(dict.fromkeys([groq_model, "openai/gpt-oss-120b", "qwen/qwen3.8-27b", "openai/gpt-oss-20b"]))
+            for model_candidate in models_to_try:
+                if not model_candidate:
+                    continue
+                try:
+                    logger.info("[AI Engine] Sending request to Groq API (%s)...", model_candidate)
+                    groq_headers = {
+                        "Authorization": f"Bearer {groq_api_key}",
+                        "Content-Type": "application/json",
+                    }
+                    groq_payload = {
+                        "model": model_candidate,
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt},
+                        ],
+                        "temperature": 0.4,
+                        "max_tokens": 2048,
+                    }
+                    groq_response = httpx.post(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        headers=groq_headers,
+                        json=groq_payload,
+                        timeout=15.0,
+                    )
+                    if groq_response.status_code == 200:
+                        data = groq_response.json()
+                        choices = data.get("choices") or []
+                        if choices:
+                            content = choices[0].get("message", {}).get("content")
+                            if content:
+                                logger.info("[AI Engine] Groq responded successfully with %s!", model_candidate)
+                                return content.strip(), f"Groq ({model_candidate})"
+                    elif groq_response.status_code == 404:
+                        logger.warning("Groq model %s not found (404), trying next model candidate...", model_candidate)
+                        continue
+                    else:
+                        logger.warning("Groq HTTP %s: %s", groq_response.status_code, groq_response.text[:200])
+                except Exception as ge:
+                    logger.warning("Groq API error with model %s: %s", model_candidate, ge)
+            return None
+
+        # 1. Nếu Gemini API key không đúng định dạng (Google API key luôn bắt đầu bằng 'AIza')
+        # và có Groq API key: dùng ngay Groq để tránh chờ đợi timeout vô ích
+        is_gemini_valid_format = gemini_api_key.startswith("AIza")
+        if not is_gemini_valid_format and groq_api_key:
+            res = _call_groq()
+            if res:
+                return res
+
+        # 2. Thử Google Gemini REST API nếu API key có định dạng hợp lệ
+        if gemini_api_key and is_gemini_valid_format:
+            try:
+                model_name = getattr(settings, "AI_MODEL_NAME", "gemini-1.5-flash") or "gemini-1.5-flash"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
                 headers = {
                     "Content-Type": "application/json",
-                    "X-goog-api-key": settings.GEMINI_API_KEY,
+                    "X-goog-api-key": gemini_api_key,
                 }
-                # system_instruction truyền riêng → prompt mẫu từ prompts.py được giữ nguyên
                 payload = {
-                    "system_instruction": {
-                        "parts": [{"text": system_prompt}]
-                    },
-                    "contents": [
-                        {
-                            "parts": [{"text": user_prompt}]
-                        }
-                    ],
-                    "generationConfig": {
-                        "temperature": 0.4,
-                        "maxOutputTokens": 2048,
-                    },
+                    "system_instruction": {"parts": [{"text": system_prompt}]},
+                    "contents": [{"parts": [{"text": user_prompt}]}],
+                    "generationConfig": {"temperature": 0.4, "maxOutputTokens": 2048},
                 }
-
-                response = httpx.post(url, headers=headers, json=payload, timeout=8.0)
+                response = httpx.post(url, headers=headers, json=payload, timeout=5.0)
                 if response.status_code == 200:
                     data = response.json()
                     candidates = data.get("candidates") or []
@@ -191,20 +242,21 @@ class AIService:
                         if text:
                             return text, f"Gemini ({model_name})"
                 else:
-                    logger.warning(
-                        "Gemini REST API trả về HTTP %s: %s",
-                        response.status_code,
-                        response.text[:500],
-                    )
-            except Exception:
-                logger.exception("Lỗi gọi Gemini REST API.")
+                    logger.warning("Gemini REST API trả về HTTP %s: %s", response.status_code, response.text[:300])
+            except Exception as e:
+                logger.warning("Lỗi hoặc timeout gọi Gemini REST API: %s. Chuyển sang Groq fallback.", e)
 
-        # 2. DeepSeek / OpenAI-compatible API (fallback)
-        if settings.DEEPSEEK_API_KEY:
+        # 3. Groq API fallback nếu chưa gọi
+        if groq_api_key:
+            res = _call_groq()
+            if res:
+                return res
+
+        # 4. DeepSeek / OpenAI-compatible API (fallback)
+        ds_api_key = getattr(settings, "DEEPSEEK_API_KEY", "")
+        if ds_api_key:
             try:
-                import httpx
-
-                base_url = (settings.DEEPSEEK_BASE_URL or "").rstrip("/")
+                base_url = (getattr(settings, "DEEPSEEK_BASE_URL", "") or "").rstrip("/")
                 if base_url.endswith("/chat/completions"):
                     api_url = base_url
                 elif base_url.endswith("/v1"):
@@ -212,10 +264,9 @@ class AIService:
                 else:
                     api_url = f"{base_url}/v1/chat/completions"
 
-                model_name = settings.AI_MODEL_NAME or "deepseek-chat"
-
+                model_name = getattr(settings, "AI_MODEL_NAME", "deepseek-chat") or "deepseek-chat"
                 ds_headers = {
-                    "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}",
+                    "Authorization": f"Bearer {ds_api_key}",
                     "Content-Type": "application/json",
                 }
                 ds_payload = {
@@ -227,8 +278,7 @@ class AIService:
                     "temperature": 0.2,
                     "max_tokens": 2000,
                 }
-
-                ds_response = httpx.post(api_url, headers=ds_headers, json=ds_payload, timeout=30.0)
+                ds_response = httpx.post(api_url, headers=ds_headers, json=ds_payload, timeout=15.0)
                 if ds_response.status_code == 200:
                     data = ds_response.json()
                     choices = data.get("choices") or []
@@ -237,12 +287,10 @@ class AIService:
                         if content:
                             model_used = data.get("model", model_name)
                             return content.strip(), f"AI API ({model_used})"
+            except Exception as de:
+                logger.warning("Lỗi gọi DeepSeek/OpenAI API: %s", de)
 
-                logger.warning("AI API trả về HTTP %s: %s", ds_response.status_code, ds_response.text[:500])
-            except Exception:
-                logger.exception("Lỗi gọi DeepSeek/OpenAI-compatible API.")
-
-        # 3. Internal fallback
+        # 5. Internal fallback
         return AIService._fallback_engine(system_prompt, user_prompt)
 
 

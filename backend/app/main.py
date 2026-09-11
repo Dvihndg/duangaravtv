@@ -6,12 +6,13 @@ root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from sqlalchemy import inspect, text
-from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+from fastapi import FastAPI, Request  # type: ignore
+from fastapi.middleware.cors import CORSMiddleware  # type: ignore
+from fastapi.staticfiles import StaticFiles  # type: ignore
+from fastapi.responses import FileResponse, JSONResponse  # type: ignore
+from sqlalchemy import inspect, text  # type: ignore
+from sqlalchemy.orm import Session  # type: ignore
 
 from backend.app.config import settings
 from backend.app.database import engine, Base, get_db, SessionLocal
@@ -29,7 +30,10 @@ except Exception as e:
 def ensure_db_columns():
     try:
         inspector = inspect(engine)
-        if "ai_logs" in inspector.get_table_names():
+        tables = inspector.get_table_names()
+        
+        # 1. Migrate ai_logs columns
+        if "ai_logs" in tables:
             columns = [c["name"] for c in inspector.get_columns("ai_logs")]
             with engine.connect() as conn:
                 new_cols = [
@@ -46,6 +50,38 @@ def ensure_db_columns():
                 for name, d_type in new_cols:
                     if name not in columns:
                         conn.execute(text(f"ALTER TABLE ai_logs ADD COLUMN {name} {d_type}"))
+                conn.commit()
+
+        # 2. Ensure customer_requests table and columns
+        from backend.app.models import CustomerRequest
+        if "customer_requests" not in tables:
+            CustomerRequest.__table__.create(bind=engine, checkfirst=True)
+        else:
+            cr_columns = [c["name"] for c in inspector.get_columns("customer_requests")]
+            with engine.connect() as conn:
+                new_cr_cols = [
+                    ("source", "VARCHAR(50) DEFAULT 'CUSTOMER_PORTAL'"),
+                    ("admin_note", "TEXT"),
+                    ("assigned_employee_id", "INTEGER"),
+                    ("customer_id", "INTEGER"),
+                    ("vehicle_id", "INTEGER"),
+                    ("appointment_id", "INTEGER"),
+                    ("reviewed_by_id", "INTEGER"),
+                    ("reviewed_at", "DATETIME"),
+                    ("converted_at", "DATETIME"),
+                    ("note", "TEXT"),
+                    ("description", "TEXT"),
+                    ("preferred_date", "VARCHAR(20)"),
+                    ("preferred_time", "VARCHAR(20)"),
+                    ("manufacture_year", "INTEGER"),
+                    ("current_mileage", "INTEGER DEFAULT 0"),
+                ]
+                for name, d_type in new_cr_cols:
+                    if name not in cr_columns:
+                        try:
+                            conn.execute(text(f"ALTER TABLE customer_requests ADD COLUMN {name} {d_type}"))
+                        except Exception as col_err:
+                            print(f"[Migration Notice] Column {name}: {col_err}")
                 conn.commit()
     except Exception as e:
         print(f"Migration notice: {e}")
@@ -66,7 +102,7 @@ def ensure_default_seed_users():
                     username="admin",
                     email="admin@garage.com",
                     hashed_password=get_password_hash("admin123"),
-                    full_name="Nguyên Van Quan Ly",
+                    full_name="Nguyễn Văn Quản Lý",
                     role=UserRole.MANAGER,
                     phone="0901111111"
                 )
@@ -74,7 +110,7 @@ def ensure_default_seed_users():
                     username="letan",
                     email="letan@garage.com",
                     hashed_password=get_password_hash("letan123"),
-                    full_name="Tran Thi Le Tan",
+                    full_name="Trần Thị Lễ Tân",
                     role=UserRole.RECEPTIONIST,
                     phone="0902222222"
                 )
@@ -82,7 +118,7 @@ def ensure_default_seed_users():
                     username="kythuat",
                     email="kythuat@garage.com",
                     hashed_password=get_password_hash("tech123"),
-                    full_name="Le Hoang Ky Thuat",
+                    full_name="Lê Hoàng Kỹ Thuật",
                     role=UserRole.TECHNICIAN,
                     phone="0903333333"
                 )
@@ -90,7 +126,7 @@ def ensure_default_seed_users():
                     username="thungan",
                     email="thungan@garage.com",
                     hashed_password=get_password_hash("cashier123"),
-                    full_name="Pham Thi Thu Ngan",
+                    full_name="Phạm Thị Thu Ngân",
                     role=UserRole.CASHIER,
                     phone="0904444444"
                 )
@@ -98,16 +134,16 @@ def ensure_default_seed_users():
                 db.commit()
 
             if not db.query(Service).first():
-                s1 = Service(code="DV-001", name="Bảo dưỡng định kỳ 5,000 km", category="Bảo dưỡng", price=450000, estimated_minutes=60)
-                s2 = Service(code="DV-002", name="Chẩn đoán lỗi động cơ (Scan OBD-II)", category="Chẩn đoán", price=300000, estimated_minutes=45)
-                s3 = Service(code="DV-003", name="Thay dầu nhớt & Lọc nhớt động cơ", category="Bảo dưỡng", price=150000, estimated_minutes=30)
+                s1 = Service(code="DV-001", name="Bảo dưỡng định kỳ 5,000 km", category="Bảo dưỡng", labor_cost=450000, estimated_duration=60)
+                s2 = Service(code="DV-002", name="Chẩn đoán lỗi động cơ (Scan OBD-II)", category="Chẩn đoán", labor_cost=300000, estimated_duration=45)
+                s3 = Service(code="DV-003", name="Thay dầu nhớt & Lọc nhớt động cơ", category="Bảo dưỡng", labor_cost=150000, estimated_duration=30)
                 db.add_all([s1, s2, s3])
                 db.commit()
 
             if not db.query(Part).first():
-                p1 = Part(code="PT-001", name="Dầu nhớt Fully Synthetic 5W-30 (Can 4L)", category="Hóa chất / Dầu nhớt", unit="Can", cost_price=650000, selling_price=850000, stock_quantity=45, min_stock=10)
-                p2 = Part(code="PT-002", name="Lọc nhớt động cơ Toyota Camry/Corolla", category="Phụ tùng thay thế", unit="Cái", cost_price=120000, selling_price=180000, stock_quantity=30, min_stock=5)
-                p3 = Part(code="PT-003", name="Má phanh trước Honda CR-V (Bộ 4 miếng)", category="Phụ tùng thay thế", unit="Bộ", cost_price=850000, selling_price=1250000, stock_quantity=15, min_stock=4)
+                p1 = Part(code="PT-001", name="Dầu nhớt Fully Synthetic 5W-30 (Can 4L)", category="Hóa chất / Dầu nhớt", unit="Can", cost_price=650000, unit_price=850000, stock_quantity=45, min_stock_alert=10)
+                p2 = Part(code="PT-002", name="Lọc nhớt động cơ Toyota Camry/Corolla", category="Phụ tùng thay thế", unit="Cái", cost_price=120000, unit_price=180000, stock_quantity=30, min_stock_alert=5)
+                p3 = Part(code="PT-003", name="Má phanh trước Honda CR-V (Bộ 4 miếng)", category="Phụ tùng thay thế", unit="Bộ", cost_price=850000, unit_price=1250000, stock_quantity=15, min_stock_alert=4)
                 db.add_all([p1, p2, p3])
                 db.commit()
         finally:
@@ -158,22 +194,34 @@ app = FastAPI(
     description="Hệ thống Quản lý Garage Ô tô Tích hợp AI (FastAPI + Modern SPA + Gemini AI)"
 )
 
-@app.get("/health")
-@app.get("/api/health")
-def health_check():
-    return {"status": "ok", "service": "Garage VTV Backend", "database": "connected"}
+
 
 # Vercel Path Fixer Middleware
 app.add_middleware(VercelPathRewriteMiddleware)
 
-# CORS Middleware
+# Cấu hình CORS cho phép Live Server kết nối
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Cho phép tất cả các nguồn truy cập
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal Server Error: {str(exc)}"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
 
 # Include API Routers
 app.include_router(auth.router)

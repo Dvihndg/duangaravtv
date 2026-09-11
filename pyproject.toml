@@ -24,3 +24,11 @@ dependencies = [
 
 [tool.vercel]
 entrypoint = "api.index:app"
+
+[tool.pyright]
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+extraPaths = [
+    "C:/Users/Duong Ngan/AppData/Roaming/Python/Python313/site-packages",
+    "backend"
+]

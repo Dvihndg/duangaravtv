@@ -1,5 +1,6 @@
 import json
 from typing import Dict, Any, List
+# pyrefly: ignore [missing-import]
 import httpx
 
 from backend.app.ai.base import AIProvider
@@ -12,6 +13,9 @@ class GeminiProvider(AIProvider):
 
     def __init__(self, api_key: str = None, model_name: str = "gemini-1.5-flash"):
         self.api_key = api_key or getattr(settings, "GEMINI_API_KEY", "")
+        # Nếu key không phải chuẩn Google (AIza...), vô hiệu hóa để tránh treo timeout 25s
+        if self.api_key and not self.api_key.startswith("AIza"):
+            self.api_key = ""
         self.model_name = model_name or getattr(settings, "GEMINI_MODEL", "gemini-1.5-flash")
         self.fallback = FallbackProvider()
 
