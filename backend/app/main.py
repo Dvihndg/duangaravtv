@@ -313,6 +313,8 @@ def read_app_js():
     return {"detail": "App JS not found"}
 
 @app.get("/health")
+@app.get("/api/health")
+@app.get("/api/v1/health")
 def health_check():
     db_status = "connected"
     db_type = "unknown"
