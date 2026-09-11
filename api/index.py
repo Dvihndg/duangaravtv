@@ -9,7 +9,7 @@ if BASE_DIR not in sys.path:
 
 # SQLite fallback in /tmp for Vercel Serverless environment
 db_url = os.getenv("DATABASE_URL", "")
-if not db_url or "sqlite" in db_url:
+if not db_url or "sqlite" in db_url or ":5432" in db_url or "supabase.co" in db_url:
     try:
         tmp_db = "/tmp/garage.db"
         if not os.path.exists(tmp_db):
@@ -19,6 +19,7 @@ if not db_url or "sqlite" in db_url:
         os.environ["DATABASE_URL"] = f"sqlite:///{tmp_db}"
     except Exception as e:
         print(f"[Vercel Startup Notice] SQLite /tmp setup: {e}")
+
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
