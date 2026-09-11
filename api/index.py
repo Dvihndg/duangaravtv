@@ -1,19 +1,53 @@
 import os
 import sys
 import shutil
+import json
 import traceback
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from fastapi import FastAPI
+from fastapi import FastAPI as _FastAPI
 from fastapi.responses import JSONResponse
+
+class FastAPI(_FastAPI):
+    """
+    Universal FastAPI wrapper that seamlessly supports:
+    1. ASGI 3: app(scope, receive, send)
+    2. ASGI 2: app(scope)(receive, send)
+    3. AWS Lambda: app(event, context) via Mangum
+    """
+    def __call__(self, *args, **kwargs):
+        if len(args) == 3:
+            # ASGI 3
+            return super().__call__(args[0], args[1], args[2])
+        elif len(args) == 2:
+            # AWS Lambda (event, context)
+            if not callable(args[1]):
+                try:
+                    from mangum import Mangum
+                    return Mangum(self, lifespan="off")(args[0], args[1])
+                except Exception as e:
+                    return {
+                        "statusCode": 500,
+                        "headers": {"Content-Type": "application/json"},
+                        "body": json.dumps({
+                            "error": "Lambda Mangum Invocation Error",
+                            "detail": str(e),
+                            "traceback": traceback.format_exc().splitlines()
+                        })
+                    }
+        elif len(args) == 1:
+            # ASGI 2
+            scope = args[0]
+            async def asgi2_callable(receive, send):
+                return await super(FastAPI, self).__call__(scope, receive, send)
+            return asgi2_callable
+        return super().__call__(*args, **kwargs)
 
 # Top-level FastAPI instance for Vercel AST scanner
 app = FastAPI(title="Garage VTV API", version="1.0.0")
-
-init_error = None
 
 try:
     # 1. SQLite fallback setup for Vercel serverless
@@ -38,7 +72,6 @@ try:
 
     app.add_middleware(GlobalErrorCatchMiddleware)
     app.add_middleware(VercelPathRewriteMiddleware)
-
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -89,10 +122,9 @@ except Exception as e:
             }
         )
 
-# Bridge FastAPI ASGI to AWS Lambda / Vercel Serverless with lifespan disabled
+# Direct Lambda handler export
 try:
     from mangum import Mangum
     handler = Mangum(app, lifespan="off")
-except Exception as _me:
+except Exception:
     handler = app
-
