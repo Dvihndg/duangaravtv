@@ -30,13 +30,15 @@ try:
     # 2. Import middleware, routers and handlers
     from fastapi.middleware.cors import CORSMiddleware
     from backend.app.config import settings
-    from backend.app.main import VercelPathRewriteMiddleware, global_exception_handler, health_check, read_api_root, debug_endpoint
+    from backend.app.main import GlobalErrorCatchMiddleware, VercelPathRewriteMiddleware, global_exception_handler, health_check, read_api_root, debug_endpoint
     from backend.app.routers import (
         auth, customers, appointments, inventory, repair_orders, invoices, ai, analytics,
         customer_requests, receptions, quotations, audit_logs, settings as settings_router
     )
 
+    app.add_middleware(GlobalErrorCatchMiddleware)
     app.add_middleware(VercelPathRewriteMiddleware)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
