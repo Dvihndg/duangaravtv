@@ -3,22 +3,38 @@
   "trailingSlash": false,
   "functions": {
     "api/index.py": {
+      "runtime": "python3.12",
       "memory": 1024,
       "maxDuration": 30
     }
   },
+  "redirects": [
+    {
+      "source": "/api/index.py",
+      "destination": "/api/v1/health",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "/api/index.py"
+      "destination": "/api?__vpath__=/api/v1/:path*"
     },
     {
       "source": "/api/:path*",
-      "destination": "/api/index.py"
+      "destination": "/api?__vpath__=/api/:path*"
     },
     {
       "source": "/health",
-      "destination": "/api/index.py"
+      "destination": "/api?__vpath__=/health"
+    },
+    {
+      "source": "/docs",
+      "destination": "/api?__vpath__=/docs"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "/api?__vpath__=/openapi.json"
     },
     {
       "source": "/admin",
