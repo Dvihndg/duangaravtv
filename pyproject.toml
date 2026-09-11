@@ -20,6 +20,9 @@ dependencies = [
     "mangum>=0.17.0"
 ]
 
+[tool.vercel]
+entrypoint = "backend.app.main:app"
+
 [tool.pyright]
 reportMissingImports = "none"
 reportMissingModuleSource = "none"
