@@ -67,6 +67,7 @@ try:
     app.add_api_route("/api/v1/health", health_check, methods=["GET"])
     app.add_api_route("/api", read_api_root, methods=["GET"])
     app.add_api_route("/api/", read_api_root, methods=["GET"])
+    app.add_api_route("/", read_api_root, methods=["GET"])
     app.add_api_route("/api/debug", debug_endpoint, methods=["GET", "POST"])
     app.add_api_route("/api/v1/debug", debug_endpoint, methods=["GET", "POST"])
 
@@ -87,3 +88,11 @@ except Exception as e:
                 "sys_path": sys.path[:5]
             }
         )
+
+# Bridge FastAPI ASGI to AWS Lambda / Vercel Serverless with lifespan disabled
+try:
+    from mangum import Mangum
+    handler = Mangum(app, lifespan="off")
+except Exception as _me:
+    handler = app
+

@@ -419,3 +419,11 @@ def health_check():
             "error": error_msg
         }
     }
+
+# Bridge FastAPI ASGI to AWS Lambda / Vercel Serverless with lifespan disabled
+try:
+    from mangum import Mangum
+    handler = Mangum(app, lifespan="off")
+except Exception:
+    handler = app
+
