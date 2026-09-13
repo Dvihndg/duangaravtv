@@ -3044,6 +3044,15 @@ async function loadCustomerRequestsFromBackend() {
     }
 
     renderCustomerRequestsTable();
+
+    // Setup real-time polling (every 10 seconds) if not already set
+    if (!window.customerRequestsInterval) {
+      window.customerRequestsInterval = setInterval(() => {
+        if (currentState.activeView === "customer-requests") {
+          loadCustomerRequestsFromBackend(); // silently reload if on customer requests tab
+        }
+      }, 10000);
+    }
   } catch (err) {
     console.error("loadCustomerRequestsFromBackend:", err);
   }
