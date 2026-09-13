@@ -1057,13 +1057,36 @@ async function loadDashboard() {
     // Fetch analytics data
     const analytics = await apiFetch("/analytics/dashboard");
     if (analytics) {
-      document.getElementById("kpi-cars-repairing").textContent = analytics.active_repair_orders || 0;
-      document.getElementById("kpi-today-appointments").textContent = analytics.pending_appointments || 0;
-      
-      const revenue = analytics.total_revenue || 0;
+      document.getElementById("kpi-cars-repairing").textContent = analytics.kpi ? analytics.kpi.active_repair_orders : analytics.active_repair_orders || 0;
+      document.getElementById("kpi-today-appointments").textContent = analytics.kpi ? analytics.kpi.pending_appointments : analytics.pending_appointments || 0;
+      const revenue = analytics.kpi ? analytics.kpi.total_revenue : analytics.total_revenue || 0;
       document.getElementById("kpi-monthly-revenue").innerHTML = `${revenue.toLocaleString('vi-VN')}đ<span style="font-size: 1.2rem;">💵</span>`;
       
-      document.getElementById("kpi-new-customers").textContent = analytics.total_customers || 0;
+      document.getElementById("kpi-new-customers").textContent = analytics.kpi ? analytics.kpi.total_customers : analytics.total_customers || 0;
+      
+      // Render 6-month chart
+      if (analytics.six_months_revenue) {
+        const chartContainer = document.getElementById("dashboard-revenue-chart");
+        if (chartContainer) {
+          chartContainer.innerHTML = "";
+          const maxRev = Math.max(...analytics.six_months_revenue.map(r => r.revenue), 1); // avoid div by 0
+          
+          analytics.six_months_revenue.forEach(item => {
+            const heightPx = Math.max(20, Math.floor((item.revenue / maxRev) * 170));
+            // format revenue as Tr (Millions)
+            const revDisplay = item.revenue >= 1000000 ? (item.revenue / 1000000).toFixed(1).replace('.0', '') + 'Tr' : item.revenue.toLocaleString();
+            
+            const barHTML = `
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; flex: 1; max-width: 60px;">
+                <span style="font-size: 0.75rem; font-weight: 700; color: #38bdf8;">${revDisplay}</span>
+                <div style="width: 38px; height: ${heightPx}px; background: linear-gradient(180deg, #38bdf8 0%, #2563eb 100%); border-radius: 0.5rem 0.5rem 0 0; transition: height 0.5s ease;"></div>
+                <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">${item.month}</span>
+              </div>
+            `;
+            chartContainer.innerHTML += barHTML;
+          });
+        }
+      }
     }
 
     // Fetch latest repair orders

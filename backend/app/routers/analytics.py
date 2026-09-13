@@ -59,6 +59,49 @@ def get_dashboard_summary(
         for item in top_items
     ]
 
+    from datetime import datetime, date
+    from dateutil.relativedelta import relativedelta
+    import calendar
+
+    # Prepare last 6 months revenue data
+    # Fallback if dateutil is not available (it's not in requirements)
+    six_months_revenue = []
+    today = datetime.utcnow()
+    # Go back 5 months
+    start_month = today.month - 5
+    start_year = today.year
+    if start_month <= 0:
+        start_month += 12
+        start_year -= 1
+        
+    start_date = datetime(start_year, start_month, 1)
+
+    # Group revenue by month
+    # We fetch all paid invoices from start_date
+    recent_invoices = db.query(Invoice).filter(
+        Invoice.status == InvoiceStatus.PAID,
+        Invoice.invoice_date >= start_date
+    ).all()
+
+    revenue_by_month = {}
+    for inv in recent_invoices:
+        m_key = f"T{inv.invoice_date.month}"
+        revenue_by_month[m_key] = revenue_by_month.get(m_key, 0) + (inv.paid_amount or 0)
+
+    # Construct the array
+    # Iterate through the last 6 months to ensure chronological order
+    for i in range(5, -1, -1):
+        m = today.month - i
+        y = today.year
+        if m <= 0:
+            m += 12
+            y -= 1
+        m_key = f"T{m}"
+        six_months_revenue.append({
+            "month": m_key,
+            "revenue": revenue_by_month.get(m_key, 0)
+        })
+
     return {
         "kpi": {
             "total_customers": total_customers,
@@ -69,5 +112,7 @@ def get_dashboard_summary(
             "unpaid_invoices_count": unpaid_invoices_count,
             "low_stock_parts_count": low_stock_parts_count
         },
-        "top_services": top_services_data
+        "top_services": top_services_data,
+        "six_months_revenue": six_months_revenue
     }
+
