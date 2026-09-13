@@ -1049,73 +1049,64 @@ async function loadAllData() {
   }
 }
 
+let dashboardInterval = null;
+
 // 1. Dashboard View Loader
 async function loadDashboard() {
-  const orders = await apiFetch("/repair-orders");
-  const tbody = document.getElementById("dashboard-ro-tbody") || document.getElementById("dash-orders-tbody");
-  if (tbody && Array.isArray(orders)) {
-    tbody.innerHTML = "";
-    if (orders.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td><strong style="color: #38bdf8;">VTV-2908</strong></td>
-          <td><span style="font-weight: 700;">30H-999.88</span></td>
-          <td style="color: var(--text-muted); font-size: 0.85rem;">Bảo dưỡng 40,000km & Láng đĩa phanh trước</td>
-          <td><span class="status-pill in_progress">Đang Sửa Chữa</span></td>
-          <td><strong style="color: #34d399;">1,550,000 VNĐ</strong></td>
-          <td>
-            <button class="btn btn-secondary btn-sm" onclick="switchNav('repair-orders')" style="padding: 0.2rem 0.6rem; font-size: 0.78rem;">
-              <i class="fa-solid fa-eye"></i> Chi Tiết
-            </button>
-          </td>
-        </tr>
-        <tr>
-          <td><strong style="color: #38bdf8;">VTV-2907</strong></td>
-          <td><span style="font-weight: 700;">51K-123.45</span></td>
-          <td style="color: var(--text-muted); font-size: 0.85rem;">Kiểm tra hệ thống điều hòa & Thay lọc gió Carbon</td>
-          <td><span class="status-pill completed">Hoàn Thành</span></td>
-          <td><strong style="color: #34d399;">850,000 VNĐ</strong></td>
-          <td>
-            <button class="btn btn-secondary btn-sm" onclick="switchNav('repair-orders')" style="padding: 0.2rem 0.6rem; font-size: 0.78rem;">
-              <i class="fa-solid fa-eye"></i> Chi Tiết
-            </button>
-          </td>
-        </tr>
-        <tr>
-          <td><strong style="color: #38bdf8;">VTV-2906</strong></td>
-          <td><span style="font-weight: 700;">29A-678.90</span></td>
-          <td style="color: var(--text-muted); font-size: 0.85rem;">Cân chỉnh thước lái 3D & Thay 2 vỏ lốp Michelin</td>
-          <td><span class="status-pill approved">Đã Duyệt Báo Giá</span></td>
-          <td><strong style="color: #34d399;">7,300,000 VNĐ</strong></td>
-          <td>
-            <button class="btn btn-secondary btn-sm" onclick="switchNav('repair-orders')" style="padding: 0.2rem 0.6rem; font-size: 0.78rem;">
-              <i class="fa-solid fa-eye"></i> Chi Tiết
-            </button>
-          </td>
-        </tr>
-      `;
-    } else {
-      orders.slice(0, 5).forEach(ro => {
-        const tr = document.createElement("tr");
-        const plate = ro.license_plate || (ro.vehicle ? ro.vehicle.license_plate : "29A-888.88");
-        const symptoms = ro.initial_symptoms || ro.technical_diagnosis || "Bảo dưỡng định kỳ & láng đĩa phanh";
-        const cost = (ro.final_cost || ro.estimated_cost || 1550000).toLocaleString('vi-VN') + ' VNĐ';
-
-        tr.innerHTML = `
-          <td><strong style="color: #38bdf8;">${ro.code || ('VTV-' + ro.id)}</strong></td>
-          <td><span style="font-weight: 700;">${plate}</span></td>
-          <td style="color: var(--text-muted); font-size: 0.85rem;">${symptoms}</td>
-          <td><span class="status-pill ${ro.status}">${formatStatus(ro.status)}</span></td>
-          <td><strong style="color: #34d399;">${cost}</strong></td>
-          <td>
-            <button class="btn btn-secondary btn-sm" onclick="switchNav('repair-orders')" style="padding: 0.2rem 0.6rem; font-size: 0.78rem;">
-              <i class="fa-solid fa-eye"></i> Chi Tiết
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+  try {
+    // Fetch analytics data
+    const analytics = await apiFetch("/analytics/dashboard");
+    if (analytics) {
+      document.getElementById("kpi-cars-repairing").textContent = analytics.active_repair_orders || 0;
+      document.getElementById("kpi-today-appointments").textContent = analytics.pending_appointments || 0;
+      
+      const revenue = analytics.total_revenue || 0;
+      document.getElementById("kpi-monthly-revenue").innerHTML = `${revenue.toLocaleString('vi-VN')}đ<span style="font-size: 1.2rem;">💵</span>`;
+      
+      document.getElementById("kpi-new-customers").textContent = analytics.total_customers || 0;
     }
+
+    // Fetch latest repair orders
+    const orders = await apiFetch("/repair-orders");
+    const tbody = document.getElementById("dashboard-ro-tbody") || document.getElementById("dash-orders-tbody");
+    if (tbody && Array.isArray(orders)) {
+      tbody.innerHTML = "";
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Chưa có phiếu sửa chữa nào</td></tr>`;
+      } else {
+        orders.slice(0, 5).forEach(ro => {
+          const tr = document.createElement("tr");
+          const plate = ro.license_plate || (ro.vehicle ? ro.vehicle.license_plate : "N/A");
+          const symptoms = ro.initial_symptoms || ro.technical_diagnosis || "Đang kiểm tra";
+          const cost = (ro.final_cost || ro.estimated_cost || 0).toLocaleString('vi-VN') + ' VNĐ';
+
+          tr.innerHTML = `
+            <td><strong style="color: #38bdf8;">${ro.code || ('VTV-' + ro.id)}</strong></td>
+            <td><span style="font-weight: 700;">${plate}</span></td>
+            <td style="color: var(--text-muted); font-size: 0.85rem;">${symptoms}</td>
+            <td><span class="status-pill ${ro.status}">${formatStatus(ro.status)}</span></td>
+            <td><strong style="color: #34d399;">${cost}</strong></td>
+            <td>
+              <button class="btn btn-secondary btn-sm" onclick="switchNav('repair-orders')" style="padding: 0.2rem 0.6rem; font-size: 0.78rem;">
+                <i class="fa-solid fa-eye"></i> Chi Tiết
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    // Setup real-time polling (every 10 seconds) if not already set
+    if (!dashboardInterval) {
+      dashboardInterval = setInterval(() => {
+        if (currentState.activeView === "dashboard") {
+          loadDashboard(); // silently reload if on dashboard
+        }
+      }, 10000);
+    }
+  } catch (err) {
+    console.error("Lỗi tải Dashboard:", err);
   }
 }
 
