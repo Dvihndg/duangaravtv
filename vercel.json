@@ -1,26 +1,42 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index"
+      "src": "api/index.py",
+      "use": "@vercel/python"
     },
     {
-      "source": "/health",
-      "destination": "/api/index"
+      "src": "*.html",
+      "use": "@vercel/static"
     },
     {
-      "source": "/admin",
-      "destination": "/admin.html"
+      "src": "*.css",
+      "use": "@vercel/static"
     },
     {
-      "source": "/customer",
-      "destination": "/customer.html"
+      "src": "*.js",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.py"
     },
     {
-      "source": "/login",
-      "destination": "/login.html"
+      "src": "/health",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/admin",
+      "dest": "/admin.html"
+    },
+    {
+      "src": "/customer",
+      "dest": "/customer.html"
+    },
+    {
+      "src": "/login",
+      "dest": "/login.html"
     }
   ]
 }
