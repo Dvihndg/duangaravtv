@@ -2535,12 +2535,116 @@ function renderBookingConfirmation(reqData) {
   const noteEl = document.getElementById("conf-note");
   if (noteEl) noteEl.innerText = reqData.note || "Không có ghi chú thêm";
 
+  // Render the initial tracker
+  renderHorizontalTracker(reqData.status || "Pending");
+  
+  // Set up real-time polling for this specific request
+  if (window.customerRequestPollInterval) {
+    clearInterval(window.customerRequestPollInterval);
+  }
+  
+  window.customerRequestPollInterval = setInterval(async () => {
+    try {
+      const code = document.getElementById("conf-request-code")?.innerText;
+      if (!code || code === "-") return;
+      
+      const latestReq = await apiFetch(`/customer-requests/code/${code}`);
+      if (latestReq && latestReq.status) {
+        renderHorizontalTracker(latestReq.status);
+        
+        // Update the badge too
+        const badgeMap = {
+          "Pending": { text: "Đã Gửi - Chờ Lễ Tân Xác Nhận", class: "pending", icon: "fa-clock" },
+          "Contacted": { text: "Lễ Tân Xác Nhận", class: "approved", icon: "fa-clipboard-check" },
+          "Confirmed": { text: "Đã Xác Nhận Hẹn", class: "approved", icon: "fa-calendar-check" },
+          "InProgress": { text: "Đang Sửa Chữa", class: "in_progress", icon: "fa-screwdriver-wrench" },
+          "Completed": { text: "Hoàn Thành Bàn Giao", class: "completed", icon: "fa-flag-checkered" },
+          "Cancelled": { text: "Đã Hủy", class: "cancelled", icon: "fa-ban" }
+        };
+        const confBadgeEl = document.getElementById("conf-status-badge");
+        if (confBadgeEl) {
+          const m = badgeMap[latestReq.status] || badgeMap["Pending"];
+          confBadgeEl.className = `status-pill ${m.class}`;
+          confBadgeEl.innerHTML = `<i class="fa-solid ${m.icon}"></i> ${m.text}`;
+        }
+      }
+    } catch (err) {
+      console.error("Polling error:", err);
+    }
+  }, 10000); // Poll every 10 seconds
+
   // Switch display directly to confirmation page
   if (formCard) formCard.style.display = "none";
   confCard.style.display = "block";
 
   // Smoothly scroll down to confirmation receipt
   confCard.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderHorizontalTracker(status) {
+  const container = document.getElementById("customer-tracker-grid");
+  if (!container) return;
+  
+  const statusOrder = ["Pending", "Contacted", "Confirmed", "InProgress", "Completed"];
+  const currentIdx = statusOrder.indexOf(status);
+  
+  const isCancelled = (status === "Cancelled");
+  
+  const steps = [
+    { title: "1. Đã Gửi Yêu Cầu", icon: "fa-circle-check", activeStatus: "Hoàn thành" },
+    { title: "2. Lễ Tân Xác Nhận", icon: "fa-clipboard-check", activeStatus: "Đang xử lý..." },
+    { title: "3. Đã Chốt Hẹn", icon: "fa-calendar-check", activeStatus: "Chờ xác nhận" },
+    { title: "4. Đang Sửa Chữa", icon: "fa-screwdriver-wrench", activeStatus: "Tại xưởng" },
+    { title: "5. Bàn Giao Xe", icon: "fa-flag-checkered", activeStatus: "Hoàn tất" }
+  ];
+  
+  if (isCancelled) {
+    container.innerHTML = `<div style="grid-column: 1 / -1; padding: 1rem; border-radius: 8px; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.3); color: #fb7185; font-weight: 700;">
+      <i class="fa-solid fa-ban"></i> Yêu Cầu Đã Bị Hủy
+    </div>`;
+    return;
+  }
+  
+  container.innerHTML = steps.map((step, idx) => {
+    const isDone = currentIdx >= idx;
+    const isCurrent = currentIdx === idx;
+    
+    // Style configurations based on state
+    let bg = "var(--bg-card)";
+    let border = "transparent";
+    let iconColor = "var(--text-muted)";
+    let textColor = "var(--text-muted)";
+    let opacity = "0.6";
+    let statusText = "";
+    
+    if (isDone) {
+      if (idx === 0) { // step 1 always green if done
+        bg = "rgba(16, 185, 129, 0.15)";
+        border = "rgba(16, 185, 129, 0.3)";
+        iconColor = "#10b981";
+        textColor = "var(--text-main)";
+        opacity = "1";
+        statusText = "Hoàn thành";
+      } else {
+        bg = "rgba(56, 189, 248, 0.15)";
+        border = "rgba(56, 189, 248, 0.4)";
+        iconColor = "#38bdf8";
+        textColor = "#38bdf8";
+        opacity = "1";
+        statusText = isCurrent ? step.activeStatus : "Hoàn thành";
+      }
+    } else {
+       statusText = "Chưa đến bước";
+    }
+    
+    return `
+      <div style="padding: 0.5rem; border-radius: 8px; background: ${bg}; border: 1px solid ${border}; opacity: ${opacity};">
+        <i class="fa-solid ${step.icon}" style="color: ${iconColor}; font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
+        <div style="font-size: 0.78rem; font-weight: ${isDone ? '700' : '600'}; color: ${textColor};">${step.title}</div>
+        <div style="font-size: 0.7rem; color: ${iconColor};">${statusText}</div>
+      </div>
+    `;
+  }).join("");
 }
 
 function resetToNewBooking() {
