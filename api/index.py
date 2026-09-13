@@ -16,8 +16,10 @@ if not os.path.exists(tmp_db):
         except Exception:
             pass
 
-# Support SUPABASE_URL to bypass Vercel UI issues where DATABASE_URL is locked
-if os.environ.get("SUPABASE_URL"):
+# Support Vercel Postgres and SUPABASE_URL to bypass Vercel UI issues
+if os.environ.get("POSTGRES_URL"):
+    os.environ["DATABASE_URL"] = os.environ.get("POSTGRES_URL")
+elif os.environ.get("SUPABASE_URL"):
     os.environ["DATABASE_URL"] = os.environ.get("SUPABASE_URL")
 elif not os.environ.get("DATABASE_URL"):
     os.environ["DATABASE_URL"] = f"sqlite:///{tmp_db}"
