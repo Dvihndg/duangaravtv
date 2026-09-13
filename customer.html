@@ -107,41 +107,33 @@
 
     <!-- Hero Welcome Banner -->
     <div class="hero-banner">
-      <div class="responsive-grid-2-1" style="align-items: center;">
-        <div>
-          <span
-            style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase;">⚡
-            Dịch vụ Bảo dưỡng & Chẩn đoán AI 24/7</span>
-          <h1
-            style="font-family: Arial, sans-serif; font-size: 2.2rem; font-weight: 800; color: #ffffff; margin: 0.75rem 0; line-height: 1.25;">
+      <div class="hero-content-wrapper">
+        <div class="hero-text-section">
+          <span class="hero-badge">⚡ Dịch vụ Bảo dưỡng & Chẩn đoán AI 24/7</span>
+          <h1 class="hero-title">
             Đăng Ký Kiểm Tra Xe & Nhận Tư Vấn Trực Tiếp
           </h1>
-          <p style="color: #cbd5e1; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem;">
+          <p class="hero-desc">
             Garage VTV cung cấp quy trình bảo dưỡng chuẩn xác 100% không sai lệch giá, hỗ trợ chẩn đoán sự cố qua Trợ lý
             AI và đội ngũ Kỹ thuật viên giàu kinh nghiệm.
           </p>
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <button class="btn btn-primary" onclick="openPhoneContactModal()"
-              style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700;">
+          <div class="hero-buttons">
+            <button class="btn btn-primary" onclick="openPhoneContactModal()">
               <i class="fa-solid fa-headset"></i> Gọi Hotline / Yêu Cầu Gọi Lại
             </button>
             <button class="btn btn-ai"
-              onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn mốc bảo dưỡng 5.000 km cho xe của tôi')"
-              style="padding: 0.75rem 1.5rem; font-weight: 700;">
+              onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn mốc bảo dưỡng 5.000 km cho xe của tôi')">
               <i class="fa-solid fa-robot"></i> Trò Chuyện Với Trợ Lý AI
             </button>
           </div>
         </div>
 
-        <div
-          style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: var(--radius-md); padding: 1.5rem; text-align: center;">
-          <div
-            style="width: 50px; height: 50px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); color: #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; font-size: 1.5rem;">
+        <div class="hero-commit-card">
+          <div class="commit-icon">
             <i class="fa-solid fa-circle-check"></i>
           </div>
-          <h3 style="font-family: Arial, sans-serif; font-size: 1.1rem; color: #ffffff; margin-bottom: 0.5rem; font-weight: 700;">Cam Kết Dịch Vụ
-          </h3>
-          <ul style="text-align: left; font-size: 0.88rem; color: #e2e8f0; line-height: 1.85; margin-left: 1rem; font-weight: 500;">
+          <h3>Cam Kết Dịch Vụ</h3>
+          <ul>
             <li>Minh bạch bảng giá 100%</li>
             <li>Phụ tùng chính hãng bảo hành</li>
             <li>Hỗ trợ cứu hộ lưu động 24/7</li>

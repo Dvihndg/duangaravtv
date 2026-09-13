@@ -62,10 +62,24 @@
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 }
 
-* {
-  margin: 0;
-  padding: 0;
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
 }
 
 body, input, button, select, textarea, h1, h2, h3, h4, h5, h6, p, a, label {
@@ -87,8 +101,8 @@ body {
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
-  overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 /* Custom Scrollbar */
@@ -777,6 +791,113 @@ select.form-control option {
 }
 
 /* ========================================================================= */
+/* Hero Section */
+/* ========================================================================= */
+.hero-content-wrapper {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.hero-badge {
+  display: inline-block;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.hero-title {
+  font-family: Arial, sans-serif;
+  font-size: clamp(2.2rem, 9vw, 4.5rem);
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0.5rem 0 1rem 0;
+  line-height: 1.15;
+  overflow-wrap: break-word;
+}
+
+.hero-desc {
+  color: #cbd5e1;
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+  max-width: 100%;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hero-buttons .btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.hero-buttons .btn-primary {
+  background: linear-gradient(135deg, #0891b2, #0284c7);
+  border: none;
+}
+
+.hero-commit-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.commit-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem auto;
+  font-size: 1.5rem;
+}
+
+.hero-commit-card h3 {
+  font-family: Arial, sans-serif;
+  font-size: 1.1rem;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.hero-commit-card ul {
+  text-align: left;
+  font-size: 0.88rem;
+  color: #e2e8f0;
+  line-height: 1.85;
+  margin-left: 1.5rem;
+  font-weight: 500;
+  padding-left: 0;
+}
+
+.hero-commit-card ul li {
+  margin-bottom: 0.25rem;
+  word-break: break-word;
+}
+
+/* ========================================================================= */
 /* RESPONSIVE BREAKPOINTS */
 /* ========================================================================= */
 
@@ -1431,17 +1552,44 @@ select.form-control option {
 
 @media (max-width: 768px) {
   .floating-ai-trigger {
-    bottom: 80px;
-    right: 16px;
-    width: 46px;
-    height: 46px;
-    font-size: 1.15rem;
+    bottom: clamp(70px, 10vh, 90px);
+    right: clamp(12px, 3vw, 24px);
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+    z-index: 9999;
   }
   
   .responsive-grid-2col,
   .responsive-grid-3col,
-  .responsive-grid-2-1 {
+  .responsive-grid-2-1,
+  .hero-content-wrapper {
     grid-template-columns: 1fr !important;
+  }
+  
+  .hero-title {
+    font-size: clamp(2rem, 9vw, 3rem) !important;
+    line-height: 1.15;
+  }
+  
+  .hero-desc {
+    font-size: 1.05rem !important;
+    line-height: 1.6;
+  }
+  
+  .hero-commit-card {
+    padding: 1.25rem !important;
+    margin-top: 1rem;
+  }
+  
+  .hero-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .hero-buttons .btn {
+    width: 100%;
+    justify-content: center;
   }
   
   .tracker-grid {
@@ -1467,15 +1615,19 @@ select.form-control option {
     flex-direction: column;
     padding: 1rem !important;
     gap: 1rem;
+    align-items: flex-start !important;
   }
   
-  .customer-header > div {
+  .customer-header > div:first-child {
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
   }
   
   .customer-header > div:last-child {
-    justify-content: space-between;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.75rem !important;
   }
 }
 
