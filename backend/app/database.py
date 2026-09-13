@@ -46,14 +46,14 @@ if db_url.startswith("postgresql://"):
 def make_engine(url):
     if "sqlite" in url:
         return create_engine(url, connect_args={"check_same_thread": False})
-    # For PostgreSQL / pg8000, enforce strict 2-second socket timeout to prevent serverless freeze
+    # For PostgreSQL / pg8000, enforce 10-second socket timeout to prevent serverless freeze
     return create_engine(
         url,
-        connect_args={"timeout": 2.0},
+        connect_args={"timeout": 10.0},
         pool_pre_ping=True,
         pool_size=5,
         max_overflow=10,
-        pool_timeout=2,
+        pool_timeout=10,
         pool_recycle=300,
     )
 
