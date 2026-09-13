@@ -15,7 +15,9 @@ if not os.path.exists(tmp_db):
             shutil.copy2(root_db, tmp_db)
         except Exception:
             pass
-os.environ["DATABASE_URL"] = f"sqlite:///{tmp_db}"
+
+if not os.environ.get("DATABASE_URL"):
+    os.environ["DATABASE_URL"] = f"sqlite:///{tmp_db}"
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
