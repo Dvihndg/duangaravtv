@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from sqlalchemy.orm import Session
 from backend.app.models import AuditLog
 
@@ -15,10 +15,10 @@ class AuditService:
         db: Session,
         action: str,
         resource: str,
-        resource_id: str = None,
-        user_id: int = None,
-        ip_address: str = None,
-        metadata: Dict[str, Any] = None
+        resource_id: Optional[str] = None,
+        user_id: Optional[int] = None,
+        ip_address: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> AuditLog:
         try:
             log_entry = AuditLog(

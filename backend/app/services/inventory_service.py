@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
@@ -24,8 +25,8 @@ class InventoryService:
         part_id: int,
         quantity: int,
         repair_order_id: int,
-        user_id: int = None,
-        notes: str = None
+        user_id: Optional[int] = None,
+        notes: Optional[str] = None
     ) -> InventoryTransaction:
         if quantity <= 0:
             raise HTTPException(status_code=400, detail="Số lượng xuất kho phải lớn hơn 0.")
@@ -67,8 +68,8 @@ class InventoryService:
         db: Session,
         part_id: int,
         quantity: int,
-        user_id: int = None,
-        notes: str = None
+        user_id: Optional[int] = None,
+        notes: Optional[str] = None
     ) -> InventoryTransaction:
         if quantity <= 0:
             raise HTTPException(status_code=400, detail="Số lượng nhập kho phải lớn hơn 0.")
@@ -102,8 +103,8 @@ class InventoryService:
         db: Session,
         part_id: int,
         actual_quantity: int,
-        user_id: int = None,
-        reason: str = None
+        user_id: Optional[int] = None,
+        reason: Optional[str] = None
     ) -> InventoryTransaction:
         if actual_quantity < 0:
             raise HTTPException(status_code=400, detail="Số lượng tồn kho thực tế không thể âm.")

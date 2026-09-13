@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -47,7 +47,7 @@ class AddPartRequest(BaseModel):
     notes: Optional[str] = None
 
 def generate_ro_code(db: Session) -> str:
-    today_str = datetime.utcnow().strftime("%Y%m%d")
+    today_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     count = db.query(RepairOrder).filter(RepairOrder.code.like(f"RO-{today_str}-%")).count()
     return f"RO-{today_str}-{(count + 1):04d}"
 
@@ -71,7 +71,7 @@ def create_repair_order(
         raise HTTPException(status_code=404, detail="Không tìm thấy xe")
 
     if ro_in.mileage_at_reception > vehicle.current_mileage:
-        vehicle.current_mileage = ro_in.mileage_at_reception
+        vehicle.current_mileage = ro_in.mileage_at_reception # type: ignore
 
     code = generate_ro_code(db)
     repair_order = RepairOrder(
@@ -136,7 +136,7 @@ def update_repair_order(
 
     update_data = ro_update.model_dump(exclude_unset=True)
     if "status" in update_data and update_data["status"] == RepairOrderStatus.FINISHED:
-        ro.completed_at = datetime.utcnow()
+        ro.completed_at = datetime.utcnow() # type: ignore
 
     for field, val in update_data.items():
         if hasattr(ro, field):
@@ -163,7 +163,7 @@ def update_repair_order_status(
         db=db,
         repair_order_id=ro_id,
         new_status=req.status,
-        user_id=current_user.id
+        user_id=int(current_user.id) # type: ignore
     )
     return {
         "success": True,
@@ -218,7 +218,7 @@ def add_service_to_ro(
     if not service or not service.is_active:
         raise HTTPException(status_code=404, detail="Dịch vụ không tồn tại hoặc đã ngừng cung cấp")
 
-    subtotal = round(service.labor_cost * req.quantity - req.discount, 2)
+    subtotal = round(float(service.labor_cost) * req.quantity - req.discount, 2) # type: ignore
     ro_service = RepairOrderService(
         repair_order_id=ro.id,
         service_id=service.id,
@@ -243,7 +243,7 @@ def add_service_to_ro(
     )
     db.add(item)
     
-    ro.final_cost = (ro.final_cost or 0.0) + max(0.0, subtotal)
+    ro.final_cost = (ro.final_cost or 0.0) + max(0.0, float(subtotal)) # type: ignore
     db.commit()
     return {"success": True, "message": "Đã thêm dịch vụ vào phiếu sửa chữa"}
 
@@ -266,14 +266,14 @@ def add_part_to_ro(
     # Export part with atomic stock decrease and negative check
     tx = InventoryService.export_part_for_repair_order(
         db=db,
-        part_id=part.id,
+        part_id=int(part.id), # type: ignore
         quantity=req.quantity,
-        repair_order_id=ro.id,
-        user_id=current_user.id,
+        repair_order_id=int(ro.id), # type: ignore
+        user_id=int(current_user.id), # type: ignore
         notes=req.notes
     )
 
-    subtotal = round(part.unit_price * req.quantity - req.discount, 2)
+    subtotal = round(float(part.unit_price) * req.quantity - req.discount, 2) # type: ignore
     ro_part = RepairOrderPart(
         repair_order_id=ro.id,
         part_id=part.id,
@@ -297,7 +297,7 @@ def add_part_to_ro(
     )
     db.add(item)
 
-    ro.final_cost = (ro.final_cost or 0.0) + max(0.0, subtotal)
+    ro.final_cost = (ro.final_cost or 0.0) + max(0.0, float(subtotal)) # type: ignore
     db.commit()
     return {
         "success": True, 
@@ -322,7 +322,7 @@ def assign_technician(
 
     ro.technician_id = tech.id
     if ro.status == RepairOrderStatus.RECEIVED:
-        ro.status = RepairOrderStatus.INSPECTING
+        ro.status = RepairOrderStatus.INSPECTING # type: ignore
 
     db.commit()
     return {
@@ -358,7 +358,7 @@ def add_item_to_repair_order(
             raise HTTPException(status_code=400, detail=f"Phụ tùng {part.name} không đủ tồn kho")
         if unit_price == 0:
             unit_price = part.unit_price
-        part.stock_quantity -= int(quantity)
+        part.stock_quantity -= int(quantity) # type: ignore
 
     total_price = (unit_price * quantity) + labor_cost
 
@@ -375,7 +375,7 @@ def add_item_to_repair_order(
         notes=item_in.notes
     )
     db.add(item)
-    ro.final_cost = (ro.final_cost or 0.0) + total_price
+    ro.final_cost = (ro.final_cost or 0.0) + total_price # type: ignore
     db.commit()
     db.refresh(item)
     return item
@@ -398,13 +398,12 @@ def delete_item_from_repair_order(
     if item.item_type == RepairOrderItemType.PART and item.part_id:
         part = db.query(Part).filter(Part.id == item.part_id).first()
         if part:
-            part.stock_quantity += int(item.quantity)
+            part.stock_quantity += int(item.quantity) # type: ignore
 
     ro = db.query(RepairOrder).filter(RepairOrder.id == ro_id).first()
     if ro:
-        ro.final_cost = max(0.0, (ro.final_cost or 0.0) - (item.total_price or 0.0))
+        ro.final_cost = max(0.0, (ro.final_cost or 0.0) - (item.total_price or 0.0)) # type: ignore
 
     db.delete(item)
     db.commit()
     return {"message": "Đã xóa hạng mục thành công"}
-

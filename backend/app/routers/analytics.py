@@ -24,10 +24,12 @@ def get_dashboard_summary(
     active_repair_orders = db.query(RepairOrder).filter(
         RepairOrder.status.in_([
             RepairOrderStatus.RECEIVED,
-            RepairOrderStatus.DIAGNOSING,
-            RepairOrderStatus.QUOTED,
+            RepairOrderStatus.INSPECTING,
+            RepairOrderStatus.QUOTATION_PENDING,
+            RepairOrderStatus.WAITING_CUSTOMER_APPROVAL,
             RepairOrderStatus.APPROVED,
-            RepairOrderStatus.IN_PROGRESS
+            RepairOrderStatus.IN_REPAIR,
+            RepairOrderStatus.WAITING_PARTS
         ])
     ).count()
 

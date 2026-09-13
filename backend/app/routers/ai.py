@@ -129,7 +129,7 @@ def analyze_technical_troubleshoot(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    return AIService.analyze_technical_troubleshooting(db, req.symptoms, req.car_model)
+    return AIService.analyze_technical_troubleshooting(db, req.symptoms, req.car_model or "")
 
 @router.post("/obd-diagnostic", response_model=AIResponse)
 def analyze_obd_diagnostic(
@@ -137,7 +137,7 @@ def analyze_obd_diagnostic(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    return AIService.analyze_obd_fault(db, req.brand, req.model, req.year, req.mileage, req.symptoms, req.obd_code)
+    return AIService.analyze_obd_fault(db, req.brand, req.model, req.year or 0, req.mileage or 0, req.symptoms, req.obd_code)
 
 @router.post("/business-intelligence", response_model=AIResponse)
 def analyze_business_intelligence(

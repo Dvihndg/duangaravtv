@@ -308,10 +308,14 @@ def health_check():
             fallback_db = next(fallback_gen)
             try:
                 fallback_db.execute(text("SELECT 1"))
-                inspector = inspect(fallback_db.bind)
-                table_count = len(inspector.get_table_names())
+                if fallback_db.bind:
+                    inspector = inspect(fallback_db.bind)
+                    table_count = len(inspector.get_table_names())
+                    db_type = getattr(fallback_db.bind, "name", "unknown")
+                else:
+                    table_count = 0
+                    db_type = "unknown"
                 db_status = "connected (fallback SQLite)"
-                db_type = fallback_db.bind.name
                 error_msg = None
             finally:
                 try:
