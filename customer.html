@@ -107,7 +107,7 @@
 
     <!-- Hero Welcome Banner -->
     <div class="hero-banner">
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: center;">
+      <div class="responsive-grid-2-1" style="align-items: center;">
         <div>
           <span
             style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase;">⚡
@@ -175,7 +175,7 @@
     </div>
 
     <!-- Section 2: Customer Registration & Service Booking Form -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <div class="responsive-grid-2-1" style="gap: 1.5rem;">
 
       <!-- Registration Form -->
       <div class="table-card" id="card-booking-form"
@@ -198,7 +198,7 @@
           <h4 style="font-family: Arial; font-size: 1rem; color: var(--accent-primary); margin-bottom: 0.85rem;">
             <i class="fa-solid fa-user"></i> 1. Thông Tin Khách Hàng Liên Hệ
           </h4>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.85rem;">
+          <div class="responsive-grid-2col" style="gap: 1rem; margin-bottom: 0.85rem;">
             <div class="form-group" style="margin-bottom: 0;">
               <label>Họ và Tên Khách Hàng (*):</label>
               <input type="text" id="cp-cust-name" class="form-control" placeholder="VD: Nguyễn Văn A" required>
@@ -208,7 +208,7 @@
               <input type="tel" id="cp-cust-phone" class="form-control" placeholder="VD: 0901234567" required>
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div class="responsive-grid-2col" style="gap: 1rem; margin-bottom: 1rem;">
             <div class="form-group" style="margin-bottom: 0;">
               <label>Email Liên Hệ:</label>
               <input type="email" id="cp-cust-email" class="form-control" placeholder="VD: example@gmail.com">
@@ -223,7 +223,7 @@
             style="font-family: Arial; font-size: 1rem; color: var(--accent-cyan); margin-top: 1.25rem; margin-bottom: 0.85rem;">
             <i class="fa-solid fa-car"></i> 2. Thông Tin Xe Cần Bảo Dưỡng / Sửa Chữa
           </h4>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+          <div class="responsive-grid-3col" style="gap: 0.75rem; margin-bottom: 0.85rem;">
             <div class="form-group" style="margin-bottom: 0;">
               <label>Biển Số Xe (*):</label>
               <input type="text" id="cp-veh-plate" class="form-control" placeholder="VD: 35A-12345" required>
@@ -237,7 +237,7 @@
               <input type="text" id="cp-veh-model" class="form-control" placeholder="VD: Vios" required>
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div class="responsive-grid-2col" style="gap: 1rem; margin-bottom: 1rem;">
             <div class="form-group" style="margin-bottom: 0;">
               <label>Năm Sản Xuất:</label>
               <input type="number" id="cp-veh-year" class="form-control" value="2020" placeholder="VD: 2020">
@@ -252,7 +252,7 @@
             style="font-family: Arial; font-size: 1rem; color: var(--accent-purple); margin-top: 1.25rem; margin-bottom: 0.85rem;">
             <i class="fa-solid fa-wrench"></i> 3. Yêu Cầu Dịch Vụ & Lịch Hẹn Mang Xe Đến
           </h4>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+          <div class="responsive-grid-3col" style="gap: 0.75rem; margin-bottom: 0.85rem;">
             <div class="form-group" style="margin-bottom: 0;">
               <label>Loại Dịch Vụ (*):</label>
               <select id="cp-service-type" class="form-control" required style="background: var(--bg-input); color: var(--text-main);">
@@ -352,13 +352,13 @@
         <!-- 5-Step Process Progress Bar -->
         <div style="margin-bottom: 1.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem;">
           <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem;">LỘ TRÌNH XỬ LÝ DỊCH VỤ</div>
-          <div id="customer-tracker-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center;">
+          <div id="customer-tracker-grid" class="tracker-grid">
             <!-- Rendered by JS -->
           </div>
         </div>
 
         <!-- 3-Block Information Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="responsive-grid-3col" style="gap: 1rem; margin-bottom: 1.5rem;">
           
           <!-- Block 1: Customer Info -->
           <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.1rem;">
