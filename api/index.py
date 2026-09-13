@@ -16,8 +16,10 @@ if not os.path.exists(tmp_db):
         except Exception:
             pass
 
-# Support Vercel Postgres and SUPABASE_URL to bypass Vercel UI issues
-if os.environ.get("POSTGRES_URL"):
+# Support Vercel Postgres and custom DB strings to bypass Vercel UI issues
+if os.environ.get("VTV_GARAGE_DB"):
+    os.environ["DATABASE_URL"] = os.environ.get("VTV_GARAGE_DB")
+elif os.environ.get("POSTGRES_URL"):
     os.environ["DATABASE_URL"] = os.environ.get("POSTGRES_URL")
 elif os.environ.get("SUPABASE_URL"):
     os.environ["DATABASE_URL"] = os.environ.get("SUPABASE_URL")

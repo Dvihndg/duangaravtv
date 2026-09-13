@@ -21,7 +21,7 @@ if not os.path.exists(tmp_db_path):
                 pass
 
 # ─── Database URL Resolution ──────────────────────────────────────────────────
-db_url = os.getenv("POSTGRES_URL") or os.getenv("SUPABASE_URL") or os.getenv("DATABASE_URL", "")
+db_url = os.getenv("VTV_GARAGE_DB") or os.getenv("POSTGRES_URL") or os.getenv("SUPABASE_URL") or os.getenv("DATABASE_URL", "")
 is_vercel = bool(os.getenv("VERCEL"))
 
 if not db_url:
