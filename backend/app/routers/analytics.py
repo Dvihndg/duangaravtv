@@ -8,7 +8,7 @@ from sqlalchemy import func
 from backend.app.database import get_db
 from backend.app.models import (
     Customer, Vehicle, Appointment, RepairOrder, RepairOrderStatus,
-    Invoice, InvoiceStatus, Part, Service, RepairOrderItem
+    Invoice, InvoiceStatus, Part, Service, RepairOrderItem, CustomerRequest
 )
 from backend.app.auth import get_current_user
 
@@ -102,6 +102,43 @@ def get_dashboard_summary(
             "revenue": revenue_by_month.get(m_key, 0)
         })
 
+    # Fetch recent activities
+    recent_activities = []
+    
+    recent_requests = db.query(CustomerRequest).order_by(CustomerRequest.created_at.desc()).limit(5).all()
+    recent_orders = db.query(RepairOrder).order_by(RepairOrder.created_at.desc()).limit(5).all()
+    
+    for req in recent_requests:
+        import math
+        ago = math.floor((datetime.utcnow() - req.created_at).total_seconds() / 60) if req.created_at else 0
+        recent_activities.append({
+            "type": "request",
+            "time_ago_mins": max(0, ago),
+            "created_at": req.created_at,
+            "title": f"Yêu cầu từ {req.full_name}",
+            "description": f"Xe {req.license_plate} - {req.service_type or 'Bảo dưỡng'}",
+            "icon": "fa-bell",
+            "color": "#fbbf24"
+        })
+        
+    for ro in recent_orders:
+        import math
+        ago = math.floor((datetime.utcnow() - ro.created_at).total_seconds() / 60) if ro.created_at else 0
+        recent_activities.append({
+            "type": "order",
+            "time_ago_mins": max(0, ago),
+            "created_at": ro.created_at,
+            "title": f"Lập phiếu sửa chữa {ro.code}",
+            "description": f"Xe {ro.license_plate or 'N/A'}",
+            "icon": "fa-wrench",
+            "color": "#38bdf8"
+        })
+        
+    # Sort combined activities by created_at desc
+    recent_activities.sort(key=lambda x: x["created_at"], reverse=True)
+    # Take top 5
+    recent_activities = recent_activities[:5]
+
     return {
         "kpi": {
             "total_customers": total_customers,
@@ -113,6 +150,7 @@ def get_dashboard_summary(
             "low_stock_parts_count": low_stock_parts_count
         },
         "top_services": top_services_data,
-        "six_months_revenue": six_months_revenue
+        "six_months_revenue": six_months_revenue,
+        "recent_activities": recent_activities
     }
 

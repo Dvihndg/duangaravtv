@@ -1087,6 +1087,41 @@ async function loadDashboard() {
           });
         }
       }
+      
+      // Render recent activities
+      if (analytics.recent_activities) {
+        const activitiesContainer = document.getElementById("dashboard-recent-activities");
+        if (activitiesContainer) {
+          activitiesContainer.innerHTML = "";
+          if (analytics.recent_activities.length === 0) {
+            activitiesContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 1rem;">Chưa có hoạt động nào gần đây</div>`;
+          } else {
+            analytics.recent_activities.forEach(act => {
+              let timeStr = "";
+              if (act.time_ago_mins < 60) timeStr = `${act.time_ago_mins} phút trước`;
+              else if (act.time_ago_mins < 1440) timeStr = `${Math.floor(act.time_ago_mins / 60)} giờ trước`;
+              else timeStr = `${Math.floor(act.time_ago_mins / 1440)} ngày trước`;
+              
+              const hexColor = act.color || "#60a5fa";
+              
+              const html = `
+                <div style="display: flex; gap: 0.85rem; align-items: flex-start;">
+                  <div style="width: 36px; height: 36px; border-radius: 50%; background: ${hexColor}30; border: 1px solid ${hexColor}60; display: flex; align-items: center; justify-content: center; color: ${hexColor}; font-size: 0.85rem; flex-shrink: 0;">
+                    <i class="fa-solid ${act.icon}"></i>
+                  </div>
+                  <div style="flex: 1; font-size: 0.82rem;">
+                    <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">
+                      ${act.title} <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 400;">${timeStr}</span>
+                    </div>
+                    <div style="color: var(--text-muted); line-height: 1.35;">${act.description}</div>
+                  </div>
+                </div>
+              `;
+              activitiesContainer.innerHTML += html;
+            });
+          }
+        }
+      }
     }
 
     // Fetch latest repair orders
