@@ -4,11 +4,6 @@ from pydantic import BaseModel, ConfigDict
 from backend.app.models import UserRole, AppointmentStatus, RepairOrderStatus, InvoiceStatus, PaymentMethod, RepairOrderItemType
 
 # Token Schemas
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    user: "UserOut"
-
 class TokenData(BaseModel):
     username: Optional[str] = None
     role: Optional[str] = None
@@ -30,6 +25,12 @@ class UserOut(UserBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+# Token schema defined after UserOut so forward reference resolves correctly
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserOut
 
 # Customer & Vehicle Schemas
 class VehicleBase(BaseModel):
