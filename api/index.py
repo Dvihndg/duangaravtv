@@ -107,6 +107,38 @@ def read_api_root():
         "endpoints": {
             "health": "/api/v1/health",
             "docs": "/docs",
+            "setup": "/api/v1/setup-db",
             "ai_open": "/api/v1/ai/assistant/open"
         }
     }
+
+@app.get("/api/v1/setup-db")
+def auto_setup_db():
+    from backend.app.models import Base, User, UserRole
+    from backend.app.auth import get_password_hash
+    try:
+        # Create all tables
+        Base.metadata.create_all(bind=engine)
+        
+        db = SessionLocal()
+        try:
+            # Check if admin exists
+            admin = db.query(User).filter(User.username == "admin").first()
+            if not admin:
+                new_admin = User(
+                    username="admin",
+                    email="admin@vtvgarage.com",
+                    hashed_password=get_password_hash("password"),
+                    full_name="Quản trị viên",
+                    role=UserRole.MANAGER,
+                    phone="0987654321",
+                    is_active=True
+                )
+                db.add(new_admin)
+                db.commit()
+                return {"status": "success", "message": "Đã tạo bảng và tài khoản admin thành công!"}
+            return {"status": "success", "message": "Database đã được setup từ trước, đã có tài khoản admin."}
+        finally:
+            db.close()
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
