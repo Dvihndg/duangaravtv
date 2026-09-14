@@ -35,6 +35,9 @@ if db_url.startswith("postgres://"):
 if db_url.startswith("postgresql://"):
     try:
         import pg8000
+        # pg8000 does not support standard psycopg2 query params like ?sslmode=require or ?pgbouncer=true
+        # and will crash with "connect() got an unexpected keyword argument". We must strip them.
+        db_url = db_url.split("?")[0]
         db_url = db_url.replace("postgresql://", "postgresql+pg8000://", 1)
     except ImportError:
         pass
