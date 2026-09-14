@@ -13,30 +13,40 @@ from backend.app.auth import verify_password, get_password_hash, create_access_t
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
-@router.post("/login", response_model=Token)
+@router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     try:
         user = db.query(User).filter(User.username == form_data.username).first()
         if not user or not verify_password(form_data.password, str(user.hashed_password)):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Tên đăng nhập hoặc mật khẩu không chính xác",
+                detail="Username hoac mat khau khong chinh xac",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         if not user.is_active:
-            raise HTTPException(status_code=400, detail="Tài khoản đã bị khóa")
+            raise HTTPException(status_code=400, detail="Tai khoan da bi khoa")
 
         access_token = create_access_token(data={"sub": user.username, "role": user.role.value})
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "user": user
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role.value,
+                "phone": user.phone,
+                "is_active": user.is_active,
+                "created_at": str(user.created_at)
+            }
         }
     except HTTPException:
         raise
     except Exception as e:
         import traceback
-        raise HTTPException(status_code=400, detail=f"Server Error: {str(e)}\n{traceback.format_exc()}")
+        # Return 400 (not 500) so Vercel shows us the real error detail
+        raise HTTPException(status_code=400, detail=f"ERR:{type(e).__name__}:{str(e)}")
 
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
