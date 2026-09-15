@@ -105,19 +105,43 @@
       }
     }
 
-    function submitStaffLogin(e) {
+    async function submitStaffLogin(e) {
       if (e && e.preventDefault) e.preventDefault();
       const role = document.getElementById("staff-role-select").value;
       const pass = document.getElementById("staff-password").value;
+      const usernameByRole = {
+        manager: "admin",
+        receptionist: "letan",
+        technician: "kythuat",
+        cashier: "thungan"
+      };
 
       if (!pass) {
         alert("Vui lòng nhập mật khẩu xác thực!");
         return;
       }
 
-      localStorage.setItem("garage_user_role", role);
-      localStorage.setItem("garage_is_logged_in", "true");
-      window.location.href = "admin.html";
+      const button = document.querySelector('#form-login-staff button[type="submit"]');
+      if (button) { button.disabled = true; button.dataset.originalText = button.innerHTML; button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác thực...'; }
+      try {
+        const body = new URLSearchParams({ username: usernameByRole[role], password: pass });
+        const response = await fetch("/api/v1/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.access_token) {
+          throw new Error(data.detail || "Vai trò hoặc mật khẩu không chính xác.");
+        }
+        localStorage.setItem("garage_user_role", role);
+        localStorage.setItem("garage_is_logged_in", "true");
+        localStorage.setItem("garage_access_token", data.access_token);
+        window.location.href = "admin.html";
+      } catch (error) {
+        alert(error.message || "Không thể kết nối máy chủ xác thực.");
+        if (button) { button.disabled = false; button.innerHTML = button.dataset.originalText || "Đăng Nhập"; }
+      }
     }
   </script>
 </body>

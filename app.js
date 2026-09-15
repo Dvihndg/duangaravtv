@@ -79,13 +79,14 @@ function updateThemeIcon(theme) {
 function checkAuthPermission() {
   const role = localStorage.getItem("garage_user_role");
   const isLoggedIn = localStorage.getItem("garage_is_logged_in") === "true";
+  const hasAccessToken = Boolean(localStorage.getItem("garage_access_token"));
   const internalRoles = ["manager", "receptionist", "technician", "cashier"];
 
   const path = window.location.pathname.toLowerCase();
 
   // Enforce internal authorization check specifically when accessing admin.html or /admin
   if (path.endsWith("admin.html") || path.endsWith("/admin")) {
-    if (!isLoggedIn || !internalRoles.includes(role)) {
+    if (!isLoggedIn || !hasAccessToken || !internalRoles.includes(role)) {
       window.location.href = "login.html";
       return false;
     }
@@ -103,6 +104,7 @@ function checkAuthPermission() {
 function logoutUser() {
   localStorage.removeItem("garage_user_role");
   localStorage.removeItem("garage_is_logged_in");
+  localStorage.removeItem("garage_access_token");
   window.location.href = "login.html";
 }
 
@@ -183,6 +185,23 @@ async function loginAsCurrentRole() {
     console.info("💡 Hệ thống đang chạy trên Static Hosting (Chế độ Local Engine - Không gửi request backend).");
     return;
   }
+  const savedToken = localStorage.getItem("garage_access_token");
+  if (savedToken) {
+    try {
+      const verify = await fetch(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${savedToken}` }
+      });
+      if (verify.ok) {
+        currentState.token = savedToken;
+        isBackendAvailable = true;
+        return;
+      }
+    } catch (err) {
+      console.warn("Không thể xác thực phiên đăng nhập:", err);
+    }
+    localStorage.removeItem("garage_access_token");
+  }
+
   const creds = ROLE_CREDENTIALS[currentState.currentRole];
   if (!creds) return;
   try {
@@ -201,10 +220,11 @@ async function loginAsCurrentRole() {
     });
     clearTimeout(timeoutId);
 
-    if (res.ok) {
-      const data = await res.json();
-      currentState.token = data.access_token;
-      isBackendAvailable = true;
+      if (res.ok) {
+        const data = await res.json();
+        currentState.token = data.access_token;
+        localStorage.setItem("garage_access_token", data.access_token);
+        isBackendAvailable = true;
     } else {
       isBackendAvailable = false;
       console.info("💡 Backend server không phản hồi (404/Offline). Chuyển sang Local Storage Engine.");
@@ -247,12 +267,14 @@ async function apiFetch(endpoint, options = {}) {
         isBackendAvailable = false;
       }
       const errData = await res.json().catch(() => ({ detail: `Lỗi kết nối máy chủ (${res.status})` }));
-      throw new Error(errData.detail || "Thao tác thất bại");
+      const requestError = new Error(errData.detail || "Thao tác thất bại");
+      requestError.status = res.status;
+      throw requestError;
     }
     isBackendAvailable = true;
     return await res.json();
   } catch (err) {
-    if (isAiCall) {
+    if (isAiCall || err.status === 401 || err.status === 403) {
       throw err;
     }
     isBackendAvailable = false;
@@ -3491,4 +3513,3 @@ window.convertRequestToRepairOrder = convertRequestToRepairOrder;
 window.openTrackRequestModal = openTrackRequestModal;
 window.submitCreateService = submitCreateService;
 window.submitCreatePart = submitCreatePart;
-
