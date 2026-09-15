@@ -804,13 +804,21 @@
         const response = await fetch(`${API_BASE}/customer-requests/code/${encodeURIComponent(q)}`);
         if (response.ok) {
           const req = await response.json();
-            let statusColor = '#94a3b8';
-            let statusText = req.status;
-            if (req.status === 'PENDING') { statusColor = '#f59e0b'; statusText = 'Chờ Xác Nhận'; }
-            if (req.status === 'APPROVED') { statusColor = '#3b82f6'; statusText = 'Đã Phê Duyệt'; }
-            if (req.status === 'IN_PROGRESS') { statusColor = '#10b981'; statusText = 'Đang Xử Lý'; }
-            if (req.status === 'COMPLETED') { statusColor = '#059669'; statusText = 'Hoàn Thành'; }
-            if (req.status === 'CANCELLED') { statusColor = '#ef4444'; statusText = 'Đã Hủy'; }
+            const statusMap = {
+              Pending: ['#f59e0b', 'Chờ Xác Nhận'],
+              Contacted: ['#3b82f6', 'Đã Liên Hệ'],
+              Confirmed: ['#3b82f6', 'Đã Xác Nhận'],
+              InProgress: ['#10b981', 'Đang Xử Lý'],
+              Completed: ['#059669', 'Hoàn Thành'],
+              Cancelled: ['#ef4444', 'Đã Hủy'],
+              Rejected: ['#ef4444', 'Đã Từ Chối'],
+              PENDING: ['#f59e0b', 'Chờ Xác Nhận'],
+              APPROVED: ['#3b82f6', 'Đã Phê Duyệt'],
+              IN_PROGRESS: ['#10b981', 'Đang Xử Lý'],
+              COMPLETED: ['#059669', 'Hoàn Thành'],
+              CANCELLED: ['#ef4444', 'Đã Hủy']
+            };
+            const [statusColor, statusText] = statusMap[req.status] || ['#94a3b8', req.status || 'Đang xử lý'];
 
             const html = `
               <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; margin-bottom: 0.8rem; border-left: 4px solid ${statusColor};">
