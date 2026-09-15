@@ -100,7 +100,7 @@ def test_customer_request_sanitization_and_anti_spam(client):
     # 2. Immediate duplicate submit triggers 429 Rate Limit
     res2 = client.post("/api/v1/customer-requests", json=spam_payload)
     assert res2.status_code == 429
-    assert "YÃƒÂªu cÃ¡ÂºÂ§u cÃ¡Â»Â§a bÃ¡ÂºÂ¡n Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c tiÃ¡ÂºÂ¿p nhÃ¡ÂºÂ­n" in res2.json()["detail"]
+    assert "Yêu cầu của bạn đã được tiếp nhận" in res2.json()["detail"]
 
 
 def test_customer_request_admin_workflow_and_conversion(client, auth_headers):
@@ -161,7 +161,7 @@ def test_customer_request_admin_workflow_and_conversion(client, auth_headers):
         headers=auth_headers
     )
     assert dup_convert.status_code == 400
-    assert "Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c chuyÃ¡Â»Æ’n Ã„â€˜Ã¡Â»â€¢i" in dup_convert.json()["detail"]
+    assert "đã được chuyển đổi" in dup_convert.json()["detail"]
 
 
 def test_customer_prompt_injection_security(client, auth_headers):

@@ -39,7 +39,7 @@ class InventoryService:
         if part.stock_quantity < quantity:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Tá»“n kho khÃ´ng Ä‘á»§ Ä‘á»ƒ xuáº¥t. Hiá»‡n cÃ²n: {part.stock_quantity}, yÃªu cáº§u: {quantity}. Tá»“n kho khÃ´ng thá»ƒ Ã¢m!"
+                detail=f"Tồn kho không đủ để xuất. Hiện còn: {part.stock_quantity}, yêu cầu: {quantity}. Tồn kho không thể âm!"
             )
 
         prev_qty = part.stock_quantity

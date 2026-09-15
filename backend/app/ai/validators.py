@@ -33,10 +33,10 @@ def detect_prompt_injection(text: str) -> bool:
         return False
     patterns = [
         r'ignore\s+(all\s+)?previous\s+instructions',
-        r'bá»\s+qua\s+(toÃ n\s+bá»™\s+)?hÆ°á»›ng\s+dáº«n\s+trÆ°á»›c',
+        r'bỏ\s+qua\s+(toàn\s+bộ\s+)?hướng\s+dẫn\s+trước',
         r'you\s+are\s+now\s+in\s+dan\s+mode',
         r'system\s+prompt\s+override',
-        r'tá»«\s+giá»\s+báº¡n\s+lÃ ',
+        r'từ\s+giờ\s+bạn\s+là',
         r'disregard\s+system\s+instructions'
     ]
     for pattern in patterns:

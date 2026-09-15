@@ -47,7 +47,7 @@ class RepairOrderService:
         if not cls.can_transition(ro.status, new_status):  # type: ignore
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"ChuyÃƒÂ¡Ã‚Â»Ã†â€™n trÃƒÂ¡Ã‚ÂºÃ‚Â¡ng thÃƒÆ’Ã‚Â¡i khÃƒÆ’Ã‚Â´ng hÃƒÂ¡Ã‚Â»Ã‚Â£p lÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡: KhÃƒÆ’Ã‚Â´ng thÃƒÂ¡Ã‚Â»Ã†â€™ chuyÃƒÂ¡Ã‚Â»Ã†â€™n tÃƒÂ¡Ã‚Â»Ã‚Â« '{ro.status.value}' sang '{new_status.value}'. Vui lÃƒÆ’Ã‚Â²ng tuÃƒÆ’Ã‚Â¢n thÃƒÂ¡Ã‚Â»Ã‚Â§ quy trÃƒÆ’Ã‚Â¬nh tuÃƒÂ¡Ã‚ÂºÃ‚Â§n tÃƒÂ¡Ã‚Â»Ã‚Â±."
+                detail=f"Chuyển trạng thái không hợp lệ: Không thể chuyển từ '{ro.status.value}' sang '{new_status.value}'. Vui lòng tuân thủ quy trình tuần tự."
             )
 
         ro.status = new_status  # type: ignore

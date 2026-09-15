@@ -10,6 +10,13 @@ from backend.app.models import (
 
 DEFAULT_VAT_RATE = 0.10
 
+
+def as_utc(value: Optional[datetime]) -> Optional[datetime]:
+    """Normalize SQLite naive and PostgreSQL aware datetimes to UTC."""
+    if value is None:
+        return None
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
+
 class QuotationService:
     """
     DÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ch vÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â¥ tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­nh toÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡n vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  quÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â£n lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â½ bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡o giÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ dÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ch vÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â¥ (Quotation Service).
@@ -62,7 +69,7 @@ class QuotationService:
         # Check existing quotation
         existing_qo = db.query(Quotation).filter(Quotation.repair_order_id == repair_order_id).first()
         if existing_qo and existing_qo.status in [QuotationStatus.APPROVED]:
-            raise HTTPException(status_code=400, detail="PhiÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â¿u sÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â­a chÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â¯a ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£ cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡o giÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã¢â‚¬Â Ãƒâ€šÃ‚Â°ÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â£c phÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âª duyÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡t.")
+            raise HTTPException(status_code=400, detail="Báo giá đã hết hạn, không thể phê duyệt.")
 
         calc = QuotationService.calculate_totals(items_data, discount_amount, vat_rate)
         
@@ -149,10 +156,11 @@ class QuotationService:
         if qo.status == QuotationStatus.APPROVED:
             return qo
 
-        if qo.valid_until and qo.valid_until < datetime.now(timezone.utc):
+        valid_until = as_utc(qo.valid_until)
+        if valid_until and valid_until < datetime.now(timezone.utc):
             qo.status = QuotationStatus.EXPIRED  # type: ignore
             db.commit()
-            raise HTTPException(status_code=400, detail="BÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡o giÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£ hÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â¿t hÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â¡n, khÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´ng thÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€ Ã¢â‚¬â„¢ phÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âª duyÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡t.")
+            raise HTTPException(status_code=400, detail="Báo giá đã hết hạn, không thể phê duyệt.")
 
         qo.status = QuotationStatus.APPROVED  # type: ignore
         qo.approval_status = "APPROVED"  # type: ignore

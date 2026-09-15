@@ -77,7 +77,7 @@ class PaymentService:
         if invoice.status == InvoiceStatus.CANCELLED:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="HÃƒÆ’Ã‚Â³a Ãƒâ€žÃ¢â‚¬ËœÃƒâ€ Ã‚Â¡n Ãƒâ€žÃ¢â‚¬ËœÃƒÆ’Ã‚Â£ bÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¹ HÃƒÂ¡Ã‚Â»Ã‚Â¦Y (CANCELLED), khÃƒÆ’Ã‚Â´ng thÃƒÂ¡Ã‚Â»Ã†â€™ ghi nhÃƒÂ¡Ã‚ÂºÃ‚Â­n thanh toÃƒÆ’Ã‚Â¡n!"
+                detail="Hóa đơn đã bị HỦY (CANCELLED), không thể ghi nhận thanh toán!"
             )
 
         if invoice.status == InvoiceStatus.PAID or invoice.balance_due <= 0.0:
@@ -97,7 +97,7 @@ class PaymentService:
         if pay_amount > remaining_balance:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"SÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœ tiÃƒÂ¡Ã‚Â»Ã‚Ân thanh toÃƒÆ’Ã‚Â¡n ({pay_amount:,.0f} VNÃƒâ€žÃ‚Â) khÃƒÆ’Ã‚Â´ng Ãƒâ€žÃ¢â‚¬ËœÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Â£c vÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Â£t quÃƒÆ’Ã‚Â¡ sÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœ dÃƒâ€ Ã‚Â° cÃƒÆ’Ã‚Â²n lÃƒÂ¡Ã‚ÂºÃ‚Â¡i ({remaining_balance:,.0f} VNÃƒâ€žÃ‚Â)!"
+                detail=f"Số tiền thanh toán ({pay_amount:,.0f} VNĐ) không được vượt quá số dư còn lại ({remaining_balance:,.0f} VNĐ)!"
             )
 
         now = datetime.now(timezone.utc)
