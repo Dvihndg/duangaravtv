@@ -4,522 +4,825 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cổng Thông Tin Khách Hàng - Garage VTV Automotive</title>
+  <title>Garage VTV - Chăm Sóc Xế Yêu Với Công Nghệ AI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
   <link rel="stylesheet" href="styles.css?v=6.0">
   <style>
-    /* Specific Customer Portal Layout Adjustments */
+    /* Premium Landing Page Specific Styles */
+    :root {
+      --landing-hero-bg: radial-gradient(circle at top, rgba(8, 145, 178, 0.15) 0%, rgba(15, 23, 42, 0) 60%);
+      --glass-bg: rgba(19, 28, 46, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --neon-cyan: #0891b2;
+      --neon-glow: 0 0 20px rgba(8, 145, 178, 0.4);
+    }
+
+    [data-theme="light"] {
+      --landing-hero-bg: radial-gradient(circle at top, rgba(8, 145, 178, 0.1) 0%, rgba(248, 250, 252, 0) 60%);
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --glass-border: rgba(0, 0, 0, 0.05);
+      --neon-glow: 0 4px 15px rgba(8, 145, 178, 0.2);
+    }
+
     body {
       background: var(--bg-primary);
       color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      display: block;
     }
 
-    .customer-header {
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border-color);
-      padding: 1rem 2rem;
+    /* Navbar */
+    .landing-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--glass-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      padding: 0 5%;
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand img {
+      height: 40px;
+      filter: drop-shadow(0 0 8px rgba(8, 145, 178, 0.5));
+    }
+
+    .brand-text {
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: var(--text-main);
+      letter-spacing: 0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--accent-cyan);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .btn-login {
+      padding: 0.5rem 1.2rem;
+      border-radius: 50px;
+      border: 1px solid var(--accent-primary);
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .btn-login:hover {
+      background: var(--accent-primary);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 160px 5% 100px;
+      min-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: var(--landing-hero-bg);
+      position: relative;
+    }
+
+    .hero-content {
+      max-width: 900px;
+      z-index: 2;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 30px;
+      background: rgba(8, 145, 178, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(8, 145, 178, 0.3);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      box-shadow: var(--neon-glow);
+    }
+
+    .hero h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      background: var(--text-main);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
+    }
+
+    .hero h1 span {
+      background: var(--gradient-brand);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 2.5rem;
+      max-width: 700px;
+      margin-inline: auto;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-glow {
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-decoration: none;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-primary-glow {
+      background: var(--gradient-brand);
+      color: #fff;
+      box-shadow: 0 10px 25px rgba(8, 145, 178, 0.4);
+    }
+
+    .btn-primary-glow:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(8, 145, 178, 0.6);
+    }
+
+    .btn-secondary-glow {
+      background: var(--glass-bg);
+      color: var(--text-main);
+      border: 1px solid var(--glass-border);
       backdrop-filter: blur(10px);
     }
 
-    .customer-container {
+    .btn-secondary-glow:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Floating AI Element */
+    .floating-ai {
+      position: absolute;
+      right: 5%;
+      top: 30%;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .floating-ai::after {
+      content: '\f544';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4rem;
+      color: var(--accent-purple);
+      opacity: 0.8;
+      filter: drop-shadow(0 0 15px var(--accent-purple));
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-20px) rotate(5deg);
+      }
+
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+    }
+
+    /* Services Section */
+    .section {
+      padding: 100px 5%;
+      position: relative;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-title h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .section-title p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
       max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 1.5rem;
-      flex: 1;
-      width: 100%;
+      margin: 0 auto;
     }
 
-    .hero-banner {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: var(--radius-lg);
-      padding: 2.5rem;
-      margin-bottom: 2rem;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .status-search-card {
+    .service-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
-      padding: 1.75rem;
-      margin-bottom: 2rem;
+      padding: 2.5rem 2rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
     }
 
-    .footer-bar {
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-brand);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .service-card:hover {
+      transform: translateY(-10px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--border-subtle);
+    }
+
+    .service-card:hover::before {
+      opacity: 1;
+    }
+
+    .service-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: rgba(8, 145, 178, 0.1);
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      transition: transform 0.4s;
+    }
+
+    .service-card:hover .service-icon {
+      transform: scale(1.1) rotate(5deg);
+      background: var(--gradient-brand);
+      color: white;
+      box-shadow: var(--neon-glow);
+    }
+
+    .service-card h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .service-card p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    /* Booking & Tracking Split Section */
+    .action-section {
       background: var(--bg-card);
       border-top: 1px solid var(--border-color);
-      padding: 1.5rem 2rem;
-      text-align: center;
-      font-size: 0.85rem;
+      padding: 100px 5%;
+    }
+
+    .action-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+    }
+
+    @media (max-width: 900px) {
+      .action-container {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+      }
+
+      .hero h1 {
+        font-size: 2.8rem;
+      }
+
+      .nav-links {
+        display: none;
+      }
+    }
+
+    .glass-panel {
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .glass-panel h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .glass-panel h3 i {
+      color: var(--accent-cyan);
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
       color: var(--text-muted);
-      margin-top: auto;
+      font-size: 0.9rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--gradient-brand);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .submit-btn:hover {
+      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.4);
+      transform: translateY(-2px);
+    }
+
+    /* Search Result */
+    .search-result {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      border: 1px dashed var(--border-color);
+      display: none;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border-color);
+      padding: 3rem 5% 2rem;
+      text-align: center;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+
+    .footer-text {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-card);
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Customer Header Navigation -->
-  <header class="customer-header">
-    <div style="display: flex; align-items: center; gap: 1rem;">
-      <img src="logo.png" alt="Garage VTV Logo" style="height: 52px; width: auto; object-fit: contain; filter: drop-shadow(0 0 10px rgba(8, 145, 178, 0.45)); margin-right: 0.25rem;">
-      <div>
-        <div
-          style="font-family: Arial, sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--text-main); letter-spacing: 0.05em;">
-          GARAGE VTV</div>
-        <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600;">CỔNG DỊCH VỤ KHÁCH HÀNG (CUSTOMER
-          PORTAL)</span>
-      </div>
-    </div>
+  <!-- Navbar -->
+  <header class="landing-header" id="navbar">
+    <a href="#" class="brand">
+      <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/40x40/0891b2/ffffff?text=VTV'">
+      <span class="brand-text">GARAGE VTV</span>
+    </a>
 
-    <div style="display: flex; align-items: center; gap: 1rem;">
-      <button class="btn btn-secondary btn-sm" onclick="openPhoneContactModal()"
-        style="border-color: #0891b2; color: #38bdf8;">
+    <nav class="nav-links">
+      <a href="#services">Dịch Vụ</a>
+      <a href="#booking">Đặt Lịch</a>
+      <a href="#tracking">Tra Cứu</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="btn-login" onclick="openPhoneContactModal()"
+        style="border-color: #0891b2; color: #38bdf8; background: transparent; cursor: pointer;">
         <i class="fa-solid fa-phone"></i> Hotline: 033.344.2358
       </button>
-
-      <button id="theme-toggle" class="theme-toggle-btn" title="Chuyển chế độ Sáng/Tối" onclick="toggleTheme()">
-        <i class="fa-solid fa-moon" id="theme-icon"></i>
+      <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng/Tối">
+        <i class="fa-solid fa-moon"></i>
       </button>
-
-      <!-- Staff Login Link -->
-      <a href="login.html" class="btn btn-secondary btn-sm"
-        style="border-color: rgba(99, 102, 241, 0.4); color: #818cf8; font-weight: 600; text-decoration: none;">
-        <i class="fa-solid fa-lock"></i> Đăng Nhập Nhân Viên
-      </a>
+      <a href="login.html" class="btn-login" style="display: none;"><i class="fa-solid fa-lock"></i> Đăng Nhập Nội Bộ</a>
     </div>
   </header>
 
-  <!-- Main Customer Content Container -->
-  <main class="customer-container">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="floating-ai"></div>
+    <div class="hero-content">
+      <div class="badge"><i class="fa-solid fa-microchip"></i> Tiên Phong Ứng Dụng AI</div>
+      <h1>Chăm Sóc Xế Yêu Của Bạn <span>Chuẩn Xác & Thông Minh</span></h1>
+      <p>Hệ thống Garage VTV mang đến trải nghiệm bảo dưỡng xe minh bạch, nhanh chóng với sự hỗ trợ của công nghệ chẩn
+        đoán lỗi bằng Trí Tuệ Nhân Tạo (AI) độc quyền.</p>
 
-    <!-- Hero Welcome Banner -->
-    <div class="hero-banner">
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: center;">
-        <div>
-          <span
-            style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase;">⚡
-            Dịch vụ Bảo dưỡng & Chẩn đoán AI 24/7</span>
-          <h1
-            style="font-family: Arial, sans-serif; font-size: 2.2rem; font-weight: 800; color: #ffffff; margin: 0.75rem 0; line-height: 1.25;">
-            Đăng Ký Kiểm Tra Xe & Nhận Tư Vấn Trực Tiếp
-          </h1>
-          <p style="color: #cbd5e1; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem;">
-            Garage VTV cung cấp quy trình bảo dưỡng chuẩn xác 100% không sai lệch giá, hỗ trợ chẩn đoán sự cố qua Trợ lý
-            AI và đội ngũ Kỹ thuật viên giàu kinh nghiệm.
-          </p>
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <button class="btn btn-primary" onclick="openPhoneContactModal()"
-              style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700;">
-              <i class="fa-solid fa-headset"></i> Gọi Hotline / Yêu Cầu Gọi Lại
-            </button>
-            <button class="btn btn-ai"
-              onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn mốc bảo dưỡng 5.000 km cho xe của tôi')"
-              style="padding: 0.75rem 1.5rem; font-weight: 700;">
-              <i class="fa-solid fa-robot"></i> Trò Chuyện Với Trợ Lý AI
-            </button>
-          </div>
-        </div>
-
-        <div
-          style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: var(--radius-md); padding: 1.5rem; text-align: center;">
-          <div
-            style="width: 50px; height: 50px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); color: #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; font-size: 1.5rem;">
-            <i class="fa-solid fa-circle-check"></i>
-          </div>
-          <h3 style="font-family: Arial, sans-serif; font-size: 1.1rem; color: #ffffff; margin-bottom: 0.5rem; font-weight: 700;">Cam Kết Dịch Vụ
-          </h3>
-          <ul style="text-align: left; font-size: 0.88rem; color: #e2e8f0; line-height: 1.85; margin-left: 1rem; font-weight: 500;">
-            <li>Minh bạch bảng giá 100%</li>
-            <li>Phụ tùng chính hãng bảo hành</li>
-            <li>Hỗ trợ cứu hộ lưu động 24/7</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Section 1: Search Vehicle Repair Status (Tra cứu tiến độ xe) -->
-    <div class="status-search-card">
-      <h3
-        style="font-family: Arial; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-        <i class="fa-solid fa-magnifying-glass" style="color: var(--accent-cyan);"></i> Tra Cứu Tiến Độ Sửa Chữa Xe Trực
-        Tuyến
-      </h3>
-      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
-        <input type="text" id="cust-search-plate" class="form-control"
-          placeholder="Nhập biển số xe (VD: 51H-888.88) hoặc Mã phiếu (VD: RO-2026-001)..."
-          onkeydown="if(event.key==='Enter') lookupCustomerVehicleProgress()">
-        <button class="btn btn-primary" onclick="lookupCustomerVehicleProgress()"
-          style="padding: 0 1.5rem; flex-shrink: 0;">
-          <i class="fa-solid fa-search"></i> Tra Cứu
+      <div class="hero-buttons">
+        <a href="#booking" class="btn-glow btn-primary-glow">
+          <i class="fa-regular fa-calendar-check"></i> Đặt Lịch Ngay
+        </a>
+        <a href="#tracking" class="btn-glow btn-secondary-glow">
+          <i class="fa-solid fa-magnifying-glass"></i> Tra Cứu Tiến Độ
+        </a>
+        <button onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn các dịch vụ bảo dưỡng phù hợp cho xe của tôi')"
+          class="btn-glow btn-secondary-glow" style="border-color: var(--accent-purple); color: var(--accent-purple);">
+          <i class="fa-solid fa-robot"></i> Trợ Lý AI
         </button>
       </div>
+    </div>
+  </section>
 
-      <!-- Result Container -->
-      <div id="cust-progress-result"
-        style="display: none; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-top: 1rem;">
-        <!-- Populated dynamically by JS -->
+  <!-- Services Section -->
+  <section id="services" class="section">
+    <div class="section-title">
+      <h2>Dịch Vụ Cao Cấp</h2>
+      <p>Chất lượng dịch vụ là ưu tiên hàng đầu tại Garage VTV</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon"><i class="fa-solid fa-oil-can"></i></div>
+        <h3>Bảo Dưỡng Định Kỳ</h3>
+        <p>Quy trình bảo dưỡng tiêu chuẩn hãng, thay nhớt, lọc gió, kiểm tra 40 hạng mục an toàn giúp xe luôn vận hành
+          êm ái.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon"><i class="fa-solid fa-wrench"></i></div>
+        <h3>Sửa Chữa Chuyên Sâu</h3>
+        <p>Khắc phục triệt để các vấn đề về động cơ, hộp số, khung gầm với phụ tùng chính hãng và kỹ thuật viên tay nghề
+          cao.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon"><i class="fa-solid fa-robot"></i></div>
+        <h3>Chẩn Đoán Trợ Lý AI</h3>
+        <p>Tương tác với GarageAI để chẩn đoán sơ bộ nguyên nhân báo lỗi trên taplo trước khi mang xe đến xưởng.</p>
       </div>
     </div>
+  </section>
 
-    <!-- Section 2: Customer Registration & Service Booking Form -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+  <!-- Action Section (Booking & Tracking) -->
+  <section class="action-section">
+    <div class="action-container">
 
-      <!-- Registration Form -->
-      <div class="table-card" id="card-booking-form"
-        style="padding: 1.75rem; background: var(--bg-card); border: 1px solid var(--border-color);">
-        <div
-          style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
-          <div
-            style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #3b82f6); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
-            <i class="fa-solid fa-calendar-plus"></i>
-          </div>
-          <div>
-            <h3 style="font-family: Arial; margin: 0; font-size: 1.25rem; color: var(--text-main);">Đăng Ký Khách
-              Hàng & Đặt Lịch Dịch Vụ</h3>
-            <span style="font-size: 0.82rem; color: var(--text-muted);">Gửi thông tin xe để Lễ tân xếp lịch kiểm tra và
-              nhận tư vấn nhanh</span>
-          </div>
-        </div>
+      <!-- Booking Form -->
+      <div id="booking" class="glass-panel">
+        <h3><i class="fa-solid fa-calendar-plus"></i> Đặt Lịch Dịch Vụ</h3>
+        <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">
+          Gửi yêu cầu bảo dưỡng/sửa chữa. Kỹ thuật viên sẽ liên hệ lại ngay để xác nhận.
+        </p>
 
-        <form id="form-customer-portal" onsubmit="submitCustomerPortalRegistration(event)">
-          <h4 style="font-family: Arial; font-size: 1rem; color: var(--accent-primary); margin-bottom: 0.85rem;">
-            <i class="fa-solid fa-user"></i> 1. Thông Tin Khách Hàng Liên Hệ
-          </h4>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.85rem;">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Họ và Tên Khách Hàng (*):</label>
-              <input type="text" id="cp-cust-name" class="form-control" placeholder="VD: Nguyễn Văn A" required>
+        <form id="bookingForm" onsubmit="handleBooking(event)">
+          <div class="form-group">
+            <label class="form-label">Họ và Tên (*)</label>
+            <input type="text" id="bf_name" class="form-control" required placeholder="VD: Nguyễn Văn A">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số Điện Thoại (*)</label>
+            <input type="tel" id="bf_phone" class="form-control" required placeholder="VD: 0987654321">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Dòng Xe</label>
+              <input type="text" id="bf_model" class="form-control" placeholder="VD: Mazda CX-5">
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Số Điện Thoại (*):</label>
-              <input type="tel" id="cp-cust-phone" class="form-control" placeholder="VD: 0901234567" required>
+            <div class="form-group">
+              <label class="form-label">Biển Số</label>
+              <input type="text" id="bf_plate" class="form-control" placeholder="VD: 30G-123.45">
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Email Liên Hệ:</label>
-              <input type="email" id="cp-cust-email" class="form-control" placeholder="VD: example@gmail.com">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Địa Chỉ / Tỉnh Thành:</label>
-              <input type="text" id="cp-cust-address" class="form-control" placeholder="VD: TP. Thái Nguyên / Ninh Bình">
-            </div>
+          <div class="form-group">
+            <label class="form-label">Loại Dịch Vụ</label>
+            <select id="bf_service" class="form-control">
+              <option value="Bảo dưỡng định kỳ">Bảo dưỡng định kỳ</option>
+              <option value="Sửa chữa">Sửa chữa hỏng hóc</option>
+              <option value="Đồng sơn">Đồng sơn / Làm đẹp</option>
+              <option value="Khác">Khác (Ghi chú thêm)</option>
+            </select>
           </div>
-
-          <h4
-            style="font-family: Arial; font-size: 1rem; color: var(--accent-cyan); margin-top: 1.25rem; margin-bottom: 0.85rem;">
-            <i class="fa-solid fa-car"></i> 2. Thông Tin Xe Cần Bảo Dưỡng / Sửa Chữa
-          </h4>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Biển Số Xe (*):</label>
-              <input type="text" id="cp-veh-plate" class="form-control" placeholder="VD: 35A-12345" required>
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Hãng Xe (*):</label>
-              <input type="text" id="cp-veh-brand" class="form-control" placeholder="VD: Toyota" required>
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Model Dòng Xe (*):</label>
-              <input type="text" id="cp-veh-model" class="form-control" placeholder="VD: Vios" required>
-            </div>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Năm Sản Xuất:</label>
-              <input type="number" id="cp-veh-year" class="form-control" value="2020" placeholder="VD: 2020">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Số Km Odometer Hiện Tại:</label>
-              <input type="number" id="cp-veh-mileage" class="form-control" value="50000" placeholder="VD: 50000">
-            </div>
+          <div class="form-group">
+            <label class="form-label">Mô Tả Tình Trạng / Nhu Cầu</label>
+            <textarea id="bf_desc" class="form-control"
+              placeholder="Mô tả chi tiết hơn về vấn đề xe của bạn..."></textarea>
           </div>
 
-          <h4
-            style="font-family: Arial; font-size: 1rem; color: var(--accent-purple); margin-top: 1.25rem; margin-bottom: 0.85rem;">
-            <i class="fa-solid fa-wrench"></i> 3. Yêu Cầu Dịch Vụ & Lịch Hẹn Mang Xe Đến
-          </h4>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Loại Dịch Vụ (*):</label>
-              <select id="cp-service-type" class="form-control" required style="background: var(--bg-input); color: var(--text-main);">
-                <option value="Bảo dưỡng định kỳ" selected>Bảo dưỡng định kỳ</option>
-                <option value="Sửa chữa chung">Sửa chữa chung</option>
-                <option value="Bảo dưỡng hệ thống Phanh">Bảo dưỡng hệ thống Phanh</option>
-                <option value="Cân chỉnh thước lái 3D">Cân chỉnh thước lái 3D</option>
-                <option value="Điện & Điều hòa (HVAC)">Điện & Điều hòa (HVAC)</option>
-                <option value="Đại tu động cơ / Hộp số">Đại tu động cơ / Hộp số</option>
-                <option value="Phủ Ceramic / Chăm sóc xe">Phủ Ceramic / Chăm sóc xe</option>
-                <option value="Khác">Dịch vụ khác</option>
-              </select>
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Ngày Mong Muốn:</label>
-              <input type="date" id="cp-pref-date" class="form-control" style="background: var(--bg-input); color: var(--text-main);">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Giờ Mong Muốn:</label>
-              <select id="cp-pref-time" class="form-control" style="background: var(--bg-input); color: var(--text-main);">
-                <option value="08:00">08:00 Sáng</option>
-                <option value="09:00" selected>09:00 Sáng</option>
-                <option value="10:00">10:00 Sáng</option>
-                <option value="13:30">13:30 Chiều</option>
-                <option value="15:00">15:00 Chiều</option>
-                <option value="16:30">16:30 Chiều</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom: 0.85rem;">
-            <label>Nội Dung Chi Tiết Cần Sửa Chữa / Bảo Dưỡng:</label>
-            <textarea id="cp-symptoms" class="form-control" rows="2"
-              placeholder="Xe đi 50.000 km cần bảo dưỡng định kỳ, kiểm tra phanh và thay dầu máy..."></textarea>
-          </div>
-          <div class="form-group" style="margin-bottom: 1rem;">
-            <label>Ghi Chú Thêm:</label>
-            <input type="text" id="cp-note" class="form-control" placeholder="Ghi chú thêm cho Lễ tân (nếu có)...">
-          </div>
-
-          <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
-            <button type="button" class="btn btn-secondary"
-              onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn các mốc bảo dưỡng và chi phí cho xe của tôi')">
-              <i class="fa-solid fa-wand-magic-sparkles" style="color: #38bdf8;"></i> Hỏi Trợ Lý AI Trước
-            </button>
-            <button type="submit" id="btn-submit-request" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-weight: 700;">
-              <i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu
-            </button>
-          </div>
+          <button type="submit" class="submit-btn" id="btnSubmitBooking">
+            <i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu
+          </button>
         </form>
       </div>
 
-      <!-- Section: Trang Xác Nhận Yêu Cầu Đặt Lịch (Direct Confirmation Page) -->
-      <div class="table-card" id="card-booking-confirmation"
-        style="display: none; padding: 2rem; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-lg); border-radius: var(--radius-lg);">
-        
-        <!-- Header Banner -->
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-          <div style="display: flex; align-items: center; gap: 1rem;">
-            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.8rem;">
-              <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <div>
-              <div style="font-size: 0.78rem; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">TIẾP NHẬN THÀNH CÔNG</div>
-              <h3 style="font-family: Arial; margin: 0; font-size: 1.4rem; color: var(--text-main);">Trang Xác Nhận Đặt Lịch Dịch Vụ</h3>
-              <span style="font-size: 0.85rem; color: var(--text-muted);">Yêu cầu dịch vụ của bạn đã được chuyển trực tiếp vào hệ thống điều phối xưởng Garage VTV.</span>
-            </div>
-          </div>
-          <div style="display: flex; gap: 0.5rem;">
-            <button class="btn btn-secondary btn-sm" onclick="printBookingConfirmation()">
-              <i class="fa-solid fa-print"></i> In Phiếu Xác Nhận
-            </button>
-            <button class="btn btn-primary btn-sm" onclick="resetToNewBooking()">
-              <i class="fa-solid fa-plus"></i> Đặt Lịch Mới
-            </button>
+      <!-- Tracking Form -->
+      <div id="tracking" class="glass-panel">
+        <h3><i class="fa-solid fa-search"></i> Tra Cứu Tiến Độ</h3>
+        <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">
+          Nhập mã yêu cầu (VD: REQ-20231015-0001) hoặc số điện thoại để xem trạng thái xe.
+        </p>
+
+        <div class="form-group">
+          <input type="text" id="track_input" class="form-control" placeholder="Nhập mã REQ hoặc Số điện thoại...">
+        </div>
+        <button class="submit-btn" onclick="handleTracking()"
+          style="background: var(--bg-sidebar); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);">
+          <i class="fa-solid fa-radar"></i> Tra Cứu Ngay
+        </button>
+
+        <div id="search_result" class="search-result">
+          <div style="text-align: center; color: var(--text-muted);">
+            Vui lòng nhập thông tin để tra cứu.
           </div>
         </div>
-
-        <!-- Highlight Code & Status Box -->
-        <div style="background: linear-gradient(135deg, rgba(8, 145, 178, 0.12) 0%, rgba(37, 99, 235, 0.12) 100%); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-          <div>
-            <div style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">MÃ PHIẾU YÊU CẦU TIẾP NHẬN</div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
-              <span id="conf-request-code" style="font-size: 1.8rem; font-weight: 900; color: var(--accent-cyan); font-family: monospace; letter-spacing: 0.05em;">REQ-20260907-0001</span>
-              <button class="btn btn-secondary btn-sm" onclick="copyRequestCode()" style="padding: 0.25rem 0.65rem;" title="Sao chép mã">
-                <i class="fa-solid fa-copy"></i> Copy
-              </button>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem;">Trạng Thái Hồ Sơ</div>
-            <span id="conf-status-badge" class="status-pill pending" style="font-size: 0.9rem; padding: 0.35rem 0.85rem;">
-              <i class="fa-solid fa-clock"></i> Đã Gửi - Chờ Lễ Tân Xác Nhận
-            </span>
-          </div>
-        </div>
-
-        <!-- 5-Step Process Progress Bar -->
-        <div style="margin-bottom: 1.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem;">
-          <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem;">LỘ TRÌNH XỬ LÝ DỊCH VỤ</div>
-          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center;">
-            <div style="padding: 0.5rem; border-radius: 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);">
-              <i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-main);">1. Đã Gửi Yêu Cầu</div>
-              <div style="font-size: 0.7rem; color: #10b981;">Hoàn thành</div>
-            </div>
-            <div style="padding: 0.5rem; border-radius: 8px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4);">
-              <i class="fa-solid fa-clipboard-check" style="color: #38bdf8; font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-              <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8;">2. Lễ Tân Xác Nhận</div>
-              <div style="font-size: 0.7rem; color: #38bdf8;">Đang xử lý...</div>
-            </div>
-            <div style="padding: 0.5rem; border-radius: 8px; background: var(--bg-card); opacity: 0.6;">
-              <i class="fa-solid fa-calendar-check" style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-              <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">3. Đã Chốt Hẹn</div>
-              <div style="font-size: 0.7rem; color: var(--text-muted);">Chờ xác nhận</div>
-            </div>
-            <div style="padding: 0.5rem; border-radius: 8px; background: var(--bg-card); opacity: 0.6;">
-              <i class="fa-solid fa-screwdriver-wrench" style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-              <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">4. Đang Sửa Chữa</div>
-              <div style="font-size: 0.7rem; color: var(--text-muted);">Tại xưởng</div>
-            </div>
-            <div style="padding: 0.5rem; border-radius: 8px; background: var(--bg-card); opacity: 0.6;">
-              <i class="fa-solid fa-flag-checkered" style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-              <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">5. Bàn Giao Xe</div>
-              <div style="font-size: 0.7rem; color: var(--text-muted);">Hoàn tất</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3-Block Information Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-          
-          <!-- Block 1: Customer Info -->
-          <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.1rem;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
-              <i class="fa-solid fa-user"></i> Khách Hàng
-            </div>
-            <div style="font-size: 0.86rem; line-height: 1.7; color: var(--text-main);">
-              <div>Họ tên: <strong id="conf-cust-name">-</strong></div>
-              <div>Số ĐT: <strong id="conf-cust-phone" style="color: var(--accent-cyan);">-</strong></div>
-              <div>Email: <span id="conf-cust-email">-</span></div>
-              <div>Địa chỉ: <span id="conf-cust-address">-</span></div>
-            </div>
-          </div>
-
-          <!-- Block 2: Vehicle Info -->
-          <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.1rem;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
-              <i class="fa-solid fa-car"></i> Phương Tiện
-            </div>
-            <div style="font-size: 0.86rem; line-height: 1.7; color: var(--text-main);">
-              <div>Biển số: <span id="conf-veh-plate" style="color: var(--accent-cyan); font-weight: 800; font-size: 1.05rem;">-</span></div>
-              <div>Dòng xe: <strong id="conf-veh-brandmodel">-</strong></div>
-              <div>Năm SX: <span id="conf-veh-year">2020</span></div>
-              <div>Số Odo: <span id="conf-veh-mileage">50,000 km</span></div>
-            </div>
-          </div>
-
-          <!-- Block 3: Booking Info -->
-          <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.1rem;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-purple); text-transform: uppercase; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
-              <i class="fa-solid fa-wrench"></i> Dịch Vụ & Lịch Hẹn
-            </div>
-            <div style="font-size: 0.86rem; line-height: 1.7; color: var(--text-main);">
-              <div>Loại dịch vụ: <strong id="conf-service-type" style="color: #fb7185;">-</strong></div>
-              <div>Thời gian hẹn: <strong id="conf-pref-datetime" style="color: #38bdf8;">-</strong></div>
-              <div>Nội dung: <span id="conf-symptoms">-</span></div>
-              <div>Ghi chú: <span id="conf-note">-</span></div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Notice & Instructions Box -->
-        <div style="background: rgba(37, 99, 235, 0.08); border: 1px dashed rgba(37, 99, 235, 0.35); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 0.85rem; align-items: flex-start;">
-          <i class="fa-solid fa-circle-info" style="color: #38bdf8; font-size: 1.2rem; margin-top: 2px;"></i>
-          <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
-            <div>• <strong>Lễ tân Garage VTV</strong> sẽ xác nhận trực tiếp với quý khách theo số điện thoại đã cung cấp để chốt lịch và điều phối khoang sửa chữa.</div>
-            <div>• Quý khách có thể chụp ảnh màn hình hoặc lưu lại <strong>Mã phiếu tiếp nhận</strong> để tra cứu tiến độ xe bất cứ lúc nào qua thanh tra cứu trên cùng.</div>
-          </div>
-        </div>
-
-        <!-- Action Footer -->
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-          <button class="btn btn-secondary" onclick="lookupCustomerVehicleProgress(document.getElementById('conf-veh-plate')?.innerText || '')">
-            <i class="fa-solid fa-magnifying-glass"></i> Tra Cứu Tiến Độ Sửa Chữa Biển Số Này
-          </button>
-          <div style="display: flex; gap: 0.75rem;">
-            <button class="btn btn-secondary" onclick="printBookingConfirmation()">
-              <i class="fa-solid fa-print"></i> In Phiếu
-            </button>
-            <button class="btn btn-primary" onclick="resetToNewBooking()" style="font-weight: 700;">
-              <i class="fa-solid fa-calendar-plus"></i> Đặt Lịch Thêm Xe Khác
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Right Side Contact Cards -->
-      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-
-        <!-- Hotline Box -->
-        <div class="table-card"
-          style="padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-top: 3px solid var(--accent-cyan);">
-          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;">
-            <div
-              style="width: 40px; height: 40px; border-radius: 12px; background: rgba(8, 145, 178, 0.15); border: 1px solid rgba(8, 145, 178, 0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan); font-size: 1.2rem;">
-              <i class="fa-solid fa-phone-volume"></i>
-            </div>
-            <div>
-              <h4 style="font-family: Arial; margin: 0; color: var(--text-main); font-size: 1.05rem;">Hotline Tư Vấn SĐT</h4>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">Hỗ trợ 24/7 & Cứu hộ lưu động</span>
-            </div>
-          </div>
-          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem;">
-            Cần tư vấn gấp hoặc gọi cứu hộ gầm xe? Mở ngay popup liên hệ SĐT trực tiếp với Garage VTV!
-          </p>
-          <button class="btn btn-primary" onclick="openPhoneContactModal()"
-            style="width: 100%; justify-content: center; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700; padding: 0.75rem;">
-            <i class="fa-solid fa-headset"></i> Mở Pop-up Liên Hệ SĐT
-          </button>
-        </div>
-
-        <!-- AI Assistant Box -->
-        <div class="table-card"
-          style="padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-top: 3px solid var(--accent-purple);">
-          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;">
-            <div
-              style="width: 40px; height: 40px; border-radius: 12px; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-purple); font-size: 1.2rem;">
-              <i class="fa-solid fa-wand-magic-sparkles"></i>
-            </div>
-            <div>
-              <h4 style="font-family: Arial; margin: 0; color: var(--text-main); font-size: 1.05rem;">Trợ lý GarageAI</h4>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">Tư vấn kỹ thuật thông minh</span>
-            </div>
-          </div>
-          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem;">
-            Hỏi đáp về quy trình bảo dưỡng xe máy, ô tô, combo nhớt và dự toán chi phí tự động cùng AI!
-          </p>
-          <button class="btn btn-ai" onclick="openAIAssistantModal()"
-            style="width: 100%; justify-content: center; font-weight: 700; padding: 0.75rem;">
-            <i class="fa-solid fa-robot"></i> Trò Chuyện Với Trợ Lý AI
-          </button>
-        </div>
-
       </div>
 
     </div>
+  </section>
 
-  </main>
-
-  <!-- Footer Bar -->
-  <footer class="footer-bar">
-    <div>© 2026 GARAGE VTV AUTOMOTIVE ENGINE. Tất cả quyền được bảo lưu.</div>
-    <div style="margin-top: 0.4rem; font-size: 0.78rem; color: var(--text-muted);">
-      Địa chỉ: Đương Z115, Quyết Thắng, TP. Thái Nguyên | Hotline: 033.344.2358
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="brand">
+        <i class="fa-solid fa-car-side" style="color: var(--accent-cyan); font-size: 1.5rem;"></i>
+        <span style="font-weight: 800; font-size: 1.2rem; color: var(--text-main);">GARAGE VTV</span>
+      </div>
+      <div class="footer-text">
+        &copy; 2026 Garage VTV Automotive. Tự động hóa bởi Trí Tuệ Nhân Tạo. | <a href="login.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.8rem;" title="Đăng nhập nội bộ">Nhân Viên</a>
+      </div>
     </div>
   </footer>
 
-  <!-- MODALS SECTION -->
+  <script>
+    const themeBtn = document.getElementById('theme-btn');
+    const htmlEl = document.documentElement;
+    const savedTheme = localStorage.getItem('vtv_theme') || 'dark';
+    htmlEl.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+
+    function toggleTheme() {
+      const current = htmlEl.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      htmlEl.setAttribute('data-theme', next);
+      localStorage.setItem('vtv_theme', next);
+      updateThemeIcon(next);
+    }
+
+    function updateThemeIcon(theme) {
+      themeBtn.innerHTML = theme === 'dark'
+        ? '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>'
+        : '<i class="fa-solid fa-moon"></i>';
+    }
+
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('navbar');
+      if (window.scrollY > 50) {
+        nav.style.background = 'var(--glass-bg)';
+        nav.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+      } else {
+        nav.style.background = 'var(--glass-bg)';
+        nav.style.boxShadow = 'none';
+      }
+    });
+
+    async function handleBooking(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitBooking');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang Gửi...';
+      btn.disabled = true;
+
+      const payload = {
+        full_name: document.getElementById('bf_name').value,
+        phone: document.getElementById('bf_phone').value,
+        vehicle_model: document.getElementById('bf_model').value,
+        license_plate: document.getElementById('bf_plate').value,
+        service_type: document.getElementById('bf_service').value,
+        description: document.getElementById('bf_desc').value
+      };
+
+      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+      const API_BASE = isLocal ? "http://127.0.0.1:8000/api/v1" : "/api/v1";
+      try {
+        const response = await fetch(`${API_BASE}/customer-requests`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          alert(`🎉 Gửi yêu cầu thành công!\nMã theo dõi của bạn là: ${data.request_code}\nChúng tôi sẽ sớm liên hệ lại!`);
+          document.getElementById('bookingForm').reset();
+        } else {
+          const err = await response.json();
+          alert('Lỗi: ' + (err.detail || 'Không thể gửi yêu cầu'));
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Lỗi kết nối đến máy chủ.');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    async function handleTracking() {
+      const q = document.getElementById('track_input').value.trim();
+      const resDiv = document.getElementById('search_result');
+      resDiv.style.display = 'block';
+
+      if (!q) {
+        resDiv.innerHTML = '<div style="color: var(--accent-rose);"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập mã hoặc số điện thoại!</div>';
+        return;
+      }
+
+      resDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tìm kiếm...';
+
+      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+      const API_BASE = isLocal ? "http://127.0.0.1:8000/api/v1" : "/api/v1";
+      try {
+        const response = await fetch(`${API_BASE}/customer-requests?skip=0&limit=5&q=${encodeURIComponent(q)}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.length === 0) {
+            resDiv.innerHTML = '<div style="color: var(--accent-amber);"><i class="fa-solid fa-folder-open"></i> Không tìm thấy yêu cầu nào phù hợp.</div>';
+            return;
+          }
+
+          let html = `<div style="font-weight: 700; margin-bottom: 1rem; color: var(--accent-cyan);">Tìm thấy ${data.length} kết quả:</div>`;
+          data.forEach(req => {
+            let statusColor = '#94a3b8';
+            let statusText = req.status;
+            if (req.status === 'PENDING') { statusColor = '#f59e0b'; statusText = 'Chờ Xác Nhận'; }
+            if (req.status === 'APPROVED') { statusColor = '#3b82f6'; statusText = 'Đã Phê Duyệt'; }
+            if (req.status === 'IN_PROGRESS') { statusColor = '#10b981'; statusText = 'Đang Xử Lý'; }
+            if (req.status === 'COMPLETED') { statusColor = '#059669'; statusText = 'Hoàn Thành'; }
+            if (req.status === 'CANCELLED') { statusColor = '#ef4444'; statusText = 'Đã Hủy'; }
+
+            html += `
+              <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; margin-bottom: 0.8rem; border-left: 4px solid ${statusColor};">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                  <strong style="color: var(--text-main);">${req.request_code}</strong>
+                  <span style="background: ${statusColor}20; color: ${statusColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">${statusText}</span>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+                  <i class="fa-solid fa-car"></i> Xe: ${req.vehicle_model || 'N/A'} - ${req.license_plate || 'N/A'}
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                  <i class="fa-regular fa-clock"></i> Ngày tạo: ${new Date(req.created_at).toLocaleString('vi-VN')}
+                </div>
+              </div>
+            `;
+          });
+          resDiv.innerHTML = html;
+        } else {
+          resDiv.innerHTML = '<div style="color: var(--accent-rose);">Lỗi khi tải dữ liệu tra cứu.</div>';
+        }
+      } catch (error) {
+        console.error(error);
+        resDiv.innerHTML = '<div style="color: var(--accent-rose);">Lỗi kết nối đến máy chủ.</div>';
+      }
+    }
+  </script>
 
   <!-- Modal AI Garage Assistant (GarageAI) -->
   <div id="modal-ai-result" class="modal-backdrop">
     <div class="modal-card garage-ai-modal"
       style="max-width: 580px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148, 163, 184, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
-
-      <!-- Modal Header -->
       <div class="garage-ai-header"
         style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
         <div style="display: flex; align-items: center; gap: 0.85rem;">
@@ -532,8 +835,8 @@
               style="font-family: Arial, sans-serif; color: #ffffff; font-size: 1.2rem; font-weight: 700; margin: 0; line-height: 1.2;">
               Trợ lý GarageAI</h3>
             <span
-              style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #64748b; text-transform: uppercase; margin-top: 3px; display: block;">TƯ
-              VẤN TRƯỚC KHI ĐẾN GARAGE</span>
+              style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #64748b; text-transform: uppercase; margin-top: 3px; display: block;">Tư
+              Vấn Trước Khi Đến Garage</span>
           </div>
         </div>
         <button class="close-btn" onclick="closeModal('modal-ai-result')"
@@ -542,19 +845,13 @@
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-
-      <!-- Security Notice Banner -->
       <div class="garage-ai-banner"
         style="background: rgba(255, 255, 255, 0.03); padding: 0.75rem 1.35rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.82rem; color: #94a3b8; line-height: 1.45;">
         Không nhập mật khẩu, mã OTP hoặc dữ liệu nhạy cảm. AI chỉ tư vấn sơ bộ, không thay thế kỹ thuật viên kiểm tra
         trực tiếp.
       </div>
-
-      <!-- Chat History Area -->
       <div id="modal-ai-chat-body" class="garage-ai-body"
         style="padding: 1.35rem; max-height: 380px; min-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; background: #0f172a;">
-
-        <!-- Default AI Greeting Message matching screenshot -->
         <div class="garage-ai-msg-row ai-msg" style="display: flex; gap: 0.85rem; align-items: flex-start;">
           <div class="ai-msg-avatar"
             style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0; margin-top: 2px;">
@@ -567,10 +864,7 @@
             thường, hãy liên hệ garage để được kiểm tra trực tiếp.
           </div>
         </div>
-
       </div>
-
-      <!-- Footer Input Area -->
       <div class="garage-ai-footer"
         style="padding: 1.15rem 1.35rem; background: #0f172a; border-top: 1px solid rgba(255, 255, 255, 0.06); display: flex; gap: 0.75rem; align-items: flex-end;">
         <div style="flex: 1;">
@@ -584,7 +878,6 @@
           <i class="fa-solid fa-paper-plane" style="transform: rotate(10deg);"></i>
         </button>
       </div>
-
     </div>
   </div>
 
@@ -592,8 +885,6 @@
   <div id="modal-phone-contact" class="modal-backdrop">
     <div class="modal-card phone-contact-card"
       style="max-width: 500px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148, 163, 184, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
-
-      <!-- Modal Header -->
       <div
         style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
         <div style="display: flex; align-items: center; gap: 0.85rem;">
@@ -606,8 +897,8 @@
               style="font-family: Arial, sans-serif; color: #ffffff; font-size: 1.15rem; font-weight: 700; margin: 0;">
               Hotline Liên Hệ Garage VTV</h3>
             <span
-              style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: #64748b; text-transform: uppercase;">TƯ
-              VẤN TRỰC TIẾP QUÁ SỐ ĐIỆN THOẠI</span>
+              style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: #64748b; text-transform: uppercase;">Tư
+              Vấn Trực Tiếp Qua Số Điện Thoại</span>
           </div>
         </div>
         <button class="close-btn" onclick="closeModal('modal-phone-contact')"
@@ -616,11 +907,7 @@
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-
-      <!-- Phone Contact Body -->
       <div style="padding: 1.35rem; background: #0f172a; display: flex; flex-direction: column; gap: 1rem;">
-
-        <!-- Hotline Call Card 1 -->
         <div
           style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
           <div>
@@ -628,8 +915,7 @@
             </div>
             <div
               style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; font-family: Arial, sans-serif; margin-top: 2px;">
-              033.344.2358
-            </div>
+              033.344.2358</div>
             <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Lễ tân & KTV Trưởng trực cuộc gọi</div>
           </div>
           <div style="display: flex; gap: 0.5rem;">
@@ -637,14 +923,12 @@
               onclick="copyTextToClipboard('0333442358', 'Số điện thoại Hotline')" title="Sao chép SĐT">
               <i class="fa-solid fa-copy"></i>
             </button>
-            <a href="tel:0901234567" class="btn btn-primary btn-sm"
-              style="background: #0891b2; border: none; font-weight: 700;">
+            <a href="tel:0333442358" class="btn btn-primary btn-sm"
+              style="background: #0891b2; border: none; font-weight: 700; padding: 0.5rem 1rem; border-radius: 6px; color: white; text-decoration: none;">
               <i class="fa-solid fa-phone"></i> Gọi Ngay
             </a>
           </div>
         </div>
-
-        <!-- Hotline Call Card 2: Emergency Rescue -->
         <div
           style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(244, 63, 94, 0.25); border-radius: 14px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
           <div>
@@ -652,18 +936,15 @@
             </div>
             <div
               style="font-size: 1.35rem; font-weight: 800; color: #fb7185; font-family: Arial, sans-serif; margin-top: 2px;">
-              1900.6868
-            </div>
+              1900.6868</div>
             <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Xe kéo cứu hộ & KTV cơ động đến tận nơi
             </div>
           </div>
           <a href="tel:19006868" class="btn btn-primary btn-sm"
-            style="background: #e11d48; border: none; font-weight: 700;">
+            style="background: #e11d48; border: none; font-weight: 700; padding: 0.5rem 1rem; border-radius: 6px; color: white; text-decoration: none;">
             <i class="fa-solid fa-truck-medical"></i> Cứu Hộ
           </a>
         </div>
-
-        <!-- Request Callback Form -->
         <div
           style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 1.1rem; margin-top: 0.25rem;">
           <h4
@@ -677,43 +958,34 @@
                 style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-main);">
               <select id="cb-time" class="form-control"
                 style="width: 140px; background: var(--bg-input); border-color: var(--border-color); color: var(--text-main);">
-                <option value="immediate" style="background: var(--bg-card); color: var(--text-main);">Gọi ngay (5p)</option>
-                <option value="morning" style="background: var(--bg-card); color: var(--text-main);">Sáng (8h-11h)</option>
-                <option value="afternoon" style="background: var(--bg-card); color: var(--text-main);">Chiều (14h-17h)</option>
+                <option value="immediate" style="background: var(--bg-card); color: var(--text-main);">Gọi ngay (5p)
+                </option>
+                <option value="morning" style="background: var(--bg-card); color: var(--text-main);">Sáng (8h-11h)
+                </option>
+                <option value="afternoon" style="background: var(--bg-card); color: var(--text-main);">Chiều (14h-17h)
+                </option>
               </select>
             </div>
             <button type="submit" class="btn btn-primary"
-              style="width: 100%; justify-content: center; background: linear-gradient(135deg, #2563eb, #3b82f6); border: none;">
+              style="width: 100%; justify-content: center; background: linear-gradient(135deg, #2563eb, #3b82f6); border: none; padding: 0.75rem; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">
               <i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu Gọi Lại
             </button>
           </form>
         </div>
-
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Modal Request Detail & AI Dialog -->
-  <div id="modal-ai-dialog" class="modal-backdrop" style="display: none;">
-    <div class="modal-card" style="max-width: 680px; width: 95%;">
-      <div class="modal-header">
-        <h3 id="modal-ai-dialog-title" style="font-family: Arial;"><i class="fa-solid fa-clipboard-check" style="color: var(--accent-cyan);"></i> Chi Tiết Yêu Cầu Dịch Vụ</h3>
-        <button class="close-btn" onclick="closeModal('modal-ai-dialog')">&times;</button>
-      </div>
-      <div id="modal-ai-dialog-body" style="padding: 0.5rem 0;">
-        <!-- Injected dynamically by JS -->
       </div>
     </div>
   </div>
 
-  <!-- Floating GarageAI Assistant Quick Trigger Button -->
-  <button class="floating-ai-trigger" onclick="openAIAssistantModal()" title="Mở Trợ lý GarageAI">
-    <i class="fa-solid fa-wand-magic-sparkles"></i>
+  <button class="floating-phone-trigger" onclick="openPhoneContactModal()" title="Hotline Tư Vấn"
+    style="position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #0891b2, #0284c7); color: white; border: none; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(8, 145, 178, 0.4); z-index: 9999; transition: transform 0.3s;">
+    <i class="fa-solid fa-phone-volume"></i>
   </button>
 
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
+  <button class="floating-ai-trigger" onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn nhanh')"
+    title="Mở Trợ lý GarageAI"
+    style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; border: none; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); z-index: 9999; transition: transform 0.3s;">
+    <i class="fa-solid fa-wand-magic-sparkles"></i>
+  </button>
   <script src="app.js?v=11.0"></script>
 </body>
 

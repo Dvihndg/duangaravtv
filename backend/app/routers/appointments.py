@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -18,7 +18,7 @@ def create_appointment(
 ):
     vehicle = db.query(Vehicle).filter(Vehicle.id == apt_in.vehicle_id).first()
     if not vehicle:
-        raise HTTPException(status_code=404, detail="Không tìm thấy thông tin xe")
+        raise HTTPException(status_code=404, detail="KhÃƒÆ’Ã‚Â´ng tÃƒÆ’Ã‚Â¬m thÃƒÂ¡Ã‚ÂºÃ‚Â¥y thÃƒÆ’Ã‚Â´ng tin xe")
 
     # Conflict Check (TC03): Check if vehicle already has an active appointment on the same date/time (+- 60 mins)
     apt_date = apt_in.appointment_date
@@ -35,10 +35,10 @@ def create_appointment(
     if conflict:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Xung đột lịch hẹn: Phương tiện biển số '{vehicle.license_plate}' đã có lịch hẹn vào {conflict.appointment_date.strftime('%H:%M %d/%m/%Y')}!"
+            detail=f"Xung Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢t lÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¹ch hÃƒÂ¡Ã‚ÂºÃ‚Â¹n: PhÃƒâ€ Ã‚Â°Ãƒâ€ Ã‚Â¡ng tiÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡n biÃƒÂ¡Ã‚Â»Ã†â€™n sÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœ '{vehicle.license_plate}' Ãƒâ€žÃ¢â‚¬ËœÃƒÆ’Ã‚Â£ cÃƒÆ’Ã‚Â³ lÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¹ch hÃƒÂ¡Ã‚ÂºÃ‚Â¹n vÃƒÆ’Ã‚Â o {conflict.appointment_date.strftime('%H:%M %d/%m/%Y')}!"
         )
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_str = now.strftime("%Y%m%d")
     count = db.query(Appointment).filter(Appointment.appointment_code.like(f"APT-{today_str}-%")).count()
     apt_code = f"APT-{today_str}-{(count + 1):04d}"
@@ -72,7 +72,7 @@ def get_appointment(
 ):
     apt = db.query(Appointment).filter(Appointment.id == appointment_id).first()
     if not apt:
-        raise HTTPException(status_code=404, detail="Không tìm thấy lịch hẹn")
+        raise HTTPException(status_code=404, detail="KhÃƒÆ’Ã‚Â´ng tÃƒÆ’Ã‚Â¬m thÃƒÂ¡Ã‚ÂºÃ‚Â¥y lÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¹ch hÃƒÂ¡Ã‚ÂºÃ‚Â¹n")
     return apt
 
 @router.put("/{appointment_id}", response_model=AppointmentOut)
@@ -84,7 +84,7 @@ def update_appointment(
 ):
     apt = db.query(Appointment).filter(Appointment.id == appointment_id).first()
     if not apt:
-        raise HTTPException(status_code=404, detail="Không tìm thấy lịch hẹn")
+        raise HTTPException(status_code=404, detail="KhÃƒÆ’Ã‚Â´ng tÃƒÆ’Ã‚Â¬m thÃƒÂ¡Ã‚ÂºÃ‚Â¥y lÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¹ch hÃƒÂ¡Ã‚ÂºÃ‚Â¹n")
 
     update_data = apt_update.model_dump(exclude_unset=True)
     for field, val in update_data.items():
@@ -102,8 +102,8 @@ def cancel_appointment(
 ):
     apt = db.query(Appointment).filter(Appointment.id == appointment_id).first()
     if not apt:
-        raise HTTPException(status_code=404, detail="Không tìm thấy lịch hẹn")
+        raise HTTPException(status_code=404, detail="KhÃƒÆ’Ã‚Â´ng tÃƒÆ’Ã‚Â¬m thÃƒÂ¡Ã‚ÂºÃ‚Â¥y lÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¹ch hÃƒÂ¡Ã‚ÂºÃ‚Â¹n")
 
-    apt.status = AppointmentStatus.CANCELLED
+    apt.status = AppointmentStatus.CANCELLED  # type: ignore
     db.commit()
-    return {"success": True, "message": "Đã hủy lịch hẹn thành công"}
+    return {"success": True, "message": "Ãƒâ€žÃ‚ÂÃƒÆ’Ã‚Â£ hÃƒÂ¡Ã‚Â»Ã‚Â§y lÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¹ch hÃƒÂ¡Ã‚ÂºÃ‚Â¹n thÃƒÆ’Ã‚Â nh cÃƒÆ’Ã‚Â´ng"}

@@ -16,13 +16,16 @@ if not os.path.exists(tmp_db):
         except Exception:
             pass
 
-# Support Vercel Postgres and custom DB strings to bypass Vercel UI issues
-if os.environ.get("VTV_GARAGE_DB"):
-    os.environ["DATABASE_URL"] = os.environ.get("VTV_GARAGE_DB")
-elif os.environ.get("POSTGRES_URL"):
-    os.environ["DATABASE_URL"] = os.environ.get("POSTGRES_URL")
-elif os.environ.get("SUPABASE_URL"):
-    os.environ["DATABASE_URL"] = os.environ.get("SUPABASE_URL")
+vtv_db = os.environ.get("VTV_GARAGE_DB")
+pg_url = os.environ.get("POSTGRES_URL")
+sb_url = os.environ.get("SUPABASE_URL")
+
+if vtv_db:
+    os.environ["DATABASE_URL"] = vtv_db
+elif pg_url:
+    os.environ["DATABASE_URL"] = pg_url
+elif sb_url:
+    os.environ["DATABASE_URL"] = sb_url
 elif not os.environ.get("DATABASE_URL"):
     os.environ["DATABASE_URL"] = f"sqlite:///{tmp_db}"
 

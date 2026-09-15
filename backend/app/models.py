@@ -1,4 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
+
+def get_utc_now():
+    return datetime.now(timezone.utc)
 import enum
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum, Text, Boolean
 from sqlalchemy.orm import relationship
@@ -101,7 +104,7 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.RECEPTIONIST, nullable=False)
     phone = Column(String(20), nullable=True)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
 
 class Customer(Base):
     __tablename__ = "customers"
@@ -114,8 +117,8 @@ class Customer(Base):
     address = Column(String(255), nullable=True)
     notes = Column(Text, nullable=True)
     status = Column(String(20), default="ACTIVE")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
+    updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now)
     deleted_at = Column(DateTime, nullable=True) # Soft delete
 
     vehicles = relationship("Vehicle", back_populates="owner", cascade="all, delete-orphan")
@@ -136,8 +139,8 @@ class Vehicle(Base):
     transmission = Column(String(20), default="AUTOMATIC")
     notes = Column(Text, nullable=True)
     customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
+    updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now)
 
     owner = relationship("Customer", back_populates="vehicles")
     appointments = relationship("Appointment", back_populates="vehicle")
@@ -159,8 +162,8 @@ class Appointment(Base):
     notes = Column(Text, nullable=True)
     status = Column(Enum(AppointmentStatus), default=AppointmentStatus.PENDING)
     assigned_technician_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
+    updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now)
 
     vehicle = relationship("Vehicle", back_populates="appointments")
     technician = relationship("User", foreign_keys=[assigned_technician_id])
@@ -184,7 +187,7 @@ class VehicleReception(Base):
     notes = Column(Text, nullable=True)
     
     received_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    received_at = Column(DateTime, default=datetime.utcnow)
+    received_at = Column(DateTime, default=get_utc_now)
 
     customer = relationship("Customer")
     vehicle = relationship("Vehicle", back_populates="receptions")
@@ -237,7 +240,7 @@ class InventoryTransaction(Base):
     previous_quantity = Column(Integer, nullable=False)
     new_quantity = Column(Integer, nullable=False)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
     notes = Column(Text, nullable=True)
 
     part = relationship("Part")
@@ -278,7 +281,7 @@ class RepairOrder(Base):
     ai_service_explanation = Column(Text, nullable=True)
     ai_draft_quotation_notes = Column(Text, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
     completed_at = Column(DateTime, nullable=True)
 
     vehicle = relationship("Vehicle", back_populates="repair_orders")
@@ -306,7 +309,7 @@ class Inspection(Base):
     technician_note = Column(Text, nullable=True)
     recommendation = Column(Text, nullable=True)
     status = Column(String(20), default="COMPLETED")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
 
     repair_order = relationship("RepairOrder", back_populates="inspections")
 
@@ -374,7 +377,7 @@ class Quotation(Base):
     customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
     
-    quotation_date = Column(DateTime, default=datetime.utcnow)
+    quotation_date = Column(DateTime, default=get_utc_now)
     valid_until = Column(DateTime, nullable=True) # Ngày hết hạn
     
     subtotal = Column(Float, default=0.0) # Tiền công + linh kiện
@@ -391,8 +394,8 @@ class Quotation(Base):
     rejected_at = Column(DateTime, nullable=True)
     customer_note = Column(Text, nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
+    updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now)
 
     repair_order = relationship("RepairOrder", back_populates="quotation")
     customer = relationship("Customer")
@@ -422,7 +425,7 @@ class Invoice(Base):
     customer_id = Column(Integer, ForeignKey("customers.id"), nullable=True)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True)
     
-    invoice_date = Column(DateTime, default=datetime.utcnow)
+    invoice_date = Column(DateTime, default=get_utc_now)
     due_date = Column(DateTime, nullable=True)
     
     subtotal = Column(Float, default=0.0)
@@ -436,11 +439,11 @@ class Invoice(Base):
     remaining_amount = Column(Float, default=0.0)
     
     status = Column(Enum(InvoiceStatus), default=InvoiceStatus.UNPAID)
-    issued_date = Column(DateTime, default=datetime.utcnow)
+    issued_date = Column(DateTime, default=get_utc_now)
     notes = Column(Text, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
+    updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now)
 
     repair_order = relationship("RepairOrder", back_populates="invoice")
     customer = relationship("Customer")
@@ -456,7 +459,7 @@ class Payment(Base):
     payment_method = Column(Enum(PaymentMethod), default=PaymentMethod.CASH)
     amount = Column(Float, nullable=False)
     transaction_reference = Column(String(100), nullable=True)
-    payment_date = Column(DateTime, default=datetime.utcnow)
+    payment_date = Column(DateTime, default=get_utc_now)
     cashier_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     notes = Column(Text, nullable=True)
 
@@ -473,7 +476,7 @@ class AuditLog(Base):
     resource_id = Column(String(50), nullable=True)
     ip_address = Column(String(50), nullable=True)
     metadata_json = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
 
     user = relationship("User")
 
@@ -484,7 +487,7 @@ class Setting(Base):
     key = Column(String(50), unique=True, index=True, nullable=False)
     value = Column(Text, nullable=False)
     description = Column(String(255), nullable=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now)
 
 class AILog(Base):
     __tablename__ = "ai_logs"
@@ -510,7 +513,7 @@ class AILog(Base):
     parts_accuracy = Column(Float, default=1.0)
     price_variance = Column(Float, default=0.0) # Bắt buộc = 0.0%
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
 
 class CustomerRequest(Base):
     __tablename__ = "customer_requests"
@@ -543,8 +546,8 @@ class CustomerRequest(Base):
     reviewed_at = Column(DateTime, nullable=True)
     converted_at = Column(DateTime, nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
+    updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now)
 
     assigned_employee = relationship("User", foreign_keys=[assigned_employee_id])
     customer = relationship("Customer")

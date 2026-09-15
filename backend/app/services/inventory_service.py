@@ -7,17 +7,17 @@ from backend.app.models import Part, InventoryTransaction, InventoryTransactionT
 
 class InventoryService:
     """
-    Dịch vụ quản trị kho phụ tùng và kiểm soát xuất nhập (Inventory Service).
-    Nguyên tắc vàng: Số lượng tồn kho tuyệt đối không bao giờ được phép âm (stock >= 0).
-    Mọi biến động phải sinh bản ghi InventoryTransaction tương ứng trong 1 atomic transaction.
+    Dá»‹ch vá»¥ quáº£n trá»‹ kho phá»¥ tÃ¹ng vÃ  kiá»ƒm soÃ¡t xuáº¥t nháº­p (Inventory Service).
+    NguyÃªn táº¯c vÃ ng: Sá»‘ lÆ°á»£ng tá»“n kho tuyá»‡t Ä‘á»‘i khÃ´ng bao giá» Ä‘Æ°á»£c phÃ©p Ã¢m (stock >= 0).
+    Má»i biáº¿n Ä‘á»™ng pháº£i sinh báº£n ghi InventoryTransaction tÆ°Æ¡ng á»©ng trong 1 atomic transaction.
     """
 
     @staticmethod
     def check_stock_availability(db: Session, part_id: int, required_quantity: int) -> bool:
         part = db.query(Part).filter(Part.id == part_id).first()
         if not part or not part.is_active:
-            raise HTTPException(status_code=404, detail="Phụ tùng không tồn tại hoặc đã ngừng kinh doanh.")
-        return part.stock_quantity >= required_quantity
+            raise HTTPException(status_code=404, detail="Phá»¥ tÃ¹ng khÃ´ng tá»“n táº¡i hoáº·c Ä‘Ã£ ngá»«ng kinh doanh.")
+        return part.stock_quantity >= required_quantity  # type: ignore
 
     @staticmethod
     def export_part_for_repair_order(
@@ -29,22 +29,22 @@ class InventoryService:
         notes: Optional[str] = None
     ) -> InventoryTransaction:
         if quantity <= 0:
-            raise HTTPException(status_code=400, detail="Số lượng xuất kho phải lớn hơn 0.")
+            raise HTTPException(status_code=400, detail="Sá»‘ lÆ°á»£ng xuáº¥t kho pháº£i lá»›n hÆ¡n 0.")
 
         # Query with row-level lock where supported
         part = db.query(Part).filter(Part.id == part_id).with_for_update().first()
         if not part or not part.is_active:
-            raise HTTPException(status_code=404, detail="Phụ tùng không tồn tại hoặc đã ngừng kinh doanh.")
+            raise HTTPException(status_code=404, detail="Phá»¥ tÃ¹ng khÃ´ng tá»“n táº¡i hoáº·c Ä‘Ã£ ngá»«ng kinh doanh.")
 
         if part.stock_quantity < quantity:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Tồn kho không đủ để xuất. Hiện còn: {part.stock_quantity}, yêu cầu: {quantity}. Tồn kho không thể âm!"
+                detail=f"Tá»“n kho khÃ´ng Ä‘á»§ Ä‘á»ƒ xuáº¥t. Hiá»‡n cÃ²n: {part.stock_quantity}, yÃªu cáº§u: {quantity}. Tá»“n kho khÃ´ng thá»ƒ Ã¢m!"
             )
 
         prev_qty = part.stock_quantity
         new_qty = prev_qty - quantity
-        part.stock_quantity = new_qty
+        part.stock_quantity = new_qty  # type: ignore
 
         tx = InventoryTransaction(
             part_id=part.id,
@@ -56,7 +56,7 @@ class InventoryService:
             new_quantity=new_qty,
             created_by_id=user_id,
             created_at=datetime.utcnow(),
-            notes=notes or f"Xuất kho cho Phiếu sửa chữa #{repair_order_id}"
+            notes=notes or f"Xuáº¥t kho cho Phiáº¿u sá»­a chá»¯a #{repair_order_id}"
         )
         db.add(tx)
         db.commit()
@@ -72,15 +72,15 @@ class InventoryService:
         notes: Optional[str] = None
     ) -> InventoryTransaction:
         if quantity <= 0:
-            raise HTTPException(status_code=400, detail="Số lượng nhập kho phải lớn hơn 0.")
+            raise HTTPException(status_code=400, detail="Sá»‘ lÆ°á»£ng nháº­p kho pháº£i lá»›n hÆ¡n 0.")
 
         part = db.query(Part).filter(Part.id == part_id).with_for_update().first()
         if not part:
-            raise HTTPException(status_code=404, detail="Phụ tùng không tồn tại.")
+            raise HTTPException(status_code=404, detail="Phá»¥ tÃ¹ng khÃ´ng tá»“n táº¡i.")
 
         prev_qty = part.stock_quantity
         new_qty = prev_qty + quantity
-        part.stock_quantity = new_qty
+        part.stock_quantity = new_qty  # type: ignore
 
         tx = InventoryTransaction(
             part_id=part.id,
@@ -91,7 +91,7 @@ class InventoryService:
             new_quantity=new_qty,
             created_by_id=user_id,
             created_at=datetime.utcnow(),
-            notes=notes or "Nhập kho linh kiện bổ sung"
+            notes=notes or "Nháº­p kho linh kiá»‡n bá»• sung"
         )
         db.add(tx)
         db.commit()
@@ -107,15 +107,15 @@ class InventoryService:
         reason: Optional[str] = None
     ) -> InventoryTransaction:
         if actual_quantity < 0:
-            raise HTTPException(status_code=400, detail="Số lượng tồn kho thực tế không thể âm.")
+            raise HTTPException(status_code=400, detail="Sá»‘ lÆ°á»£ng tá»“n kho thá»±c táº¿ khÃ´ng thá»ƒ Ã¢m.")
 
         part = db.query(Part).filter(Part.id == part_id).with_for_update().first()
         if not part:
-            raise HTTPException(status_code=404, detail="Phụ tùng không tồn tại.")
+            raise HTTPException(status_code=404, detail="Phá»¥ tÃ¹ng khÃ´ng tá»“n táº¡i.")
 
         prev_qty = part.stock_quantity
         diff = actual_quantity - prev_qty
-        part.stock_quantity = actual_quantity
+        part.stock_quantity = actual_quantity  # type: ignore
 
         tx = InventoryTransaction(
             part_id=part.id,
@@ -126,7 +126,7 @@ class InventoryService:
             new_quantity=actual_quantity,
             created_by_id=user_id,
             created_at=datetime.utcnow(),
-            notes=reason or f"Kiểm kê điều chỉnh kho: {prev_qty} -> {actual_quantity}"
+            notes=reason or f"Kiá»ƒm kÃª Ä‘iá»u chá»‰nh kho: {prev_qty} -> {actual_quantity}"
         )
         db.add(tx)
         db.commit()

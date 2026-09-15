@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
 from backend.app.models import Customer, Vehicle, Appointment, CustomerRequest, RepairOrder, CustomerRequestStatus
 
@@ -12,20 +12,20 @@ def test_customer_portal_public_submission_e2e(client, auth_headers):
     - Appointment auto created (APT-YYYYMMDD-XXXX)
     """
     payload = {
-        "fullName": "Nguyễn Văn A",
+        "fullName": "NguyÃ¡Â»â€¦n VÃ„Æ’n A",
         "phone": "0987654321",
         "email": "nguyenvana@gmail.com",
-        "address": "123 Đường Cầu Giấy, Hà Nội",
+        "address": "123 Ã„ÂÃ†Â°Ã¡Â»Âng CÃ¡ÂºÂ§u GiÃ¡ÂºÂ¥y, HÃƒÂ  NÃ¡Â»â„¢i",
         "licensePlate": "20A-123.45",
         "vehicleBrand": "Toyota",
         "vehicleModel": "Camry",
         "manufactureYear": 2022,
         "currentMileage": 85000,
-        "serviceType": "Kiểm tra hệ thống treo",
-        "description": "Xe bị rung khi chạy tốc độ cao.",
-        "preferredDate": (datetime.utcnow() + timedelta(days=2)).isoformat().split('T')[0],
+        "serviceType": "KiÃ¡Â»Æ’m tra hÃ¡Â»â€¡ thÃ¡Â»â€˜ng treo",
+        "description": "Xe bÃ¡Â»â€¹ rung khi chÃ¡ÂºÂ¡y tÃ¡Â»â€˜c Ã„â€˜Ã¡Â»â„¢ cao.",
+        "preferredDate": (datetime.now(timezone.utc) + timedelta(days=2)).isoformat().split('T')[0],
         "preferredTime": "09:00",
-        "note": "Cần xe gấp trong ngày"
+        "note": "CÃ¡ÂºÂ§n xe gÃ¡ÂºÂ¥p trong ngÃƒÂ y"
     }
 
     # 1. Unauthenticated Public Request
@@ -34,7 +34,7 @@ def test_customer_portal_public_submission_e2e(client, auth_headers):
     data = res.json()
 
     assert data["requestCode"].startswith("REQ-")
-    assert data["fullName"] == "Nguyễn Văn A"
+    assert data["fullName"] == "NguyÃ¡Â»â€¦n VÃ„Æ’n A"
     assert data["phone"] == "0987654321"
     assert data["licensePlate"] == "20A-123.45"
     assert data["status"] == "Pending"
@@ -50,14 +50,14 @@ def test_customer_portal_public_submission_e2e(client, auth_headers):
     # 2. Verify Repeat Request by SAME Customer & Vehicle
     # (Pass 60s anti-spam window or use slightly different plate variant/time)
     payload2 = {
-        "fullName": "Nguyễn Văn A (Cập nhật)",
+        "fullName": "NguyÃ¡Â»â€¦n VÃ„Æ’n A (CÃ¡ÂºÂ­p nhÃ¡ÂºÂ­t)",
         "phone": "0987654321", # SAME PHONE
         "licensePlate": "20A-123.45", # SAME PLATE
         "vehicleBrand": "Toyota",
         "vehicleModel": "Camry",
-        "serviceType": "Bảo dưỡng định kỳ mốc 90k km",
-        "description": "Thay dầu nhớt động cơ và lọc gió",
-        "preferredDate": (datetime.utcnow() + timedelta(days=10)).isoformat().split('T')[0],
+        "serviceType": "BÃ¡ÂºÂ£o dÃ†Â°Ã¡Â»Â¡ng Ã„â€˜Ã¡Â»â€¹nh kÃ¡Â»Â³ mÃ¡Â»â€˜c 90k km",
+        "description": "Thay dÃ¡ÂºÂ§u nhÃ¡Â»â€ºt Ã„â€˜Ã¡Â»â„¢ng cÃ†Â¡ vÃƒÂ  lÃ¡Â»Âc giÃƒÂ³",
+        "preferredDate": (datetime.now(timezone.utc) + timedelta(days=10)).isoformat().split('T')[0],
         "preferredTime": "14:00"
     }
 
@@ -85,8 +85,8 @@ def test_customer_request_sanitization_and_anti_spam(client):
         "licensePlate": "30F-999.99",
         "vehicleBrand": "Honda",
         "vehicleModel": "Civic",
-        "serviceType": "Sửa chữa",
-        "description": "<script>alert('xss_attack')</script> Xe có tiếng kêu lạ"
+        "serviceType": "SÃ¡Â»Â­a chÃ¡Â»Â¯a",
+        "description": "<script>alert('xss_attack')</script> Xe cÃƒÂ³ tiÃ¡ÂºÂ¿ng kÃƒÂªu lÃ¡ÂºÂ¡"
     }
 
     res1 = client.post("/api/v1/customer-requests", json=spam_payload)
@@ -100,7 +100,7 @@ def test_customer_request_sanitization_and_anti_spam(client):
     # 2. Immediate duplicate submit triggers 429 Rate Limit
     res2 = client.post("/api/v1/customer-requests", json=spam_payload)
     assert res2.status_code == 429
-    assert "Yêu cầu của bạn đã được tiếp nhận" in res2.json()["detail"]
+    assert "YÃƒÂªu cÃ¡ÂºÂ§u cÃ¡Â»Â§a bÃ¡ÂºÂ¡n Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c tiÃ¡ÂºÂ¿p nhÃ¡ÂºÂ­n" in res2.json()["detail"]
 
 
 def test_customer_request_admin_workflow_and_conversion(client, auth_headers):
@@ -112,13 +112,13 @@ def test_customer_request_admin_workflow_and_conversion(client, auth_headers):
     - Duplicate conversion attempt blocked
     """
     req_payload = {
-        "fullName": "Trần Thị B",
+        "fullName": "TrÃ¡ÂºÂ§n ThÃ¡Â»â€¹ B",
         "phone": "0933445566",
         "licensePlate": "51G-888.88",
         "vehicleBrand": "Mazda",
         "vehicleModel": "CX-5",
-        "serviceType": "Láng đĩa phanh trước",
-        "description": "Phanh bị kêu ken két khi dừng đèn đỏ"
+        "serviceType": "LÃƒÂ¡ng Ã„â€˜Ã„Â©a phanh trÃ†Â°Ã¡Â»â€ºc",
+        "description": "Phanh bÃ¡Â»â€¹ kÃƒÂªu ken kÃƒÂ©t khi dÃ¡Â»Â«ng Ã„â€˜ÃƒÂ¨n Ã„â€˜Ã¡Â»Â"
     }
 
     create_res = client.post("/api/v1/customer-requests", json=req_payload)
@@ -161,7 +161,7 @@ def test_customer_request_admin_workflow_and_conversion(client, auth_headers):
         headers=auth_headers
     )
     assert dup_convert.status_code == 400
-    assert "đã được chuyển đổi" in dup_convert.json()["detail"]
+    assert "Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c chuyÃ¡Â»Æ’n Ã„â€˜Ã¡Â»â€¢i" in dup_convert.json()["detail"]
 
 
 def test_customer_prompt_injection_security(client, auth_headers):

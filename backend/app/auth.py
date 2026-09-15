@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -26,13 +26,13 @@ def get_password_hash(password: str) -> str:
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
         try:
             exp_min = int(str(settings.ACCESS_TOKEN_EXPIRE_MINUTES).strip())
         except Exception:
             exp_min = 1440
-        expire = datetime.utcnow() + timedelta(minutes=exp_min)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=exp_min)
 
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -41,7 +41,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Không thể xác thực thông tin đăng nhập",
+        detail="KhÃƒÂ´ng thÃ¡Â»Æ’ xÃƒÂ¡c thÃ¡Â»Â±c thÃƒÂ´ng tin Ã„â€˜Ã„Æ’ng nhÃ¡ÂºÂ­p",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -64,7 +64,7 @@ def require_roles(allowed_roles: List[UserRole]):
         if current_user.role not in allowed_roles and current_user.role != UserRole.MANAGER:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Quyền truy cập bị từ chối. Vai trò cần thiết: {[r.value for r in allowed_roles]}"
+                detail=f"QuyÃ¡Â»Ân truy cÃ¡ÂºÂ­p bÃ¡Â»â€¹ tÃ¡Â»Â« chÃ¡Â»â€˜i. Vai trÃƒÂ² cÃ¡ÂºÂ§n thiÃ¡ÂºÂ¿t: {[r.value for r in allowed_roles]}"
             )
         return current_user
     return role_checker

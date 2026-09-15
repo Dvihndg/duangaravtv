@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import httpx
 
 from backend.app.ai.base import AIProvider
@@ -8,9 +8,9 @@ from backend.app.ai.providers.fallback import FallbackProvider
 from backend.app.config import settings
 
 class OpenAIProvider(AIProvider):
-    """Adapter tích hợp OpenAI API (GPT-4o, GPT-3.5)"""
+    """Adapter tÃ­ch há»£p OpenAI API (GPT-4o, GPT-3.5)"""
 
-    def __init__(self, api_key: str = None, model_name: str = "gpt-4o-mini"):
+    def __init__(self, api_key: Optional[str] = None, model_name: str = "gpt-4o-mini"):
         self.api_key = api_key or getattr(settings, "OPENAI_API_KEY", "")
         self.model_name = model_name or getattr(settings, "OPENAI_MODEL", "gpt-4o-mini")
         self.fallback = FallbackProvider()
@@ -23,8 +23,8 @@ class OpenAIProvider(AIProvider):
         if not self.api_key:
             return await self.fallback.summarize_repair_history(vehicle, history)
 
-        system_prompt = "Bạn là trợ lý ảo Garage VTV. Tóm tắt lịch sử sửa chữa. Trả về đúng JSON schema được yêu cầu."
-        user_prompt = f"Thông tin xe:\n{wrap_untrusted_data(vehicle)}\n\nLịch sử:\n{wrap_untrusted_data(history)}"
+        system_prompt = "Báº¡n lÃ  trá»£ lÃ½ áº£o Garage VTV. TÃ³m táº¯t lá»‹ch sá»­ sá»­a chá»¯a. Tráº£ vá» Ä‘Ãºng JSON schema Ä‘Æ°á»£c yÃªu cáº§u."
+        user_prompt = f"ThÃ´ng tin xe:\n{wrap_untrusted_data(vehicle)}\n\nLá»‹ch sá»­:\n{wrap_untrusted_data(history)}"
 
         try:
             headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
@@ -53,8 +53,8 @@ class OpenAIProvider(AIProvider):
         if not self.api_key:
             return await self.fallback.explain_service(repair_order)
 
-        system_prompt = "Bạn là trợ lý dịch vụ khách hàng của Garage VTV. Giải thích dịch vụ ngôn ngữ bình dân. Trả về đúng JSON."
-        user_prompt = f"Dữ liệu phiếu sửa chữa:\n{wrap_untrusted_data(repair_order)}"
+        system_prompt = "Báº¡n lÃ  trá»£ lÃ½ dá»‹ch vá»¥ khÃ¡ch hÃ ng cá»§a Garage VTV. Giáº£i thÃ­ch dá»‹ch vá»¥ ngÃ´n ngá»¯ bÃ¬nh dÃ¢n. Tráº£ vá» Ä‘Ãºng JSON."
+        user_prompt = f"Dá»¯ liá»‡u phiáº¿u sá»­a chá»¯a:\n{wrap_untrusted_data(repair_order)}"
 
         try:
             headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
@@ -86,8 +86,8 @@ class OpenAIProvider(AIProvider):
         if not self.api_key:
             return await self.fallback.generate_draft_quotation(services, parts, pricing, vat)
 
-        system_prompt = "Bạn là trợ lý lập báo giá cho Garage VTV. Soạn văn phong báo giá nháp. Không đổi giá. Trả về JSON."
-        user_prompt = f"Dịch vụ:\n{wrap_untrusted_data(services)}\nPhụ tùng:\n{wrap_untrusted_data(parts)}\nGiá:\n{wrap_untrusted_data(pricing)}"
+        system_prompt = "Báº¡n lÃ  trá»£ lÃ½ láº­p bÃ¡o giÃ¡ cho Garage VTV. Soáº¡n vÄƒn phong bÃ¡o giÃ¡ nhÃ¡p. KhÃ´ng Ä‘á»•i giÃ¡. Tráº£ vá» JSON."
+        user_prompt = f"Dá»‹ch vá»¥:\n{wrap_untrusted_data(services)}\nPhá»¥ tÃ¹ng:\n{wrap_untrusted_data(parts)}\nGiÃ¡:\n{wrap_untrusted_data(pricing)}"
 
         try:
             headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}

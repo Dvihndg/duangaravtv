@@ -43,7 +43,7 @@ def get_invoice(
 ):
     inv = db.query(Invoice).filter(Invoice.id == invoice_id).first()
     if not inv:
-        raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn")
+        raise HTTPException(status_code=404, detail="KhÃ´ng tÃ¬m tháº¥y hÃ³a Ä‘Æ¡n")
     return inv
 
 @router.post("/api/v1/payments", response_model=PaymentOut)
@@ -57,9 +57,9 @@ def record_payment(
         invoice_id=payment_in.invoice_id,
         amount=payment_in.amount,
         payment_method=payment_in.payment_method,
-        transaction_reference=payment_in.transaction_reference,
-        cashier_id=current_user.id,
-        notes=None
+        transaction_reference=payment_in.transaction_reference,  # type: ignore
+        cashier_id=current_user.id,  # type: ignore
+        notes=None  # type: ignore
     )
     return payment
 

@@ -59,14 +59,14 @@ def get_dashboard_summary(
         for item in top_items
     ]
 
-    from datetime import datetime, date
+    from datetime import datetime, date, timezone
     from dateutil.relativedelta import relativedelta
     import calendar
 
     # Prepare last 6 months revenue data
     # Fallback if dateutil is not available (it's not in requirements)
     six_months_revenue = []
-    today = datetime.utcnow()
+    today = datetime.now(timezone.utc)
     # Go back 5 months
     start_month = today.month - 5
     start_year = today.year
@@ -110,25 +110,25 @@ def get_dashboard_summary(
     
     for req in recent_requests:
         import math
-        ago = math.floor((datetime.utcnow() - req.created_at).total_seconds() / 60) if req.created_at else 0
+        ago = math.floor((datetime.now(timezone.utc) - req.created_at).total_seconds() / 60) if req.created_at else 0
         recent_activities.append({
             "type": "request",
             "time_ago_mins": max(0, ago),
             "created_at": req.created_at,
-            "title": f"Yêu cầu từ {req.full_name}",
-            "description": f"Xe {req.license_plate} - {req.service_type or 'Bảo dưỡng'}",
+            "title": f"YÃƒÂªu cÃ¡ÂºÂ§u tÃ¡Â»Â« {req.full_name}",
+            "description": f"Xe {req.license_plate} - {req.service_type or 'BÃ¡ÂºÂ£o dÃ†Â°Ã¡Â»Â¡ng'}",
             "icon": "fa-bell",
             "color": "#fbbf24"
         })
         
     for ro in recent_orders:
         import math
-        ago = math.floor((datetime.utcnow() - ro.created_at).total_seconds() / 60) if ro.created_at else 0
+        ago = math.floor((datetime.now(timezone.utc) - ro.created_at).total_seconds() / 60) if ro.created_at else 0
         recent_activities.append({
             "type": "order",
             "time_ago_mins": max(0, ago),
             "created_at": ro.created_at,
-            "title": f"Lập phiếu sửa chữa {ro.code}",
+            "title": f"LÃ¡ÂºÂ­p phiÃ¡ÂºÂ¿u sÃ¡Â»Â­a chÃ¡Â»Â¯a {ro.code}",
             "description": f"Xe {ro.license_plate or 'N/A'}",
             "icon": "fa-wrench",
             "color": "#38bdf8"

@@ -238,6 +238,38 @@
 
       </section>
 
+      <!-- VIEW 2.5: Customer Requests -->
+      <section id="view-customer-requests" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 style="font-family: Arial;"><i class="fa-solid fa-clipboard-list" style="color: #38bdf8;"></i> Yêu Cầu Từ Khách Hàng</h3>
+          <button type="button" class="btn btn-secondary" onclick="loadCustomerRequestsFromBackend()"><i class="fa-solid fa-rotate-right"></i> Làm Mới</button>
+        </div>
+
+        <div class="table-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.5rem;">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã Yêu Cầu</th>
+                  <th>Khách Hàng</th>
+                  <th>Số Điện Thoại</th>
+                  <th>Biển Số</th>
+                  <th>Xe</th>
+                  <th>Dịch Vụ Cần</th>
+                  <th>Thời Gian</th>
+                  <th>Trạng Thái</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="customer-requests-tbody">
+                <!-- Injected by JS -->
+                <tr><td colspan="9" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- VIEW 3: Repair Orders (Phiếu Sửa Chữa) -->
       <section id="view-repair-orders" class="view-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -1294,6 +1326,19 @@
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nhập Kho</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal Customer Request Detail -->
+  <div id="modal-customer-request" class="modal-backdrop" style="display: none;">
+    <div class="modal-card" style="max-width: 680px; width: 95%;">
+      <div class="modal-header">
+        <h3 style="font-family: Arial;"><i class="fa-solid fa-clipboard-check" style="color: var(--accent-cyan);"></i> Chi Tiết Yêu Cầu Đặt Lịch</h3>
+        <button class="close-btn" onclick="closeModal('modal-customer-request')">&times;</button>
+      </div>
+      <div id="modal-cr-body" style="padding: 1.5rem;">
+        <!-- Injected dynamically by JS -->
+      </div>
     </div>
   </div>
 

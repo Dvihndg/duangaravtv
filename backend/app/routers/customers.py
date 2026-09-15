@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -19,10 +19,10 @@ def create_customer(
 ):
     existing = db.query(Customer).filter(Customer.phone == customer_in.phone.strip()).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Số điện thoại khách hàng đã tồn tại trên hệ thống")
+        raise HTTPException(status_code=400, detail="SÃ¡Â»â€˜ Ã„â€˜iÃ¡Â»â€¡n thoÃ¡ÂºÂ¡i khÃƒÂ¡ch hÃƒÂ ng Ã„â€˜ÃƒÂ£ tÃ¡Â»â€œn tÃ¡ÂºÂ¡i trÃƒÂªn hÃ¡Â»â€¡ thÃ¡Â»â€˜ng")
 
     count = db.query(Customer).count()
-    code = f"CUS-{datetime.utcnow().year}-{(count + 1):06d}"
+    code = f"CUS-{datetime.now(timezone.utc).year}-{(count + 1):06d}"
 
     data = customer_in.model_dump()
     customer = Customer(
@@ -40,7 +40,7 @@ def create_customer(
 
 @router.get("/customers", response_model=List[CustomerOut])
 def list_customers(
-    search: Optional[str] = Query(None, description="Tìm theo tên hoặc SĐT"),
+    search: Optional[str] = Query(None, description="TÃƒÂ¬m theo tÃƒÂªn hoÃ¡ÂºÂ·c SÃ„ÂT"),
     include_deleted: bool = False,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -62,7 +62,7 @@ def get_customer(
 ):
     customer = db.query(Customer).filter(Customer.id == customer_id).first()
     if not customer:
-        raise HTTPException(status_code=404, detail="Không tìm thấy thông tin khách hàng")
+        raise HTTPException(status_code=404, detail="KhÃƒÂ´ng tÃƒÂ¬m thÃ¡ÂºÂ¥y thÃƒÂ´ng tin khÃƒÂ¡ch hÃƒÂ ng")
     return customer
 
 @router.put("/customers/{customer_id}", response_model=CustomerOut)
@@ -74,12 +74,12 @@ def update_customer(
 ):
     customer = db.query(Customer).filter(Customer.id == customer_id).first()
     if not customer:
-        raise HTTPException(status_code=404, detail="Không tìm thấy thông tin khách hàng")
+        raise HTTPException(status_code=404, detail="KhÃƒÂ´ng tÃƒÂ¬m thÃ¡ÂºÂ¥y thÃƒÂ´ng tin khÃƒÂ¡ch hÃƒÂ ng")
 
-    customer.full_name = customer_in.full_name
-    customer.phone = customer_in.phone.strip()
-    customer.email = customer_in.email
-    customer.address = customer_in.address
+    customer.full_name = customer_in.full_name  # type: ignore
+    customer.phone = customer_in.phone.strip()  # type: ignore
+    customer.email = customer_in.email  # type: ignore
+    customer.address = customer_in.address  # type: ignore
     db.commit()
     db.refresh(customer)
     return customer
@@ -90,17 +90,17 @@ def soft_delete_customer(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles([UserRole.MANAGER]))
 ):
-    """Xóa mềm khách hàng (Soft delete) - bảo toàn 100% hồ sơ xe và lịch sử sửa chữa"""
+    """XÃƒÂ³a mÃ¡Â»Âm khÃƒÂ¡ch hÃƒÂ ng (Soft delete) - bÃ¡ÂºÂ£o toÃƒÂ n 100% hÃ¡Â»â€œ sÃ†Â¡ xe vÃƒÂ  lÃ¡Â»â€¹ch sÃ¡Â»Â­ sÃ¡Â»Â­a chÃ¡Â»Â¯a"""
     customer = db.query(Customer).filter(Customer.id == customer_id).first()
     if not customer:
-        raise HTTPException(status_code=404, detail="Không tìm thấy thông tin khách hàng")
+        raise HTTPException(status_code=404, detail="KhÃƒÂ´ng tÃƒÂ¬m thÃ¡ÂºÂ¥y thÃƒÂ´ng tin khÃƒÂ¡ch hÃƒÂ ng")
 
-    customer.deleted_at = datetime.utcnow()
-    customer.status = "INACTIVE"
+    customer.deleted_at = datetime.now(timezone.utc)  # type: ignore
+    customer.status = "INACTIVE"  # type: ignore
     db.commit()
     return {
         "success": True, 
-        "message": f"Đã xóa mềm khách hàng #{customer_id}. Toàn bộ lịch sử bảo dưỡng và hồ sơ xe được bảo lưu an toàn."
+        "message": f"Ã„ÂÃƒÂ£ xÃƒÂ³a mÃ¡Â»Âm khÃƒÂ¡ch hÃƒÂ ng #{customer_id}. ToÃƒÂ n bÃ¡Â»â„¢ lÃ¡Â»â€¹ch sÃ¡Â»Â­ bÃ¡ÂºÂ£o dÃ†Â°Ã¡Â»Â¡ng vÃƒÂ  hÃ¡Â»â€œ sÃ†Â¡ xe Ã„â€˜Ã†Â°Ã¡Â»Â£c bÃ¡ÂºÂ£o lÃ†Â°u an toÃƒÂ n."
     }
 
 # Vehicle endpoints
@@ -113,10 +113,10 @@ def create_vehicle(
     license_plate = vehicle_in.license_plate.upper().strip()
     existing = db.query(Vehicle).filter(Vehicle.license_plate == license_plate).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Biển số xe đã được đăng ký trong hệ thống")
+        raise HTTPException(status_code=400, detail="BiÃ¡Â»Æ’n sÃ¡Â»â€˜ xe Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c Ã„â€˜Ã„Æ’ng kÃƒÂ½ trong hÃ¡Â»â€¡ thÃ¡Â»â€˜ng")
 
     if not vehicle_in.customer_id:
-        raise HTTPException(status_code=400, detail="Vui lòng chỉ định customer_id sở hữu xe")
+        raise HTTPException(status_code=400, detail="Vui lÃƒÂ²ng chÃ¡Â»â€° Ã„â€˜Ã¡Â»â€¹nh customer_id sÃ¡Â»Å¸ hÃ¡Â»Â¯u xe")
 
     vehicle_data = vehicle_in.model_dump()
     vehicle_data["license_plate"] = license_plate
@@ -128,7 +128,7 @@ def create_vehicle(
 
 @router.get("/vehicles", response_model=List[VehicleOut])
 def list_vehicles(
-    search: Optional[str] = Query(None, description="Tìm theo biển số xe hoặc thương hiệu"),
+    search: Optional[str] = Query(None, description="TÃƒÂ¬m theo biÃ¡Â»Æ’n sÃ¡Â»â€˜ xe hoÃ¡ÂºÂ·c thÃ†Â°Ã†Â¡ng hiÃ¡Â»â€¡u"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -149,7 +149,7 @@ def get_vehicle_repair_history(
 ):
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
-        raise HTTPException(status_code=404, detail="Không tìm thấy phương tiện")
+        raise HTTPException(status_code=404, detail="KhÃƒÂ´ng tÃƒÂ¬m thÃ¡ÂºÂ¥y phÃ†Â°Ã†Â¡ng tiÃ¡Â»â€¡n")
 
     ros = db.query(RepairOrder).filter(RepairOrder.vehicle_id == vehicle.id).order_by(RepairOrder.created_at.desc()).all()
     history_records = []
@@ -163,7 +163,7 @@ def get_vehicle_repair_history(
             "diagnosis": ro.technical_diagnosis,
             "status": ro.status.value if hasattr(ro.status, 'value') else str(ro.status),
             "cost": ro.final_cost or ro.estimated_cost,
-            "technician_name": ro.technician.full_name if ro.technician else "Chưa phân công",
+            "technician_name": ro.technician.full_name if ro.technician else "ChÃ†Â°a phÃƒÂ¢n cÃƒÂ´ng",
             "services": [s.name for s in ro.items if s.item_type.value == "service"] if ro.items else [],
             "parts": [p.name for p in ro.items if p.item_type.value == "part"] if ro.items else []
         })

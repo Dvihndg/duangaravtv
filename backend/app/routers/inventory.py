@@ -24,7 +24,7 @@ def create_service(
 ):
     existing = db.query(Service).filter(Service.code == service_in.code).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Mã dịch vụ đã tồn tại")
+        raise HTTPException(status_code=400, detail="MÃ£ dá»‹ch vá»¥ Ä‘Ã£ tá»“n táº¡i")
 
     service = Service(**service_in.model_dump())
     db.add(service)
@@ -54,7 +54,7 @@ def create_part(
 ):
     existing = db.query(Part).filter(Part.code == part_in.code).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Mã phụ tùng đã tồn tại")
+        raise HTTPException(status_code=400, detail="MÃ£ phá»¥ tÃ¹ng Ä‘Ã£ tá»“n táº¡i")
 
     part = Part(**part_in.model_dump())
     db.add(part)
@@ -89,12 +89,12 @@ def import_part_stock(
         db=db,
         part_id=part_id,
         quantity=req.quantity,
-        user_id=current_user.id,
+        user_id=current_user.id,  # type: ignore
         notes=req.notes
     )
     return {
         "success": True,
-        "message": f"Đã nhập kho {req.quantity} đơn vị. Tồn kho mới: {tx.new_quantity}",
+        "message": f"ÄÃ£ nháº­p kho {req.quantity} Ä‘Æ¡n vá»‹. Tá»“n kho má»›i: {tx.new_quantity}",
         "transaction_id": tx.id
     }
 
@@ -109,12 +109,12 @@ def adjust_part_stock(
         db=db,
         part_id=part_id,
         actual_quantity=req.quantity,
-        user_id=current_user.id,
+        user_id=current_user.id,  # type: ignore
         reason=req.notes
     )
     return {
         "success": True,
-        "message": f"Đã điều chỉnh tồn kho thành công: {tx.new_quantity}",
+        "message": f"ÄÃ£ Ä‘iá»u chá»‰nh tá»“n kho thÃ nh cÃ´ng: {tx.new_quantity}",
         "transaction_id": tx.id
     }
 
