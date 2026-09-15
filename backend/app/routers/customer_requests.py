@@ -230,7 +230,9 @@ async def create_customer_request(payload: CustomerRequestCreate, db: Session = 
 
 # 2. REALTIME SSE: GET /api/v1/customer-requests/stream (Lắng Nghe Thông Báo Realtime)
 @router.get("/stream")
-async def stream_customer_requests():
+async def stream_customer_requests(
+    current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.RECEPTIONIST]))
+):
     async def event_generator():
         client_queue = asyncio.Queue()
         sse_clients.append(client_queue)
@@ -256,7 +258,15 @@ def get_request_by_code(request_code: str, db: Session = Depends(get_db)):
     if not req:
         raise HTTPException(status_code=404, detail="Không tìm thấy mã yêu cầu này trên hệ thống!")
 
-    return map_to_response(req)
+    return {
+        "requestCode": req.request_code,
+        "status": req.status,
+        "serviceType": req.service_type,
+        "preferredDate": req.preferred_date,
+        "preferredTime": req.preferred_time,
+        "createdAt": req.created_at,
+        "updatedAt": req.updated_at,
+    }
 
 
 # 4. ADMIN/MANAGER: GET /api/v1/customer-requests (Xem Danh Sách Yêu Cầu)
@@ -265,7 +275,8 @@ def list_customer_requests(
     status_filter: Optional[str] = Query(None, alias="status"),
     service_type: Optional[str] = None,
     search: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.RECEPTIONIST]))
 ):
     try:
         query = db.query(CustomerRequest)
@@ -314,7 +325,11 @@ def list_customer_requests(
 
 # 5. ADMIN/MANAGER: GET /api/v1/customer-requests/{id} (Chi Tiết Yêu Cầu)
 @router.get("/{req_id}")
-def get_customer_request_detail(req_id: int, db: Session = Depends(get_db)):
+def get_customer_request_detail(
+    req_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.RECEPTIONIST]))
+):
     req = db.query(CustomerRequest).filter(CustomerRequest.id == req_id).first()
     if not req:
         raise HTTPException(status_code=404, detail="Không tìm thấy yêu cầu dịch vụ!")

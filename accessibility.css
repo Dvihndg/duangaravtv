@@ -1,0 +1,14 @@
+/* Accessibility and motion safety layer */
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--accent-cyan, #06b6d4);
+  outline-offset: 3px;
+}
+button, a.submit-btn, .submit-btn { min-height: 44px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

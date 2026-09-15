@@ -43,31 +43,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         }
     except HTTPException:
         raise
-    except Exception as e:
-        import traceback
-        # Return 400 (not 500) so Vercel shows us the real error detail
-        raise HTTPException(status_code=400, detail=f"ERR:{type(e).__name__}:{str(e)}")
-
-@router.get("/debug-login")
-def debug_login(db: Session = Depends(get_db)):
-    """Debug endpoint - remove in production"""
-    try:
-        from passlib.context import CryptContext
-        pwd = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-        user = db.query(User).filter(User.username == "admin").first()
-        if not user:
-            return {"error": "No admin user found", "users_count": db.query(User).count()}
-        ok = pwd.verify("password", str(user.hashed_password))
-        return {
-            "user_found": True,
-            "username": user.username,
-            "role": user.role.value,
-            "is_active": user.is_active,
-            "password_ok": ok
-        }
-    except Exception as e:
-        import traceback
-        return {"error": str(e), "trace": traceback.format_exc()}
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Login failed")
+        raise HTTPException(status_code=500, detail="Không thể xử lý đăng nhập lúc này")
 
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):

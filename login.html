@@ -5,356 +5,90 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Đăng Nhập - Hệ Thống Garage VTV Automotive</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css?v=7.0">
+  <link rel="stylesheet" href="accessibility.css?v=1.0">
   <style>
-    :root {
-      --bg-dark: #020617;
-      --bg-card: rgba(15, 23, 42, 0.65);
-      --primary: #38bdf8;
-      --primary-hover: #0ea5e9;
-      --accent: #818cf8;
-      --accent-glow: rgba(129, 140, 248, 0.4);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-color: rgba(148, 163, 184, 0.15);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --radius-lg: 24px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
-      background-color: var(--bg-dark);
+      background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%);
       color: var(--text-main);
-      font-family: 'Plus Jakarta Sans', sans-serif;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      overflow: hidden;
+      padding: 1.5rem;
+      font-family: Arial, sans-serif;
     }
-
-    /* Animated Background Orbs */
-    .bg-orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(100px);
-      z-index: 0;
-      animation: float 20s infinite ease-in-out alternate;
-    }
-
-    .orb-1 {
-      top: -10%;
-      left: -10%;
-      width: 50vw;
-      height: 50vw;
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
-      animation-delay: 0s;
-    }
-
-    .orb-2 {
-      bottom: -20%;
-      right: -10%;
-      width: 60vw;
-      height: 60vw;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
-      animation-delay: -5s;
-    }
-    
-    .orb-3 {
-      top: 40%;
-      left: 50%;
-      width: 40vw;
-      height: 40vw;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
-      animation-delay: -10s;
-    }
-
-    @keyframes float {
-      0% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(30px, -50px) scale(1.1); }
-      66% { transform: translate(-20px, 20px) scale(0.9); }
-      100% { transform: translate(0, 0) scale(1); }
-    }
-
-    /* Grid overlay */
-    .grid-overlay {
-      position: absolute;
-      inset: 0;
-      background-image: 
-        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 50px 50px;
-      z-index: 0;
-      pointer-events: none;
-    }
-
     .login-container {
       width: 100%;
       max-width: 440px;
-      background: var(--bg-card);
-      border: 1px solid var(--glass-border);
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.25);
       border-radius: var(--radius-lg);
-      padding: 3rem 2.5rem;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      position: relative;
-      z-index: 10;
-      transform: translateY(20px);
-      opacity: 0;
-      animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      padding: 2.25rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(12px);
     }
-
-    @keyframes slideUp {
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .back-link {
-      position: absolute;
-      top: 1.5rem;
-      left: 1.5rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-
-    .back-link:hover {
-      color: var(--primary);
-      transform: translateX(-3px);
-    }
-
-    .brand-header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-      margin-top: 1rem;
-    }
-
-    .brand-logo-wrapper {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 1.25rem;
-    }
-
-    .brand-logo-wrapper::after {
-      content: '';
-      position: absolute;
-      inset: -10px;
-      background: var(--primary);
-      filter: blur(25px);
-      opacity: 0.2;
-      border-radius: 50%;
-      z-index: -1;
-    }
-
-    .brand-header img {
-      height: 70px;
-      width: auto;
-      object-fit: contain;
-      display: block;
-      margin: 0 auto;
-    }
-
     .brand-title {
+      font-family: Arial, sans-serif;
       font-weight: 800;
-      font-size: 1.75rem;
+      font-size: 1.6rem;
       color: #ffffff;
-      margin: 0 0 0.25rem 0;
-      letter-spacing: -0.02em;
-    }
-
-    .brand-subtitle {
-      font-size: 0.85rem;
-      color: var(--primary);
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-      position: relative;
-    }
-
-    .form-label {
-      display: block;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      transition: color 0.3s ease;
-    }
-
-    .form-control {
-      width: 100%;
-      background: rgba(15, 23, 42, 0.4);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      color: var(--text-main);
-      padding: 1rem 1.25rem;
-      font-family: inherit;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      outline: none;
-    }
-
-    .form-control:focus {
-      border-color: var(--accent);
-      background: rgba(30, 41, 59, 0.6);
-      box-shadow: 0 0 0 4px var(--accent-glow);
-    }
-    
-    .form-control:focus + .form-label,
-    .form-control:focus-within + .form-label {
-      color: var(--accent);
-    }
-
-    select.form-control {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/200.svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 1.25rem center;
-      padding-right: 3rem;
-    }
-    
-    select.form-control option {
-      background-color: #0f172a;
-      color: #fff;
-    }
-
-    .pwd-toggle {
-      position: absolute;
-      right: 1.25rem;
-      top: 2.75rem;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 1rem;
-      transition: color 0.3s ease;
-      padding: 0;
-    }
-
-    .pwd-toggle:hover {
-      color: var(--text-main);
-    }
-
-    .btn-submit {
-      width: 100%;
-      padding: 1.15rem;
-      background: linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-family: inherit;
-      font-weight: 700;
-      font-size: 1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: all 0.3s ease;
-      box-shadow: 0 10px 20px -10px var(--accent);
-      margin-top: 2rem;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-submit::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
-      transform: translateX(-100%);
-      transition: transform 0.6s ease;
-    }
-
-    .btn-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 15px 25px -10px var(--accent);
-    }
-
-    .btn-submit:hover::after {
-      transform: translateX(100%);
-    }
-
-    .support-footer {
+      margin: 0;
       text-align: center;
-      margin-top: 2rem;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .support-footer strong {
-      color: var(--primary);
-      font-weight: 700;
     }
   </style>
 </head>
 
 <body>
-  <!-- Animated Background Elements -->
-  <div class="bg-orb orb-1"></div>
-  <div class="bg-orb orb-2"></div>
-  <div class="bg-orb orb-3"></div>
-  <div class="grid-overlay"></div>
 
   <div class="login-container">
-    <a href="index.html" class="back-link">
-      <i class="fa-solid fa-arrow-left"></i> Quay lại
-    </a>
-
-    <div class="brand-header">
-      <div class="brand-logo-wrapper">
-        <!-- Logo image -->
-        <img src="logo.png" alt="Garage VTV Logo" onerror="this.src='https://via.placeholder.com/150x70/0f172a/38bdf8?text=VTV+GARAGE'">
-      </div>
-      <h2 class="brand-title">Đăng Nhập Quản Trị</h2>
-      <div class="brand-subtitle">Hệ thống nội bộ Garage VTV</div>
+    <!-- Top Return Link -->
+    <div style="margin-bottom: 1.25rem;">
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 0.4rem; color: #38bdf8; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: color 0.2s;">
+        <i class="fa-solid fa-arrow-left"></i> Về Cổng Khách Hàng (Không Cần Đăng Nhập)
+      </a>
     </div>
 
-    <form id="loginForm" onsubmit="submitStaffLogin(event)">
-      <div class="form-group">
-        <label class="form-label" for="staff-role-select">Vai trò truy cập</label>
-        <select id="staff-role-select" class="form-control">
-          <option value="manager" selected>Quản Lý (Admin)</option>
-          <option value="receptionist">Lễ Tân (Receptionist)</option>
-          <option value="technician">Kỹ Thuật Viên (Tech)</option>
-          <option value="cashier">Thu Ngân (Cashier)</option>
-        </select>
-      </div>
+    <!-- Brand Header -->
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <img src="logo.png" alt="Garage VTV Logo" style="height: 85px; width: auto; object-fit: contain; margin: 0 auto 0.85rem auto; display: block; filter: drop-shadow(0 0 16px rgba(8, 145, 178, 0.5));">
+      <h2 class="brand-title">ĐĂNG NHẬP NỘI BỘ</h2>
+      <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">DÀNH CHO NHÂN VIÊN GARAGE VTV</span>
+    </div>
 
-      <div class="form-group">
-        <label class="form-label" for="staff-password">Mật khẩu xác thực</label>
-        <input type="password" id="staff-password" class="form-control" placeholder="Nhập mật khẩu của bạn..." required>
-        <button type="button" class="pwd-toggle" onclick="togglePasswordVisibility()" title="Ẩn/Hiện mật khẩu">
-          <i class="fa-solid fa-eye" id="toggle-pwd-icon"></i>
+    <!-- Staff Login Form -->
+    <div id="form-login-staff">
+      <form onsubmit="submitStaffLogin(event)" autocomplete="on">
+        <div class="form-group" style="margin-bottom: 1.15rem;">
+          <label for="staff-role-select" style="color: #cbd5e1;">Chọn Vai Trò Nội Bộ:</label>
+          <select id="staff-role-select" class="form-control" autocomplete="organization-title" style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
+            <option value="receptionist" selected>Lễ Tân (Receptionist)</option>
+            <option value="manager">Quản Lý (Admin)</option>
+            <option value="technician">Kỹ Thuật Viên (Tech)</option>
+            <option value="cashier">Thu Ngân (Cashier)</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="staff-password" style="color: #cbd5e1;">Mật Khẩu Xác Thực:</label>
+          <div style="position: relative;">
+            <input type="password" id="staff-password" class="form-control" value="" autocomplete="current-password" placeholder="Nhập mật khẩu..." required style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white; padding-right: 42px;">
+            <button type="button" onclick="togglePasswordVisibility()" title="Ẩn/Hiện mật khẩu" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px;">
+              <i class="fa-solid fa-eye" id="toggle-pwd-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; background: linear-gradient(135deg, #4f46e5, #6366f1); border: none; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
+          <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Trang Quản Trị
         </button>
-      </div>
+      </form>
+    </div>
 
-      <button type="submit" class="btn-submit">
-        Đăng Nhập <i class="fa-solid fa-arrow-right-to-bracket"></i>
-      </button>
-    </form>
-
-    <div class="support-footer">
-      Cần hỗ trợ kỹ thuật? Liên hệ <strong>033.344.2358</strong>
+    <!-- Contact Support -->
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #64748b;">
+      Hotline Kỹ Thuật Hỗ Trợ: <strong style="color: #38bdf8;">033.344.2358</strong>
     </div>
   </div>
 
@@ -373,7 +107,6 @@
 
     function submitStaffLogin(e) {
       if (e && e.preventDefault) e.preventDefault();
-      
       const role = document.getElementById("staff-role-select").value;
       const pass = document.getElementById("staff-password").value;
 
@@ -382,18 +115,9 @@
         return;
       }
 
-      // Add loading state to button
-      const btn = document.querySelector('.btn-submit');
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xác thực...';
-      btn.disabled = true;
-
-      // Simulate a small delay for better UX
-      setTimeout(() => {
-        localStorage.setItem("garage_user_role", role);
-        localStorage.setItem("garage_is_logged_in", "true");
-        window.location.href = "admin.html";
-      }, 600);
+      localStorage.setItem("garage_user_role", role);
+      localStorage.setItem("garage_is_logged_in", "true");
+      window.location.href = "admin.html";
     }
   </script>
 </body>

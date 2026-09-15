@@ -1,4 +1,5 @@
 import os
+import hmac
 import sys
 import shutil
 
@@ -29,7 +30,7 @@ elif sb_url:
 elif not os.environ.get("DATABASE_URL"):
     os.environ["DATABASE_URL"] = f"sqlite:///{tmp_db}"
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text, inspect
 
@@ -47,9 +48,13 @@ from backend.app.routers import (
 )
 
 
+cors_origins = [origin.strip() for origin in os.getenv(
+    "CORS_ORIGINS",
+    "https://www.dvinhdev.id.vn,https://dvinhdev.id.vn,http://localhost:8000,http://127.0.0.1:8000"
+).split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -160,7 +165,11 @@ def read_api_root():
     }
 
 @app.get("/api/v1/setup-db")
-def auto_setup_db():
+def auto_setup_db(request: Request):
+    setup_token = os.getenv("SETUP_DB_TOKEN", "").strip()
+    supplied_token = request.headers.get("x-setup-token", "")
+    if not setup_token or not hmac.compare_digest(supplied_token, setup_token):
+        raise HTTPException(status_code=404, detail="Not found")
     from backend.app.models import Base, User, UserRole
     from backend.app.auth import get_password_hash
     try:

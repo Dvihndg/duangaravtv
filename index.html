@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css?v=6.0">
   <link rel="stylesheet" href="booking-success.css?v=1.0">
+  <link rel="stylesheet" href="accessibility.css?v=1.0">
   <style>
     /* Premium Landing Page Specific Styles */
     :root {
@@ -611,25 +612,25 @@
 
         <form id="bookingForm" onsubmit="handleBooking(event)">
           <div class="form-group">
-            <label class="form-label">Họ và Tên (*)</label>
-            <input type="text" id="bf_name" class="form-control" required placeholder="VD: Nguyễn Văn A">
+            <label class="form-label" for="bf_name">Họ và Tên (*)</label>
+            <input type="text" id="bf_name" class="form-control" required autocomplete="name" placeholder="VD: Nguyễn Văn A">
           </div>
           <div class="form-group">
-            <label class="form-label">Số Điện Thoại (*)</label>
-            <input type="tel" id="bf_phone" class="form-control" required placeholder="VD: 0987654321">
+            <label class="form-label" for="bf_phone">Số Điện Thoại (*)</label>
+            <input type="tel" id="bf_phone" class="form-control" required autocomplete="tel" inputmode="tel" placeholder="VD: 0987654321">
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
-              <label class="form-label">Dòng Xe</label>
+              <label class="form-label" for="bf_model">Dòng Xe</label>
               <input type="text" id="bf_model" class="form-control" placeholder="VD: Mazda CX-5">
             </div>
             <div class="form-group">
-              <label class="form-label">Biển Số</label>
+              <label class="form-label" for="bf_plate">Biển Số</label>
               <input type="text" id="bf_plate" class="form-control" placeholder="VD: 30G-123.45">
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Loại Dịch Vụ</label>
+            <label class="form-label" for="bf_service">Loại Dịch Vụ</label>
             <select id="bf_service" class="form-control">
               <option value="Bảo dưỡng định kỳ">Bảo dưỡng định kỳ</option>
               <option value="Sửa chữa">Sửa chữa hỏng hóc</option>
@@ -638,7 +639,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Mô Tả Tình Trạng / Nhu Cầu</label>
+            <label class="form-label" for="bf_desc">Mô Tả Tình Trạng / Nhu Cầu</label>
             <textarea id="bf_desc" class="form-control"
               placeholder="Mô tả chi tiết hơn về vấn đề xe của bạn..."></textarea>
           </div>
@@ -673,11 +674,11 @@
       <div id="tracking" class="glass-panel">
         <h3><i class="fa-solid fa-search"></i> Tra Cứu Tiến Độ</h3>
         <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">
-          Nhập mã yêu cầu (VD: REQ-20231015-0001) hoặc số điện thoại để xem trạng thái xe.
+          Nhập mã yêu cầu (VD: REQ-20260915-0001) để xem trạng thái dịch vụ.
         </p>
 
         <div class="form-group">
-          <input type="text" id="track_input" class="form-control" placeholder="Nhập mã REQ hoặc Số điện thoại...">
+          <input type="text" id="track_input" class="form-control" placeholder="Nhập mã REQ của bạn..." autocomplete="off">
         </div>
         <button class="submit-btn" onclick="handleTracking()"
           style="background: var(--bg-sidebar); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);">
@@ -800,16 +801,9 @@
       const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
       const API_BASE = isLocal ? "http://127.0.0.1:8000/api/v1" : "/api/v1";
       try {
-        const response = await fetch(`${API_BASE}/customer-requests?skip=0&limit=5&q=${encodeURIComponent(q)}`);
+        const response = await fetch(`${API_BASE}/customer-requests/code/${encodeURIComponent(q)}`);
         if (response.ok) {
-          const data = await response.json();
-          if (data.length === 0) {
-            resDiv.innerHTML = '<div style="color: var(--accent-amber);"><i class="fa-solid fa-folder-open"></i> Không tìm thấy yêu cầu nào phù hợp.</div>';
-            return;
-          }
-
-          let html = `<div style="font-weight: 700; margin-bottom: 1rem; color: var(--accent-cyan);">Tìm thấy ${data.length} kết quả:</div>`;
-          data.forEach(req => {
+          const req = await response.json();
             let statusColor = '#94a3b8';
             let statusText = req.status;
             if (req.status === 'PENDING') { statusColor = '#f59e0b'; statusText = 'Chờ Xác Nhận'; }
@@ -818,21 +812,16 @@
             if (req.status === 'COMPLETED') { statusColor = '#059669'; statusText = 'Hoàn Thành'; }
             if (req.status === 'CANCELLED') { statusColor = '#ef4444'; statusText = 'Đã Hủy'; }
 
-            html += `
+            const html = `
               <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; margin-bottom: 0.8rem; border-left: 4px solid ${statusColor};">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                  <strong style="color: var(--text-main);">${req.request_code}</strong>
+                  <strong style="color: var(--text-main);">${req.requestCode}</strong>
                   <span style="background: ${statusColor}20; color: ${statusColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">${statusText}</span>
                 </div>
-                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">
-                  <i class="fa-solid fa-car"></i> Xe: ${req.vehicle_model || 'N/A'} - ${req.license_plate || 'N/A'}
-                </div>
-                <div style="font-size: 0.85rem; color: var(--text-muted);">
-                  <i class="fa-regular fa-clock"></i> Ngày tạo: ${new Date(req.created_at).toLocaleString('vi-VN')}
-                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;"><i class="fa-solid fa-screwdriver-wrench"></i> Dịch vụ: ${req.serviceType || 'Đang tiếp nhận'}</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> Lịch dự kiến: ${req.preferredDate || 'Lễ tân sẽ liên hệ xác nhận'}</div>
               </div>
             `;
-          });
           resDiv.innerHTML = html;
         } else {
           resDiv.innerHTML = '<div style="color: var(--accent-rose);">Lỗi khi tải dữ liệu tra cứu.</div>';
