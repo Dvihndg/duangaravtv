@@ -7,6 +7,7 @@
   <title>Garage VTV - Chăm Sóc Xế Yêu Với Công Nghệ AI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css?v=6.0">
+  <link rel="stylesheet" href="booking-success.css?v=1.0">
   <style>
     /* Premium Landing Page Specific Styles */
     :root {
@@ -648,6 +649,26 @@
         </form>
       </div>
 
+      <!-- Booking confirmation: shown after the API accepts the request -->
+      <div id="booking-confirmation" class="booking-success-card" hidden aria-live="polite">
+        <div class="booking-success-icon"><i class="fa-solid fa-check"></i></div>
+        <p class="booking-success-kicker">ĐẶT LỊCH THÀNH CÔNG</p>
+        <h3>Cảm ơn bạn đã gửi yêu cầu</h3>
+        <p class="booking-success-copy">Thông tin đã được chuyển đến hệ thống lễ tân. Chúng tôi sẽ liên hệ lại để xác nhận lịch hẹn.</p>
+        <div class="booking-code-box">
+          <span>Mã theo dõi</span>
+          <strong id="booking-success-code">Đang tạo mã...</strong>
+        </div>
+        <div class="booking-success-meta">
+          <span><i class="fa-solid fa-user"></i> <b id="booking-success-name">—</b></span>
+          <span><i class="fa-solid fa-phone"></i> <b id="booking-success-phone">—</b></span>
+        </div>
+        <div class="booking-success-actions">
+          <button type="button" class="submit-btn" onclick="copyBookingSuccessCode()"><i class="fa-regular fa-copy"></i> Sao chép mã</button>
+          <button type="button" class="booking-secondary-btn" onclick="resetBookingSuccess()"><i class="fa-solid fa-plus"></i> Gửi yêu cầu khác</button>
+        </div>
+      </div>
+
       <!-- Tracking Form -->
       <div id="tracking" class="glass-panel">
         <h3><i class="fa-solid fa-search"></i> Tra Cứu Tiến Độ</h3>
@@ -746,8 +767,11 @@
 
         if (response.ok) {
           const data = await response.json();
-          alert(`🎉 Gửi yêu cầu thành công!\nMã theo dõi của bạn là: ${data.request_code}\nChúng tôi sẽ sớm liên hệ lại!`);
-          document.getElementById('bookingForm').reset();
+          showBookingSuccess({
+            ...payload,
+            ...data,
+            requestCode: data.requestCode || data.request_code || data.code
+          });
         } else {
           const err = await response.json();
           alert('Lỗi: ' + (err.detail || 'Không thể gửi yêu cầu'));

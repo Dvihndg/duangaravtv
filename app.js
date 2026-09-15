@@ -3445,6 +3445,42 @@ async function submitCreatePart(e) {
   }
 }
 
+// Customer landing page booking success state.
+function showBookingSuccess(data) {
+  const form = document.getElementById("bookingForm");
+  const success = document.getElementById("booking-confirmation");
+  if (!success) return;
+
+  const code = data.requestCode || data.request_code || data.code || "REQ-SUCCESS";
+  const codeEl = document.getElementById("booking-success-code");
+  const nameEl = document.getElementById("booking-success-name");
+  const phoneEl = document.getElementById("booking-success-phone");
+  if (codeEl) codeEl.textContent = code;
+  if (nameEl) nameEl.textContent = data.fullName || "—";
+  if (phoneEl) phoneEl.textContent = data.phone || "—";
+  success.dataset.requestCode = code;
+  if (form) form.reset();
+  success.hidden = false;
+  success.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function copyBookingSuccessCode() {
+  const code = document.getElementById("booking-success-code")?.textContent?.trim();
+  if (!code) return;
+  const done = () => showToast(`Đã sao chép mã ${code}`);
+  if (navigator.clipboard) navigator.clipboard.writeText(code).then(done).catch(() => showToast(`Mã theo dõi: ${code}`));
+  else showToast(`Mã theo dõi: ${code}`);
+}
+
+function resetBookingSuccess() {
+  const success = document.getElementById("booking-confirmation");
+  if (success) success.hidden = true;
+  document.getElementById("bookingForm")?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+window.showBookingSuccess = showBookingSuccess;
+window.copyBookingSuccessCode = copyBookingSuccessCode;
+window.resetBookingSuccess = resetBookingSuccess;
 window.loadCustomerRequestsFromBackend = loadCustomerRequestsFromBackend;
 window.filterCustomerRequestsTable = filterCustomerRequestsTable;
 window.renderCustomerRequestsTable = renderCustomerRequestsTable;
@@ -3455,5 +3491,4 @@ window.convertRequestToRepairOrder = convertRequestToRepairOrder;
 window.openTrackRequestModal = openTrackRequestModal;
 window.submitCreateService = submitCreateService;
 window.submitCreatePart = submitCreatePart;
-
 
