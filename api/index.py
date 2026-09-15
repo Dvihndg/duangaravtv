@@ -40,7 +40,7 @@ app = FastAPI(
 )
 
 from backend.app.config import settings
-from backend.app.database import engine, SessionLocal
+from backend.app.database import engine, SessionLocal, Base
 from backend.app.routers import (
     auth, customers, appointments, inventory, repair_orders, invoices, ai, analytics,
     customer_requests, receptions, quotations, audit_logs, settings as settings_router
@@ -69,6 +69,50 @@ app.include_router(receptions.router, prefix="/api/v1")
 app.include_router(quotations.router, prefix="/api/v1")
 app.include_router(audit_logs.router)
 app.include_router(settings_router.router)
+
+
+@app.on_event("startup")
+def initialize_database():
+    """Create missing tables/columns before the first serverless request.
+
+    Vercel instances can start with an empty SQLite/Postgres database.  The
+    previous API only exposed setup-db, so the public booking form could hit
+    a missing-table/column error and become a 500 on a fresh instance.
+    """
+    try:
+        Base.metadata.create_all(bind=engine)
+        inspector = inspect(engine)
+        if "customer_requests" not in inspector.get_table_names():
+            return
+
+        existing = {column["name"] for column in inspector.get_columns("customer_requests")}
+        migrations = {
+            "source": "VARCHAR(50) DEFAULT 'CUSTOMER_PORTAL'",
+            "admin_note": "TEXT",
+            "assigned_employee_id": "INTEGER",
+            "customer_id": "INTEGER",
+            "vehicle_id": "INTEGER",
+            "appointment_id": "INTEGER",
+            "reviewed_by_id": "INTEGER",
+            "reviewed_at": "TIMESTAMP",
+            "converted_at": "TIMESTAMP",
+            "note": "TEXT",
+            "description": "TEXT",
+            "preferred_date": "VARCHAR(30)",
+            "preferred_time": "VARCHAR(30)",
+            "manufacture_year": "INTEGER",
+            "current_mileage": "INTEGER DEFAULT 0",
+        }
+        with engine.begin() as connection:
+            for name, column_type in migrations.items():
+                if name not in existing:
+                    connection.execute(text(
+                        f"ALTER TABLE customer_requests ADD COLUMN {name} {column_type}"
+                    ))
+    except Exception as error:
+        # Do not prevent the ASGI app from booting; health/setup-db expose the
+        # underlying problem, while existing routes remain available.
+        print(f"[DB startup migration warning] {error}")
 
 @app.get("/api/v1/health")
 @app.get("/api/health")
