@@ -1,5 +1,6 @@
 # pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends
+import math
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 # pyrefly: ignore [missing-import]
@@ -59,9 +60,18 @@ def get_dashboard_summary(
         for item in top_items
     ]
 
-    from datetime import datetime, date, timezone
-    from dateutil.relativedelta import relativedelta
+    from datetime import datetime, timezone
     import calendar
+
+    def minutes_ago(created_at):
+        """Handle both SQLite naive and PostgreSQL timezone-aware datetimes."""
+        if not created_at:
+            return 0
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        return max(0, math.floor(
+            (datetime.now(timezone.utc) - created_at).total_seconds() / 60
+        ))
 
     # Prepare last 6 months revenue data
     # Fallback if dateutil is not available (it's not in requirements)
@@ -109,8 +119,7 @@ def get_dashboard_summary(
     recent_orders = db.query(RepairOrder).order_by(RepairOrder.created_at.desc()).limit(5).all()
     
     for req in recent_requests:
-        import math
-        ago = math.floor((datetime.now(timezone.utc) - req.created_at).total_seconds() / 60) if req.created_at else 0
+        ago = minutes_ago(req.created_at)
         recent_activities.append({
             "type": "request",
             "time_ago_mins": max(0, ago),
@@ -122,14 +131,14 @@ def get_dashboard_summary(
         })
         
     for ro in recent_orders:
-        import math
-        ago = math.floor((datetime.now(timezone.utc) - ro.created_at).total_seconds() / 60) if ro.created_at else 0
+        ago = minutes_ago(ro.created_at)
+        vehicle = getattr(ro, "vehicle", None)
         recent_activities.append({
             "type": "order",
             "time_ago_mins": max(0, ago),
             "created_at": ro.created_at,
             "title": f"LÃ¡ÂºÂ­p phiÃ¡ÂºÂ¿u sÃ¡Â»Â­a chÃ¡Â»Â¯a {ro.code}",
-            "description": f"Xe {ro.license_plate or 'N/A'}",
+            "description": f"Xe {getattr(vehicle, 'license_plate', None) or 'N/A'}",
             "icon": "fa-wrench",
             "color": "#38bdf8"
         })
@@ -153,4 +162,3 @@ def get_dashboard_summary(
         "six_months_revenue": six_months_revenue,
         "recent_activities": recent_activities
     }
-

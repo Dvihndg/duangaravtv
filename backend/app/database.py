@@ -72,29 +72,37 @@ def get_db():
     try:
         db = SessionLocal()
         db.execute(text("SELECT 1"))
-        yield db
     except Exception as primary_err:
         if db:
             try:
                 db.close()
             except Exception:
                 pass
-        # Fallback to local SQLite /tmp if primary PostgreSQL connection fails or times out
+        # Fallback only when opening/testing the primary connection fails.
+        # Do not catch exceptions thrown by the endpoint itself: yielding a
+        # second session from this generator causes "generator didn't stop
+        # after throw()" and turns ordinary database errors into HTTP 500s.
         try:
             fallback_url = f"sqlite:///{tmp_db_path}" if os.path.exists(tmp_db_path) else "sqlite:///./garage.db"
             fallback_engine = create_engine(fallback_url, connect_args={"check_same_thread": False})
             FallbackSession = sessionmaker(autocommit=False, autoflush=False, bind=fallback_engine)
             fallback_db = FallbackSession()
+        except Exception:
+            raise primary_err
+        try:
             yield fallback_db
         finally:
             try:
                 fallback_db.close()
             except Exception:
                 pass
+        return
+
+    try:
+        yield db
     finally:
         if db:
             try:
                 db.close()
             except Exception:
                 pass
-
