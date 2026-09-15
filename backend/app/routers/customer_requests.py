@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
@@ -34,7 +34,7 @@ async def notify_admin_clients(data: dict):
 
 def generate_request_code(db: Session) -> str:
     """Tự động sinh mã yêu cầu định dạng REQ-YYYYMMDD-XXXX"""
-    today_str = datetime.utcnow().strftime("%Y%m%d")
+    today_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     prefix = f"REQ-{today_str}-"
     
     last_req = db.query(CustomerRequest).filter(
@@ -118,7 +118,7 @@ def map_to_response(req: CustomerRequest) -> dict:
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_customer_request(payload: CustomerRequestCreate, db: Session = Depends(get_db)):
     # Anti-Spam Guard: Chống gửi trùng lặp trong vòng 60 giây cùng SĐT & Biển số
-    one_min_ago = datetime.utcnow() - timedelta(seconds=60)
+    one_min_ago = datetime.now(timezone.utc) - timedelta(seconds=60)
     recent_spam = db.query(CustomerRequest).filter(
         CustomerRequest.phone == payload.phone,
         CustomerRequest.license_plate == payload.licensePlate,
@@ -163,7 +163,7 @@ async def create_customer_request(payload: CustomerRequestCreate, db: Session = 
             vehicle.current_mileage = payload.currentMileage
 
     # Section 6: Tự động tạo Lịch Hẹn (Appointment) PENDING
-    today_str = datetime.utcnow().strftime("%Y%m%d")
+    today_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     apt_count = db.query(Appointment).filter(Appointment.appointment_code.like(f"APT-{today_str}-%")).count()
     apt_code = f"APT-{today_str}-{(apt_count + 1):04d}"
 
@@ -171,9 +171,9 @@ async def create_customer_request(payload: CustomerRequestCreate, db: Session = 
         if payload.preferredDate:
             apt_datetime = datetime.fromisoformat(payload.preferredDate)
         else:
-            apt_datetime = datetime.utcnow() + timedelta(days=1)
+            apt_datetime = datetime.now(timezone.utc) + timedelta(days=1)
     except Exception:
-        apt_datetime = datetime.utcnow() + timedelta(days=1)
+        apt_datetime = datetime.now(timezone.utc) + timedelta(days=1)
 
     appointment = Appointment(
         appointment_code=apt_code,
@@ -335,8 +335,8 @@ async def update_request_status(
 
     req.status = payload.status
     req.reviewed_by_id = current_user.id
-    req.reviewed_at = datetime.utcnow()
-    req.updated_at = datetime.utcnow()
+    req.reviewed_at = datetime.now(timezone.utc)
+    req.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(req)
 
@@ -375,7 +375,7 @@ async def convert_request_to_reception(
     customer = db.query(Customer).filter(Customer.id == req.customer_id).first() if req.customer_id else None
 
     # Auto Create RepairOrder in atomic transaction
-    today_str = datetime.utcnow().strftime("%Y%m%d")
+    today_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     ro_count = db.query(RepairOrder).filter(RepairOrder.code.like(f"RO-{today_str}-%")).count()
     ro_code = f"RO-{today_str}-{(ro_count + 1):04d}"
 
@@ -400,9 +400,9 @@ async def convert_request_to_reception(
 
     # Update CustomerRequest status
     req.status = CustomerRequestStatus.CONVERTED
-    req.converted_at = datetime.utcnow()
+    req.converted_at = datetime.now(timezone.utc)
     req.reviewed_by_id = current_user.id
-    req.updated_at = datetime.utcnow()
+    req.updated_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(ro)
@@ -443,7 +443,7 @@ async def assign_employee(
     else:
         req.assigned_employee_id = None
 
-    req.updated_at = datetime.utcnow()
+    req.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(req)
 
@@ -469,7 +469,7 @@ async def add_admin_note(
         raise HTTPException(status_code=404, detail="Không tìm thấy yêu cầu dịch vụ!")
 
     req.admin_note = payload.admin_note
-    req.updated_at = datetime.utcnow()
+    req.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(req)
 
