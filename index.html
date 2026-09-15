@@ -726,11 +726,12 @@
       btn.disabled = true;
 
       const payload = {
-        full_name: document.getElementById('bf_name').value,
+        fullName: document.getElementById('bf_name').value,
         phone: document.getElementById('bf_phone').value,
-        vehicle_model: document.getElementById('bf_model').value,
-        license_plate: document.getElementById('bf_plate').value,
-        service_type: document.getElementById('bf_service').value,
+        vehicleBrand: "Không xác định", // Backend requires this field
+        vehicleModel: document.getElementById('bf_model').value,
+        licensePlate: document.getElementById('bf_plate').value,
+        serviceType: document.getElementById('bf_service').value,
         description: document.getElementById('bf_desc').value
       };
 
