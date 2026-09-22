@@ -4,48 +4,568 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Hệ thống Quản lý Garage Ô tô Tích hợp AI (Garage VTV Engine Pro)</title>
+  <title>Garage VTV Engine Pro — Hệ thống Quản lý Nội bộ</title>
+  <meta name="description" content="Hệ thống quản lý garage ô tô tích hợp AI — Phiếu sửa chữa, khách hàng, kho phụ tùng và hóa đơn.">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
   <link rel="stylesheet" href="styles.css?v=8.0">
-  <link rel="stylesheet" href="accessibility.css?v=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Admin-specific enhancements ─────────────────────────── */
+
+    /* Sidebar nav section titles */
+    .nav-section-title {
+      padding: 1.25rem 1.25rem 0.4rem;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+
+    /* Sidebar nav items */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.7rem 1.25rem;
+      margin: 0.15rem 0.65rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .nav-item:hover {
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--text-main);
+      transform: translateX(4px);
+    }
+
+    .nav-item.active {
+      background: rgba(59, 130, 246, 0.18);
+      color: var(--accent-primary);
+      border-left: 3px solid var(--accent-primary);
+      padding-left: calc(1.25rem - 3px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+
+    .nav-item i {
+      width: 18px;
+      text-align: center;
+      font-size: 0.92rem;
+      transition: transform 0.2s ease;
+    }
+
+    .nav-item:hover i {
+      transform: scale(1.15);
+      color: var(--accent-cyan);
+    }
+
+    .nav-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 1100px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+      animation: fadeInUpSmooth 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .kpi-grid .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+    .kpi-grid .kpi-card:nth-child(2) { animation-delay: 0.12s; }
+    .kpi-grid .kpi-card:nth-child(3) { animation-delay: 0.19s; }
+    .kpi-grid .kpi-card:nth-child(4) { animation-delay: 0.26s; }
+
+    .kpi-card:hover {
+      transform: translateY(-5px) scale(1.015);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), 0 0 20px rgba(59, 130, 246, 0.25);
+      border-color: rgba(59, 130, 246, 0.45);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      border-radius: 1rem 1rem 0 0;
+    }
+
+    .kpi-card.blue::before { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+    .kpi-card.amber::before { background: linear-gradient(90deg, #f59e0b, #f97316); }
+    .kpi-card.green::before { background: linear-gradient(90deg, #10b981, #06b6d4); }
+    .kpi-card.purple::before { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .kpi-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .kpi-value.small {
+      font-size: 1.7rem;
+    }
+
+    .kpi-trend {
+      font-size: 0.76rem;
+      font-weight: 600;
+      margin-top: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .kpi-trend.up { color: #34d399; }
+    .kpi-trend.down { color: #f87171; }
+    .kpi-trend.neutral { color: var(--text-muted); }
+
+    .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .kpi-icon.blue {
+      background: rgba(30, 58, 138, 0.5);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #60a5fa;
+    }
+
+    .kpi-icon.amber {
+      background: rgba(120, 53, 15, 0.5);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+    }
+
+    .kpi-icon.green {
+      background: rgba(6, 78, 59, 0.5);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    .kpi-icon.purple {
+      background: rgba(88, 28, 135, 0.5);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+    }
+
+    /* Chart container */
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      padding: 1.5rem;
+    }
+
+    .chart-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Activity feed */
+    .activity-item {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding-bottom: 0.9rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .activity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    /* Section header */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Nav badge */
+    .nav-badge {
+      margin-left: auto;
+      background: #e11d48;
+      color: white;
+      border-radius: 99px;
+      padding: 2px 8px;
+      font-size: 0.7rem;
+      font-weight: 800;
+    }
+
+    /* Role badge */
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.75rem;
+      border-radius: 99px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .role-badge.manager { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.35); }
+    .role-badge.receptionist { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.35); }
+    .role-badge.technician { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.35); }
+    .role-badge.cashier { background: rgba(139, 92, 246, 0.2); color: #c084fc; border: 1px solid rgba(139,92,246,0.35); }
+    .role-badge.customer { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244,63,94,0.35); }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+      background: var(--bg-sidebar);
+      padding: 0.85rem 1.25rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-bar .search-wrap {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+
+    .filter-bar .search-wrap i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .filter-bar .search-wrap input {
+      padding-left: 2.5rem;
+    }
+
+    /* Status pills */
+    /* Status pills with live animated indicators */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.38rem;
+      padding: 0.22rem 0.7rem;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .status-pill:hover {
+      transform: scale(1.04);
+    }
+
+    .status-pill.pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .status-pill.pending::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f59e0b;
+      animation: livePulseDot 2s infinite;
+    }
+
+    .status-pill.confirmed, .status-pill.active { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+    .status-pill.confirmed::before, .status-pill.active::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #3b82f6;
+      animation: livePulseDot 2.2s infinite;
+    }
+
+    .status-pill.in-progress, .status-pill.in_progress { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.3); }
+    .status-pill.in-progress::before, .status-pill.in_progress::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f97316;
+      animation: livePulseDot 1.6s infinite;
+    }
+
+    .status-pill.completed, .status-pill.paid { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+    .status-pill.completed::before, .status-pill.paid::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+    }
+
+    .status-pill.cancelled { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244,63,94,0.3); }
+    .status-pill.ai-draft { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139,92,246,0.3); }
+
+    /* Interactive cards */
+    .chart-card, .table-card {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    .chart-card:hover, .table-card:hover {
+      border-color: rgba(8, 145, 178, 0.35) !important;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    /* Page skeleton loader */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 0.5rem;
+    }
+
+    /* Appointments view progress steps */
+    .step-track {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .step-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .step-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      right: -50%;
+      height: 2px;
+      background: var(--border-color);
+    }
+
+    .step-item.done:not(:last-child)::after {
+      background: var(--accent-emerald);
+    }
+
+    .step-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: 2px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      z-index: 1;
+      position: relative;
+    }
+
+    .step-item.done .step-dot {
+      background: var(--accent-emerald);
+      border-color: var(--accent-emerald);
+      color: white;
+    }
+
+    .step-item.current .step-dot {
+      background: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      color: white;
+      box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.2);
+    }
+
+    .step-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+      text-align: center;
+    }
+
+    .step-item.done .step-label,
+    .step-item.current .step-label {
+      color: var(--text-main);
+    }
+
+    /* Dashboard middle grid */
+    .dashboard-mid-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-mid-grid { grid-template-columns: 1fr; }
+    }
+
+    /* AI studio inline */
+    .ai-chat-window {
+      min-height: 250px;
+      max-height: 420px;
+      overflow-y: auto;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    /* Floating AI button pulse */
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+      70% { box-shadow: 0 0 0 12px rgba(139, 92, 246, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+    }
+
+    .floating-ai-trigger {
+      animation: pulse-ring 2.5s infinite;
+    }
+
+    /* Number counter animation */
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .kpi-value {
+      animation: countUp 0.4s ease both;
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- Mobile Sidebar Backdrop Overlay -->
+  <!-- Mobile Sidebar Backdrop -->
   <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="toggleMobileSidebar(false)"></div>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
+  <!-- ══════════════════ SIDEBAR ══════════════════ -->
+  <aside class="sidebar" style="position: relative; padding: 0; display: flex; flex-direction: column; overflow: hidden;">
 
-    <div class="brand-header" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem;">
-      <img src="logo.png" alt="Garage VTV Logo" style="height: 44px; width: auto; object-fit: contain; filter: drop-shadow(0 0 8px rgba(8, 145, 178, 0.45));">
+    <!-- Scrollable nav content -->
+    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; min-height: 0;">
+
+    <!-- Brand -->
+    <div class="brand-header" style="display: flex; align-items: center; gap: 0.75rem; padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border-subtle);">
+      <img src="logo.png" alt="Garage VTV Logo" style="height: 44px; width: auto; object-fit: contain; filter: drop-shadow(0 0 8px rgba(8,145,178,0.5));">
       <div>
-        <div class="brand-name" style="font-family: Arial, sans-serif; font-weight: 800; font-size: 1.15rem; color: var(--text-main); letter-spacing: 0.05em;">GARAGE VTV</div>
-        <span style="font-size: 0.68rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">ENGINE PRO</span>
+        <div style="font-family: 'Huninn', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text-main); letter-spacing: 0.05em;">GARAGE VTV</div>
+        <span style="font-size: 0.65rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">ENGINE PRO</span>
       </div>
     </div>
 
-    <div class="nav-section-title">TỔNG QUAN</div>
+    <!-- Nav: Tổng quan -->
+    <div class="nav-section-title">Tổng quan</div>
     <ul class="nav-list">
       <li class="nav-item active" data-view="dashboard">
         <i class="fa-solid fa-gauge-high"></i> Dashboard
       </li>
       <li class="nav-item" data-view="appointments">
-        <i class="fa-solid fa-calendar-check"></i> Lịch Hẹn & Tiếp Nhận
+        <i class="fa-solid fa-calendar-check"></i> Lịch Hẹn
       </li>
       <li class="nav-item" data-view="repair-orders">
         <i class="fa-solid fa-file-invoice-dollar"></i> Phiếu Sửa Chữa
       </li>
     </ul>
 
-    <div class="nav-section-title">DANH MỤC & KHÁCH</div>
+    <!-- Nav: Danh mục & Khách -->
+    <div class="nav-section-title">Danh mục & Khách</div>
     <ul class="nav-list">
       <li class="nav-item" data-view="customer-requests">
         <i class="fa-solid fa-clipboard-list"></i> Quản Lý Yêu Cầu
-        <span id="nav-badge-requests" style="display:none; margin-left: auto; background: #e11d48; color: white; border-radius: 99px; padding: 2px 8px; font-size: 0.72rem; font-weight: 800;">0</span>
+        <span id="nav-badge-requests" class="nav-badge" style="display:none;">0</span>
       </li>
       <li class="nav-item" data-view="customers">
         <i class="fa-solid fa-users"></i> Khách Hàng & Xe
@@ -61,50 +581,65 @@
       </li>
     </ul>
 
-    <div class="nav-section-title">CÔNG CỤ AI</div>
-    <ul class="nav-list">
-      <li class="nav-item ai-tab" data-view="ai-studio" style="background: rgba(124, 58, 237, 0.25); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc;">
-        <i class="fa-solid fa-robot"></i> Trợ Lý AI Garage
+    <!-- Nav: Công cụ AI -->
+    <div class="nav-section-title">Công cụ AI</div>
+    <ul class="nav-list" style="margin-bottom: 0.5rem;">
+      <li class="nav-item ai-tab" data-view="ai-studio" style="background: rgba(124,58,237,0.2); border: 1px solid rgba(168,85,247,0.35); color: #c084fc; margin: 0.15rem 0.65rem; border-radius: var(--radius-sm);">
+        <i class="fa-solid fa-robot"></i> AI Quản Trị
       </li>
     </ul>
 
+    </div><!-- /.scrollable nav content -->
+
+    <!-- Sidebar footer: user info (nằm cố định dưới cùng, không scroll) -->
+    <div style="padding: 0.85rem 1.25rem; border-top: 1px solid var(--border-subtle); background: var(--bg-sidebar); flex-shrink: 0;">
+      <div style="display: flex; align-items: center; gap: 0.65rem;">
+        <div style="width: 34px; height: 34px; border-radius: 0.6rem; background: linear-gradient(135deg, #2563eb, #0891b2); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; font-weight: 800; flex-shrink: 0;">
+          VTV
+        </div>
+        <div style="overflow: hidden;">
+          <div id="sidebar-username" style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Garage VTV</div>
+          <div id="sidebar-role-label" style="font-size: 0.7rem; color: var(--text-muted);">Lễ Tân</div>
+        </div>
+      </div>
+    </div>
+
   </aside>
 
-  <!-- Main Area -->
+  <!-- ══════════════════ MAIN ══════════════════ -->
   <main class="main-wrapper">
+
     <!-- Top Header Bar -->
     <header class="top-bar">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <button class="mobile-menu-btn" onclick="toggleMobileSidebar(true)" title="Mở Menu Vai Trò & Danh Mục"><i
-            class="fa-solid fa-bars"></i></button>
-        <h2 id="page-title" style="font-family: Arial, sans-serif; font-size: 1.3rem; font-weight: 700;">Tổng Quan
-          Garage</h2>
+        <button class="mobile-menu-btn" onclick="toggleMobileSidebar(true)" title="Menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <h2 id="page-title" style="font-size: 1.2rem; font-weight: 700; color: var(--text-main);">Tổng Quan Garage</h2>
       </div>
 
-
-      <!-- Controls: Theme Toggle & Role Switcher -->
       <div class="header-controls">
-        <!-- Switch to Customer Portal Page -->
-        <a href="customer.html" class="btn btn-secondary btn-sm" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 600; text-decoration: none;">
-          <i class="fa-solid fa-globe"></i> Trang Khách Hàng
+        <!-- Trang khách hàng -->
+        <a href="customer.html" class="btn btn-secondary btn-sm" style="border-color: rgba(56,189,248,0.4); color: #38bdf8; font-weight: 600; text-decoration: none;">
+          <i class="fa-solid fa-globe"></i> Trang Khách
         </a>
 
-        <!-- Theme Toggle Button -->
+        <!-- Theme toggle -->
         <button id="theme-toggle" class="theme-toggle-btn" title="Chuyển chế độ Sáng/Tối" onclick="toggleTheme()">
           <i class="fa-solid fa-sun" id="theme-icon"></i>
         </button>
 
-        <!-- Logout Button -->
-        <button class="btn btn-secondary btn-sm" onclick="logoutUser()" title="Đăng Xuất" style="border-color: rgba(244, 63, 94, 0.4); color: #f43f5e;">
+        <!-- Logout -->
+        <button class="btn btn-secondary btn-sm" onclick="logoutUser()" style="border-color: rgba(244,63,94,0.4); color: #f43f5e;">
           <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
         </button>
 
-        <!-- Role Switcher -->
+        <!-- Role switcher -->
         <div class="role-switcher-container">
-          <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;"><i
-              class="fa-solid fa-user-gear"></i> Vai trò:</span>
-          <select id="role-select" class="form-control"
-            style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.82rem; font-weight: 600;">
+          <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+            <i class="fa-solid fa-user-gear"></i> Vai trò:
+          </span>
+          <select id="role-select" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.82rem; font-weight: 600;">
             <option value="manager">Quản Lý (Admin)</option>
             <option value="receptionist" selected>Lễ Tân (Receptionist)</option>
             <option value="technician">Kỹ Thuật Viên (Tech)</option>
@@ -116,93 +651,136 @@
       </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- ── Main Content ── -->
     <div class="content-container">
 
-      <!-- VIEW 1: Dashboard (Tổng Quan Garage) -->
+      <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 1: DASHBOARD              ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
       <section id="view-dashboard" class="view-section active">
-        <!-- 4 KPI Cards Grid -->
-        <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 1.5rem;">
-          
-          <!-- Card 1: XE ĐANG SỬA -->
-          <div class="kpi-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; position: relative;">
+
+        <!-- KPI Row -->
+        <div class="kpi-grid">
+
+          <!-- Card 1: Xe đang sửa -->
+          <div class="kpi-card blue">
             <div>
-              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem;">XE ĐANG SỬA</div>
-              <div class="val" id="kpi-cars-repairing" style="font-size: 2.2rem; font-weight: 800; color: var(--text-main); line-height: 1.1;">12</div>
-              <div style="font-size: 0.78rem; color: #34d399; font-weight: 600; margin-top: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
+              <div class="kpi-label">Xe Đang Sửa</div>
+              <div class="kpi-value" id="kpi-cars-repairing">—</div>
+              <div class="kpi-trend neutral">
                 <i class="fa-solid fa-wrench"></i> Đang sửa chữa tại xưởng
               </div>
             </div>
-            <div style="width: 48px; height: 48px; border-radius: 0.75rem; background: rgba(30, 58, 138, 0.5); border: 1px solid rgba(59, 130, 246, 0.4); display: flex; align-items: center; justify-content: center; color: #60a5fa; font-size: 1.25rem;">
-              <i class="fa-solid fa-toolbox"></i>
-            </div>
+            <div class="kpi-icon blue"><i class="fa-solid fa-toolbox"></i></div>
           </div>
 
-          <!-- Card 2: LỊCH HẸN HÔM NAY -->
-          <div class="kpi-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; position: relative;">
+          <!-- Card 2: Lịch hẹn hôm nay -->
+          <div class="kpi-card amber">
             <div>
-              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem;">LỊCH HẸN HÔM NAY</div>
-              <div class="val" id="kpi-today-appointments" style="font-size: 2.2rem; font-weight: 800; color: var(--text-main); line-height: 1.1;">8</div>
-              <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600; margin-top: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
+              <div class="kpi-label">Lịch Hẹn Hôm Nay</div>
+              <div class="kpi-value" id="kpi-today-appointments">—</div>
+              <div class="kpi-trend neutral">
                 <i class="fa-solid fa-calendar-day"></i> Chờ tiếp nhận
               </div>
             </div>
-            <div style="width: 48px; height: 48px; border-radius: 0.75rem; background: rgba(120, 53, 15, 0.5); border: 1px solid rgba(245, 158, 11, 0.4); display: flex; align-items: center; justify-content: center; color: #fbbf24; font-size: 1.25rem;">
-              <i class="fa-solid fa-calendar-days"></i>
-            </div>
+            <div class="kpi-icon amber"><i class="fa-solid fa-calendar-days"></i></div>
           </div>
 
-          <!-- Card 3: DOANH THU THÁNG -->
-          <div class="kpi-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; position: relative;">
+          <!-- Card 3: Doanh thu tháng -->
+          <div class="kpi-card green">
             <div>
-              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem;">DOANH THU THÁNG</div>
-              <div class="val" id="kpi-monthly-revenue" style="font-size: 1.85rem; font-weight: 800; color: var(--text-main); line-height: 1.1;">245,000,000đ<span style="font-size: 1.2rem;">💵</span></div>
-              <div style="font-size: 0.78rem; color: #34d399; font-weight: 600; margin-top: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
-                <i class="fa-solid fa-chart-line"></i> +15.8% so với tháng trước
+              <div class="kpi-label">Doanh Thu Tháng</div>
+              <div class="kpi-value small" id="kpi-monthly-revenue">—</div>
+              <div class="kpi-trend up" id="kpi-revenue-trend">
+                <i class="fa-solid fa-chart-line"></i> Đang tải...
               </div>
             </div>
+            <div class="kpi-icon green"><i class="fa-solid fa-sack-dollar"></i></div>
           </div>
 
-          <!-- Card 4: KHÁCH MỚI THÁNG -->
-          <div class="kpi-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; position: relative;">
+          <!-- Card 4: Khách mới tháng -->
+          <div class="kpi-card purple">
             <div>
-              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem;">KHÁCH MỚI THÁNG</div>
-              <div class="val" id="kpi-new-customers" style="font-size: 2.2rem; font-weight: 800; color: var(--text-main); line-height: 1.1;">34</div>
-              <div style="font-size: 0.78rem; color: #34d399; font-weight: 600; margin-top: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
-                <i class="fa-solid fa-user-plus"></i> +8 khách mới tuần này
+              <div class="kpi-label">Khách Mới Tháng</div>
+              <div class="kpi-value" id="kpi-new-customers">—</div>
+              <div class="kpi-trend up">
+                <i class="fa-solid fa-user-plus"></i> Đang tải...
               </div>
             </div>
-            <div style="width: 48px; height: 48px; border-radius: 0.75rem; background: rgba(88, 28, 135, 0.5); border: 1px solid rgba(168, 85, 247, 0.4); display: flex; align-items: center; justify-content: center; color: #c084fc; font-size: 1.25rem;">
-              <i class="fa-solid fa-users"></i>
-            </div>
+            <div class="kpi-icon purple"><i class="fa-solid fa-users"></i></div>
           </div>
 
         </div>
 
-        <!-- Middle Grid: Bar Chart + Timeline Feed -->
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
-          
-          <!-- Bar Chart -->
-          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-              <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
-                <i class="fa-solid fa-chart-simple" style="color: #38bdf8;"></i> Doanh Thu 6 Tháng Gần Nhất
-              </h4>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">Đơn vị: VNĐ</span>
+        <!-- Dashboard mid: Revenue chart + Activity feed -->
+        <div class="dashboard-mid-grid">
+
+          <!-- Revenue Comparison Section: Line Chart + Comparison Table -->
+          <div class="chart-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+              <div>
+                <h4 class="chart-title" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                  <i class="fa-solid fa-chart-line" style="color: #38bdf8;"></i>
+                  Bảng So Sánh & Biểu Đồ Đường Doanh Thu 6 Tháng (Line Chart)
+                </h4>
+                <span style="font-size: 0.76rem; color: var(--text-muted);">Đường xu hướng Doanh thu thực tế vs Mục tiêu kế hoạch (Đơn vị: triệu VNĐ)</span>
+              </div>
+              <div style="display: flex; gap: 0.35rem; background: var(--bg-input); padding: 3px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-sm" id="btn-rev-mode-both" onclick="setRevenueViewMode('both')" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px; background: var(--accent-primary); color: white; border: none; cursor: pointer;">Cả hai</button>
+                <button type="button" class="btn btn-sm" id="btn-rev-mode-chart" onclick="setRevenueViewMode('chart')" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px; background: transparent; color: var(--text-muted); border: none; cursor: pointer;">Biểu đồ đường</button>
+                <button type="button" class="btn btn-sm" id="btn-rev-mode-table" onclick="setRevenueViewMode('table')" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px; background: transparent; color: var(--text-muted); border: none; cursor: pointer;">Bảng so sánh</button>
+              </div>
             </div>
 
-            <div id="dashboard-revenue-chart" style="display: flex; justify-content: space-around; align-items: flex-end; height: 210px; padding: 0 1rem;">
-              <!-- Javascript will render bars here dynamically -->
+            <!-- Line Chart Container -->
+            <div id="revenue-chart-box" style="position: relative; height: 230px; margin-bottom: 1rem;">
+              <canvas id="revenue-chart-canvas"></canvas>
+            </div>
+
+            <!-- 6-Month Comparison Table -->
+            <div id="revenue-table-box" style="overflow-x: auto; border-top: 1px solid var(--border-color); padding-top: 0.85rem;">
+              <table style="width: 100%; font-size: 0.82rem; border-collapse: collapse;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <th style="padding: 0.5rem 0.6rem; text-align: left;">Tháng</th>
+                    <th style="padding: 0.5rem 0.6rem; text-align: right; color: #38bdf8;">Thực Tế</th>
+                    <th style="padding: 0.5rem 0.6rem; text-align: right; color: #818cf8;">Kế Hoạch</th>
+                    <th style="padding: 0.5rem 0.6rem; text-align: right;">Chênh Lệch</th>
+                    <th style="padding: 0.5rem 0.6rem; text-align: right;">Tỷ Lệ Đạt</th>
+                    <th style="padding: 0.5rem 0.6rem; text-align: right;">Tăng Trưởng</th>
+                    <th style="padding: 0.5rem 0.6rem; text-align: center;">Đánh Giá</th>
+                  </tr>
+                </thead>
+                <tbody id="revenue-comparison-tbody">
+                  <!-- Injected dynamically via JS -->
+                </tbody>
+                <tfoot style="border-top: 2px solid var(--border-color); font-weight: 700; background: rgba(56,189,248,0.04);">
+                  <tr>
+                    <td style="padding: 0.65rem 0.6rem; color: var(--accent-cyan);">TỔNG 6 THÁNG</td>
+                    <td style="padding: 0.65rem 0.6rem; text-align: right; color: #38bdf8; font-weight: 800;">1.303M</td>
+                    <td style="padding: 0.65rem 0.6rem; text-align: right; color: #818cf8;">1.270M</td>
+                    <td style="padding: 0.65rem 0.6rem; text-align: right; color: #10b981;">+33M</td>
+                    <td style="padding: 0.65rem 0.6rem; text-align: right; color: #10b981; font-weight: 800;">102.6%</td>
+                    <td style="padding: 0.65rem 0.6rem; text-align: right; color: #38bdf8;">+5.5% avg</td>
+                    <td style="padding: 0.65rem 0.6rem; text-align: center;">
+                      <span style="background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 8px; border-radius: 99px; font-weight: 700; font-size: 0.72rem;">VƯỢT CHỈ TIÊU</span>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           </div>
 
-          <!-- Timeline Feed -->
-          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.5rem;">
-            <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;">
-              <i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8;"></i> Hoạt Động Gần Đây
+          <!-- Activity Feed -->
+          <div class="chart-card" style="display: flex; flex-direction: column;">
+            <h4 class="chart-title">
+              <i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8;"></i>
+              Hoạt Động Gần Đây
             </h4>
-            <div id="dashboard-recent-activities" style="display: flex; flex-direction: column; gap: 1.1rem;">
-              <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 1rem;">Đang tải hoạt động...</div>
+            <div id="dashboard-recent-activities" style="display: flex; flex-direction: column; gap: 0.85rem; flex: 1; overflow-y: auto; max-height: 200px;">
+              <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 1.5rem;">
+                <i class="fa-solid fa-spinner fa-spin"></i> Đang tải...
+              </div>
             </div>
           </div>
 
@@ -210,11 +788,12 @@
 
         <!-- Recent Repair Orders Table -->
         <div class="table-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-            <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
-              <i class="fa-solid fa-list-check" style="color: #38bdf8;"></i> Phiếu Sửa Chữa Gần Đây
+          <div class="section-header">
+            <h4 class="section-title">
+              <i class="fa-solid fa-list-check" style="color: #38bdf8;"></i>
+              Phiếu Sửa Chữa Gần Đây
             </h4>
-            <button class="btn btn-primary btn-sm" onclick="switchNav('repair-orders')" style="border-radius: 99px; padding: 0.35rem 1.25rem; font-size: 0.82rem; background: #2563eb; border: none;">
+            <button class="btn btn-primary btn-sm" onclick="switchNav('repair-orders')" style="border-radius: 99px; background: #2563eb; border: none;">
               Xem Tất Cả
             </button>
           </div>
@@ -231,7 +810,11 @@
                 </tr>
               </thead>
               <tbody id="dashboard-ro-tbody">
-                <!-- Populated by JS -->
+                <tr>
+                  <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -239,60 +822,132 @@
 
       </section>
 
-      <!-- VIEW 2.5: Customer Requests -->
-      <section id="view-customer-requests" class="view-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-          <h3 style="font-family: Arial;"><i class="fa-solid fa-clipboard-list" style="color: #38bdf8;"></i> Yêu Cầu Từ Khách Hàng</h3>
-          <button type="button" class="btn btn-secondary" onclick="loadCustomerRequestsFromBackend()"><i class="fa-solid fa-rotate-right"></i> Làm Mới</button>
+      <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 2: APPOINTMENTS           ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
+      <section id="view-appointments" class="view-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="fa-solid fa-calendar-check" style="color: #38bdf8;"></i>
+            Lịch Hẹn & Tiếp Nhận Xe
+          </h3>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-secondary btn-sm" onclick="loadAppointmentsFromBackend()">
+              <i class="fa-solid fa-rotate-right"></i> Làm Mới
+            </button>
+            <button class="btn btn-primary" onclick="openModal('modal-new-appointment')">
+              <i class="fa-solid fa-calendar-plus"></i> Tạo Lịch Hẹn
+            </button>
+          </div>
         </div>
 
-        <div class="table-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.5rem;">
+        <!-- KPIs lịch hẹn -->
+        <div class="kpi-grid" style="margin-bottom: 1.25rem;">
+          <div class="kpi-card blue">
+            <div>
+              <div class="kpi-label">Tổng Lịch Hẹn</div>
+              <div class="kpi-value" id="apt-kpi-total">0</div>
+              <div class="kpi-trend neutral"><i class="fa-solid fa-list"></i> Tất cả</div>
+            </div>
+            <div class="kpi-icon blue"><i class="fa-solid fa-calendar-days"></i></div>
+          </div>
+          <div class="kpi-card amber">
+            <div>
+              <div class="kpi-label">Chờ Xác Nhận</div>
+              <div class="kpi-value" id="apt-kpi-pending">0</div>
+              <div class="kpi-trend neutral"><i class="fa-solid fa-clock"></i> Pending</div>
+            </div>
+            <div class="kpi-icon amber"><i class="fa-solid fa-hourglass-half"></i></div>
+          </div>
+          <div class="kpi-card green">
+            <div>
+              <div class="kpi-label">Đã Xác Nhận</div>
+              <div class="kpi-value" id="apt-kpi-confirmed">0</div>
+              <div class="kpi-trend up"><i class="fa-solid fa-circle-check"></i> Confirmed</div>
+            </div>
+            <div class="kpi-icon green"><i class="fa-solid fa-clipboard-check"></i></div>
+          </div>
+          <div class="kpi-card purple">
+            <div>
+              <div class="kpi-label">Hôm Nay</div>
+              <div class="kpi-value" id="apt-kpi-today">0</div>
+              <div class="kpi-trend up"><i class="fa-solid fa-star"></i> Ngày hôm nay</div>
+            </div>
+            <div class="kpi-icon purple"><i class="fa-solid fa-calendar-day"></i></div>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="apt-search-input" class="form-control" placeholder="Tìm theo tên khách, biển số, SĐT...">
+          </div>
+          <select id="apt-status-filter" class="form-control" style="width: 180px;">
+            <option value="">Trạng Thái: Tất Cả</option>
+            <option value="pending">Chờ Xác Nhận</option>
+            <option value="confirmed">Đã Xác Nhận</option>
+            <option value="arrived">Đã Đến</option>
+            <option value="in_progress">Đang Xử Lý</option>
+            <option value="completed">Hoàn Thành</option>
+            <option value="cancelled">Đã Hủy</option>
+            <option value="no_show">Không Đến</option>
+          </select>
+          <input type="text" id="appointment-date-filter" class="form-control" placeholder="Lọc theo ngày..." style="width: 160px;">
+        </div>
+
+        <div class="table-card">
           <div class="table-responsive">
             <table class="custom-table">
               <thead>
                 <tr>
-                  <th>Mã Yêu Cầu</th>
+                  <th>Mã Lịch Hẹn</th>
                   <th>Khách Hàng</th>
-                  <th>Số Điện Thoại</th>
-                  <th>Biển Số</th>
-                  <th>Xe</th>
-                  <th>Dịch Vụ Cần</th>
-                  <th>Thời Gian</th>
+                  <th>Biển Số Xe</th>
+                  <th>Thời Gian Hẹn</th>
+                  <th>Ghi Chú</th>
                   <th>Trạng Thái</th>
                   <th>Thao Tác</th>
                 </tr>
               </thead>
-              <tbody id="customer-requests-tbody">
-                <!-- Injected by JS -->
-                <tr><td colspan="9" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+              <tbody id="appointments-tbody">
+                <tr>
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Đang tải lịch hẹn...
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- VIEW 3: Repair Orders (Phiếu Sửa Chữa) -->
+      <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 3: REPAIR ORDERS          ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
       <section id="view-repair-orders" class="view-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-          <h3 style="font-family: Arial;"><i class="fa-solid fa-wrench"></i> Phiếu Sửa Chữa & Chẩn Đoán Kỹ Thuật</h3>
-          <button type="button" class="btn btn-primary" onclick="openModal('modal-new-ro')"><i class="fa-solid fa-folder-plus"></i> Tạo Phiếu Tiếp Nhận</button>
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="fa-solid fa-wrench" style="color: #38bdf8;"></i>
+            Phiếu Sửa Chữa & Chẩn Đoán Kỹ Thuật
+          </h3>
+          <button type="button" class="btn btn-primary" onclick="openModal('modal-new-ro')">
+            <i class="fa-solid fa-folder-plus"></i> Tạo Phiếu Tiếp Nhận
+          </button>
         </div>
 
-        <!-- Filter Bar for Repair Orders -->
-        <div
-          style="display: flex; gap: 0.85rem; margin-bottom: 1.25rem; background: var(--bg-sidebar); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); align-items: center;">
-          <div style="flex: 1; position: relative;">
-            <i class="fa-solid fa-magnifying-glass"
-              style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-            <input type="text" id="ro-search-input" class="form-control" style="padding-left: 2.5rem;"
-              placeholder="Tìm phiếu theo biển số xe, mã phiếu, triệu chứng...">
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="ro-search-input" class="form-control" placeholder="Tìm phiếu theo biển số, mã phiếu, triệu chứng...">
           </div>
-          <select id="ro-status-filter" class="form-control" style="width: 200px;">
+          <select id="ro-status-filter" class="form-control" style="width: 210px;">
             <option value="">Trạng Thái: Tất Cả</option>
             <option value="in_progress">Đang Sửa Chữa</option>
-            <option value="ai_draft">Dự Thảo AI (AI_DRAFT)</option>
-            <option value="under_review">Thợ Kiểm Tra (UNDER_REVIEW)</option>
-            <option value="approved">Phê Duyệt (APPROVED)</option>
+            <option value="ai_draft">Dự Thảo AI</option>
+            <option value="under_review">Thợ Kiểm Tra</option>
+            <option value="approved">Phê Duyệt</option>
             <option value="finished">Hoàn Thành</option>
           </select>
         </div>
@@ -312,91 +967,80 @@
                 </tr>
               </thead>
               <tbody id="repair-orders-tbody">
-                <!-- Populated by JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- VIEW 4: Customers & Vehicles -->
-      <section id="view-customers" class="view-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-          <h3 style="font-family: Arial;"><i class="fa-solid fa-address-book"></i> Danh Sách Khách Hàng & Xe</h3>
-          <div style="display: flex; gap: 0.5rem;">
-            <input type="text" id="customer-search-input" class="form-control" placeholder="Tìm theo tên/SĐT/Biển số..."
-              style="width: 250px;">
-            <button class="btn btn-primary" onclick="openModal('modal-new-customer')"><i
-                class="fa-solid fa-user-plus"></i> Thêm Khách Hàng</button>
-          </div>
-        </div>
-
-        <div class="table-card">
-          <div class="table-responsive">
-            <table class="custom-table">
-              <thead>
                 <tr>
-                  <th>Khách Hàng</th>
-                  <th>Số Điện Thoại</th>
-                  <th>Địa Chỉ</th>
-                  <th>Danh Sách Xe</th>
-                  <th>Thao Tác</th>
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Đang tải phiếu sửa chữa...
+                  </td>
                 </tr>
-              </thead>
-              <tbody id="customers-tbody">
-                <!-- Populated by JS -->
               </tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- VIEW 4.5: Customer Requests Management -->
+      <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 4: CUSTOMER REQUESTS      ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
       <section id="view-customer-requests" class="view-section">
-        <!-- KPI Summary Cards -->
-        <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 1.5rem;">
-          <div class="kpi-card" style="padding: 1.1rem;">
+
+        <!-- KPI cards yêu cầu -->
+        <div class="kpi-grid" style="margin-bottom: 1.5rem;">
+          <div class="kpi-card" style="border-top: 2px solid #fb7185;">
             <div class="kpi-info">
-              <h4 style="font-size: 0.82rem;">Yêu Cầu Mới</h4>
-              <div class="val" id="req-kpi-pending" style="font-size: 1.5rem; color: #fb7185;">0</div>
-              <div class="kpi-trend neutral" style="font-size: 0.75rem;"><i class="fa-solid fa-clock"></i> Chờ Lễ tân xác nhận</div>
+              <div class="kpi-label">Yêu Cầu Mới</div>
+              <div class="kpi-value" id="req-kpi-pending" style="font-size: 1.8rem; color: #fb7185;">0</div>
+              <div class="kpi-trend neutral"><i class="fa-solid fa-clock"></i> Chờ lễ tân xác nhận</div>
             </div>
-            <div class="kpi-icon" style="background: rgba(244, 63, 94, 0.15); color: #fb7185; width: 44px; height: 44px;"><i class="fa-solid fa-bell"></i></div>
+            <div class="kpi-icon" style="background: rgba(244,63,94,0.15); color: #fb7185; border: 1px solid rgba(244,63,94,0.3);">
+              <i class="fa-solid fa-bell"></i>
+            </div>
           </div>
-          <div class="kpi-card" style="padding: 1.1rem;">
+          <div class="kpi-card" style="border-top: 2px solid #38bdf8;">
             <div class="kpi-info">
-              <h4 style="font-size: 0.82rem;">Lễ Tân Đã Xác Nhận</h4>
-              <div class="val" id="req-kpi-confirmed" style="font-size: 1.5rem; color: #38bdf8;">0</div>
-              <div class="kpi-trend up" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-check"></i> Lễ tân đã xác nhận hẹn</div>
+              <div class="kpi-label">Lễ Tân Đã Xác Nhận</div>
+              <div class="kpi-value" id="req-kpi-confirmed" style="font-size: 1.8rem; color: #38bdf8;">0</div>
+              <div class="kpi-trend up"><i class="fa-solid fa-circle-check"></i> Đã xác nhận hẹn</div>
             </div>
-            <div class="kpi-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; width: 44px; height: 44px;"><i class="fa-solid fa-user-check"></i></div>
+            <div class="kpi-icon" style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3);">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
           </div>
-          <div class="kpi-card" style="padding: 1.1rem;">
+          <div class="kpi-card" style="border-top: 2px solid #f59e0b;">
             <div class="kpi-info">
-              <h4 style="font-size: 0.82rem;">Đang Xử Lý tại Xưởng</h4>
-              <div class="val" id="req-kpi-inprogress" style="font-size: 1.5rem; color: #f59e0b;">0</div>
-              <div class="kpi-trend up" style="font-size: 0.75rem;"><i class="fa-solid fa-wrench"></i> KTV đang sửa chữa</div>
+              <div class="kpi-label">Đang Xử Lý tại Xưởng</div>
+              <div class="kpi-value" id="req-kpi-inprogress" style="font-size: 1.8rem; color: #f59e0b;">0</div>
+              <div class="kpi-trend neutral"><i class="fa-solid fa-wrench"></i> KTV đang sửa chữa</div>
             </div>
-            <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; width: 44px; height: 44px;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+            <div class="kpi-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+              <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
           </div>
-          <div class="kpi-card" style="padding: 1.1rem;">
+          <div class="kpi-card" style="border-top: 2px solid #10b981;">
             <div class="kpi-info">
-              <h4 style="font-size: 0.82rem;">Đã Hoàn Thành</h4>
-              <div class="val" id="req-kpi-completed" style="font-size: 1.5rem; color: #10b981;">0</div>
-              <div class="kpi-trend up" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-check"></i> Bàn giao xe cho khách</div>
+              <div class="kpi-label">Đã Hoàn Thành</div>
+              <div class="kpi-value" id="req-kpi-completed" style="font-size: 1.8rem; color: #10b981;">0</div>
+              <div class="kpi-trend up"><i class="fa-solid fa-flag-checkered"></i> Bàn giao xe</div>
             </div>
-            <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981; width: 44px; height: 44px;"><i class="fa-solid fa-flag-checkered"></i></div>
+            <div class="kpi-icon" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);">
+              <i class="fa-solid fa-flag-checkered"></i>
+            </div>
           </div>
         </div>
 
         <div class="table-card">
           <div class="table-header" style="flex-wrap: wrap; gap: 1rem;">
-            <h3 style="font-family: Arial;"><i class="fa-solid fa-clipboard-list" style="color: var(--accent-cyan);"></i> Quản Lý Yêu Cầu Đặt Lịch Dịch Vụ</h3>
-            
-            <!-- Filters -->
+            <h3 class="section-title">
+              <i class="fa-solid fa-clipboard-list" style="color: var(--accent-cyan);"></i>
+              Quản Lý Yêu Cầu Đặt Lịch Dịch Vụ
+            </h3>
             <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-              <input type="text" id="req-search-input" class="form-control" placeholder="Tìm theo Tên, SĐT, Biển số, Mã REQ..." style="width: 260px; padding: 0.4rem 0.75rem; font-size: 0.85rem;" onkeyup="filterCustomerRequestsTable()">
-              <select id="req-status-filter" class="form-control" style="width: 170px; padding: 0.4rem 0.75rem; font-size: 0.85rem;" onchange="filterCustomerRequestsTable()">
+              <input type="text" id="req-search-input" class="form-control"
+                placeholder="Tìm Tên, SĐT, Biển số, Mã REQ..."
+                style="width: 260px; font-size: 0.85rem;"
+                onkeyup="filterCustomerRequestsTable()">
+              <select id="req-status-filter" class="form-control"
+                style="width: 170px; font-size: 0.85rem;"
+                onchange="filterCustomerRequestsTable()">
                 <option value="ALL" selected>Tất cả Trạng thái</option>
                 <option value="Pending">Mới (Pending)</option>
                 <option value="Contacted">Lễ Tân Xác Nhận</option>
@@ -405,7 +1049,9 @@
                 <option value="Completed">Hoàn Thành</option>
                 <option value="Cancelled">Đã Hủy</option>
               </select>
-              <button class="btn btn-secondary btn-sm" onclick="loadCustomerRequestsFromBackend()"><i class="fa-solid fa-rotate"></i> Làm mới</button>
+              <button class="btn btn-secondary btn-sm" onclick="loadCustomerRequestsFromBackend()">
+                <i class="fa-solid fa-rotate"></i> Làm mới
+              </button>
             </div>
           </div>
 
@@ -436,14 +1082,63 @@
         </div>
       </section>
 
-      <!-- VIEW 5: Inventory & Services -->
+      <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 5: CUSTOMERS & VEHICLES   ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
+      <section id="view-customers" class="view-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="fa-solid fa-address-book" style="color: #38bdf8;"></i>
+            Danh Sách Khách Hàng & Xe
+          </h3>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="customer-search-input" class="form-control"
+              placeholder="Tìm theo tên/SĐT/Biển số..."
+              style="width: 240px;">
+            <button class="btn btn-primary" onclick="openModal('modal-new-customer')">
+              <i class="fa-solid fa-user-plus"></i> Thêm Khách Hàng
+            </button>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Khách Hàng</th>
+                  <th>Số Điện Thoại</th>
+                  <th>Địa Chỉ</th>
+                  <th>Danh Sách Xe</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="customers-tbody">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách khách hàng...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 6: INVENTORY              ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
       <section id="view-inventory" class="view-section">
         <div class="grid-2col">
-          <!-- Services catalog -->
+          <!-- Danh mục dịch vụ -->
           <div class="table-card">
             <div class="table-header">
-              <h3 style="font-family: Arial;"><i class="fa-solid fa-list"></i> Danh Mục Dịch Vụ</h3>
-              <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-service')">+ Thêm Dịch Vụ</button>
+              <h3 class="section-title">
+                <i class="fa-solid fa-list" style="color: #38bdf8;"></i> Danh Mục Dịch Vụ
+              </h3>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-service')">
+                <i class="fa-solid fa-plus"></i> Thêm Dịch Vụ
+              </button>
             </div>
             <div class="table-responsive">
               <table class="custom-table">
@@ -455,17 +1150,25 @@
                   </tr>
                 </thead>
                 <tbody id="services-tbody">
-                  <!-- Populated by JS -->
+                  <tr>
+                    <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                      <i class="fa-solid fa-spinner fa-spin"></i> Đang tải...
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Parts Inventory -->
+          <!-- Kho phụ tùng -->
           <div class="table-card">
             <div class="table-header">
-              <h3 style="font-family: Arial;"><i class="fa-solid fa-box"></i> Kho Phụ Tùng</h3>
-              <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-part')">+ Nhập Phụ Tùng</button>
+              <h3 class="section-title">
+                <i class="fa-solid fa-box" style="color: #38bdf8;"></i> Kho Phụ Tùng
+              </h3>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-part')">
+                <i class="fa-solid fa-plus"></i> Nhập Phụ Tùng
+              </button>
             </div>
             <div class="table-responsive">
               <table class="custom-table">
@@ -478,7 +1181,11 @@
                   </tr>
                 </thead>
                 <tbody id="parts-tbody">
-                  <!-- Populated by JS -->
+                  <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                      <i class="fa-solid fa-spinner fa-spin"></i> Đang tải...
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -486,10 +1193,15 @@
         </div>
       </section>
 
-      <!-- VIEW 6: Invoices & Payments -->
+      <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 7: INVOICES               ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
       <section id="view-invoices" class="view-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-          <h3 style="font-family: Arial;"><i class="fa-solid fa-file-invoice"></i> Hóa Đơn Sửa Chữa & Thanh Toán</h3>
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="fa-solid fa-file-invoice" style="color: #38bdf8;"></i>
+            Hóa Đơn Sửa Chữa & Thanh Toán
+          </h3>
         </div>
 
         <div class="table-card">
@@ -508,61 +1220,64 @@
                 </tr>
               </thead>
               <tbody id="invoices-tbody">
-                <!-- Populated by JS -->
+                <tr>
+                  <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Đang tải hóa đơn...
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- VIEW 7: Trợ Lý AI Garage VTV -->
+      <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 8: AI STUDIO              ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
       <section id="view-ai-studio" class="view-section">
         <div id="ai-tab-content-chat" class="ai-tab-content">
-          <div class="table-card"
-            style="padding: 1.5rem; margin-bottom: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-lg);">
-            <div
-              style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem; margin-bottom: 1rem;">
+          <div class="table-card" style="padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-lg);">
+
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem; margin-bottom: 1rem;">
               <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <div
-                  style="width: 42px; height: 42px; border-radius: 12px; background: rgba(8, 145, 178, 0.15); border: 1px solid rgba(8, 145, 178, 0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan); font-size: 1.25rem; box-shadow: 0 0 15px rgba(8, 145, 178, 0.2);">
+                <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(8,145,178,0.15); border: 1px solid rgba(8,145,178,0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan); font-size: 1.25rem; box-shadow: 0 0 15px rgba(8,145,178,0.2);">
                   <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
                 <div>
-                  <h4
-                    style="font-family: Arial; margin: 0; color: var(--text-main); font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
-                    Trợ lý GarageAI <span
-                      style="font-size: 0.75rem; background: rgba(8, 145, 178, 0.15); color: var(--accent-cyan); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(8, 145, 178, 0.3);">Pro Active Engine</span>
+                  <h4 style="margin: 0; color: var(--text-main); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    AI Quản Trị
+                    <span style="font-size: 0.72rem; background: rgba(8,145,178,0.15); color: var(--accent-cyan); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(8,145,178,0.3);">Pro Active Engine</span>
                   </h4>
                   <div style="font-size: 0.8rem; color: var(--text-muted);">Tư vấn dịch vụ, combo bảo dưỡng, báo giá nháp & tra cứu tiến độ xe</div>
                 </div>
               </div>
-              <button class="btn btn-secondary btn-sm" onclick="clearAIChatHistory()"><i
-                  class="fa-solid fa-rotate-left"></i> Xóa Chat</button>
+              <button class="btn btn-secondary btn-sm" onclick="clearAIChatHistory()">
+                <i class="fa-solid fa-rotate-left"></i> Xóa Chat
+              </button>
             </div>
 
-            <!-- Chat Window Message Stream -->
-            <div id="ai-chat-stream"
-              style="min-height: 250px; max-height: 420px; overflow-y: auto; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
+            <!-- Chat window -->
+            <div id="ai-chat-stream" class="ai-chat-window">
               <div class="chat-msg ai-msg" style="display: flex; gap: 0.75rem; align-items: flex-start;">
-                <div
-                  style="width: 34px; height: 34px; border-radius: 10px; background: rgba(14, 116, 144, 0.2); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan); font-size: 0.95rem; flex-shrink: 0;">
+                <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(14,116,144,0.2); border: 1px solid rgba(6,182,212,0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan); font-size: 0.95rem; flex-shrink: 0;">
                   <i class="fa-solid fa-robot"></i>
                 </div>
-                <div
-                  style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.9rem 1.15rem; border-radius: 14px; border-top-left-radius: 2px; max-width: 88%; font-size: 0.92rem; line-height: 1.6; color: var(--text-main);">
-                  👋 Xin chào! Tôi là <strong>Trợ Lý AI Garage VTV</strong> — luôn sẵn sàng hỗ trợ bạn!<br><br>
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.9rem 1.15rem; border-radius: 14px; border-top-left-radius: 2px; max-width: 88%; font-size: 0.92rem; line-height: 1.6; color: var(--text-main);">
+                  👋 Xin chào! Tôi là <strong>AI Quản Trị VTV</strong> — luôn sẵn sàng hỗ trợ bạn!<br><br>
                   Bạn có thể hỏi tôi về: 🔧 Chẩn đoán xe &bull; 💰 Báo giá dịch vụ &bull; 📋 Lịch sử sửa chữa &bull; 📍 Tiến độ sửa xe<br><br>
                   Xe bạn đang gặp vấn đề gì? Cứ nói tôi nghe nhé! 🚗
                 </div>
               </div>
             </div>
 
-            <!-- Chat Input Bar -->
+            <!-- Input bar -->
             <div style="display: flex; gap: 0.75rem;">
               <input type="text" id="ai-chat-input" class="form-control"
                 placeholder="Nhập câu hỏi kỹ thuật, yêu cầu báo giá hoặc tra cứu tiến độ..."
                 onkeypress="if(event.key==='Enter') sendAIChatMessage()">
-              <button class="btn btn-ai" onclick="sendAIChatMessage()" style="padding: 0 1.25rem; flex-shrink: 0; background: linear-gradient(135deg, #0891b2, #0284c7); border: none;">
+              <button class="btn btn-ai" onclick="sendAIChatMessage()"
+                style="padding: 0 1.25rem; flex-shrink: 0; background: linear-gradient(135deg, #0891b2, #0284c7); border: none;">
                 <i class="fa-solid fa-paper-plane"></i> Gửi AI
               </button>
             </div>
@@ -570,10 +1285,12 @@
         </div>
       </section>
 
-      <!-- VIEW 8: Đăng Ký Khách Hàng & Đặt Lịch Dịch Vụ -->
+      <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 9: CUSTOMER PORTAL        ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
       <section id="view-customer-portal" class="view-section">
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
-          
+
           <!-- Registration & Booking Card -->
           <div class="table-card" id="card-booking-form" style="padding: 1.75rem; background: var(--bg-card); border: 1px solid var(--border-color);">
             <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
@@ -581,13 +1298,13 @@
                 <i class="fa-solid fa-car-tunnel"></i>
               </div>
               <div>
-                <h3 style="font-family: Arial; margin: 0; font-size: 1.25rem; color: var(--text-main);">Đăng Ký Khách Hàng & Đặt Lịch Dịch Vụ</h3>
-                <span style="font-size: 0.82rem; color: var(--text-muted);">Đăng ký thông tin xe, nhận tư vấn trực tiếp từ Trợ lý AI và đặt lịch kiểm tra xe</span>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-main);">Đăng Ký Khách Hàng & Đặt Lịch Dịch Vụ</h3>
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Đăng ký thông tin xe và đặt lịch kiểm tra xe</span>
               </div>
             </div>
 
             <form id="form-customer-portal" onsubmit="submitCustomerPortalRegistration(event)">
-              <h4 style="font-family: Arial; font-size: 1rem; color: var(--accent-primary); margin-bottom: 0.85rem;">
+              <h4 style="font-size: 0.95rem; color: var(--accent-primary); margin-bottom: 0.85rem;">
                 <i class="fa-solid fa-user"></i> 1. Thông Tin Khách Hàng Liên Hệ
               </h4>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
@@ -601,7 +1318,7 @@
                 </div>
               </div>
 
-              <h4 style="font-family: Arial; font-size: 1rem; color: var(--accent-cyan); margin-top: 1.25rem; margin-bottom: 0.85rem;">
+              <h4 style="font-size: 0.95rem; color: var(--accent-cyan); margin-top: 1.25rem; margin-bottom: 0.85rem;">
                 <i class="fa-solid fa-car"></i> 2. Thông Tin Xe Cần Bảo Dưỡng / Sửa Chữa
               </h4>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
@@ -625,15 +1342,17 @@
                 </div>
               </div>
 
-              <h4 style="font-family: Arial; font-size: 1rem; color: var(--accent-purple); margin-top: 1.25rem; margin-bottom: 0.85rem;">
+              <h4 style="font-size: 0.95rem; color: var(--accent-purple); margin-top: 1.25rem; margin-bottom: 0.85rem;">
                 <i class="fa-solid fa-wrench"></i> 3. Yêu Cầu Dịch Vụ & Triệu Chứng Xe
               </h4>
               <div class="form-group">
-                <textarea id="cp-symptoms" class="form-control" rows="3" placeholder="Mô tả chi tiết triệu chứng xe hoặc dịch vụ cần làm (VD: Xe đi 5.000 km muốn thay nhớt máy, kiểm tra phanh trước...)"></textarea>
+                <textarea id="cp-symptoms" class="form-control" rows="3"
+                  placeholder="Mô tả chi tiết triệu chứng xe hoặc dịch vụ cần làm..."></textarea>
               </div>
 
               <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
-                <button type="button" class="btn btn-secondary" onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn các mốc bảo dưỡng và chi phí cho xe của tôi')">
+                <button type="button" class="btn btn-secondary"
+                  onclick="openAIAssistantModal('AI Quản Trị', 'Tư vấn các mốc bảo dưỡng và chi phí cho xe của tôi')">
                   <i class="fa-solid fa-wand-magic-sparkles" style="color: #38bdf8;"></i> Hỏi Trợ Lý AI Trước
                 </button>
                 <button type="submit" id="btn-submit-request" class="btn btn-primary" style="padding: 0.7rem 1.5rem; font-weight: 700;">
@@ -643,25 +1362,24 @@
             </form>
           </div>
 
-          <!-- Section: Trang Xác Nhận Yêu Cầu Đặt Lịch (Direct Confirmation Page) -->
+          <!-- Booking Confirmation Card (hidden initially) -->
           <div class="table-card" id="card-booking-confirmation"
             style="display: none; padding: 2rem; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-lg); border-radius: var(--radius-lg);">
-            
-            <!-- Header Banner -->
+
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
               <div style="display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.8rem;">
+                <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.8rem;">
                   <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <div>
-                  <div style="font-size: 0.78rem; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">TIẾP NHẬN THÀNH CÔNG</div>
-                  <h3 style="font-family: Arial; margin: 0; font-size: 1.4rem; color: var(--text-main);">Trang Xác Nhận Đặt Lịch Dịch Vụ</h3>
-                  <span style="font-size: 0.85rem; color: var(--text-muted);">Yêu cầu dịch vụ của bạn đã được chuyển trực tiếp vào hệ thống điều phối xưởng Garage VTV.</span>
+                  <div style="font-size: 0.75rem; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">TIẾP NHẬN THÀNH CÔNG</div>
+                  <h3 style="margin: 0; font-size: 1.3rem; color: var(--text-main);">Xác Nhận Đặt Lịch Dịch Vụ</h3>
+                  <span style="font-size: 0.83rem; color: var(--text-muted);">Yêu cầu đã được chuyển vào hệ thống điều phối xưởng Garage VTV.</span>
                 </div>
               </div>
               <div style="display: flex; gap: 0.5rem;">
                 <button class="btn btn-secondary btn-sm" onclick="printBookingConfirmation()">
-                  <i class="fa-solid fa-print"></i> In Phiếu Xác Nhận
+                  <i class="fa-solid fa-print"></i> In Phiếu
                 </button>
                 <button class="btn btn-primary btn-sm" onclick="resetToNewBooking()">
                   <i class="fa-solid fa-plus"></i> Đặt Lịch Mới
@@ -669,114 +1387,93 @@
               </div>
             </div>
 
-            <!-- Highlight Code & Status Box -->
-            <div style="background: linear-gradient(135deg, rgba(8, 145, 178, 0.12) 0%, rgba(37, 99, 235, 0.12) 100%); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <!-- Request code box -->
+            <div style="background: linear-gradient(135deg, rgba(8,145,178,0.12), rgba(37,99,235,0.12)); border: 1px solid rgba(56,189,248,0.35); border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
               <div>
-                <div style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">MÃ PHIẾU YÊU CẦU TIẾP NHẬN</div>
+                <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">Mã Phiếu Yêu Cầu</div>
                 <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
-                  <span id="conf-request-code" style="font-size: 1.8rem; font-weight: 900; color: var(--accent-cyan); font-family: monospace; letter-spacing: 0.05em;">REQ-20260907-0001</span>
+                  <span id="conf-request-code" style="font-size: 1.7rem; font-weight: 900; color: var(--accent-cyan); font-family: monospace; letter-spacing: 0.05em;">REQ-20260918-0001</span>
                   <button class="btn btn-secondary btn-sm" onclick="copyRequestCode()" style="padding: 0.25rem 0.65rem;" title="Sao chép mã">
                     <i class="fa-solid fa-copy"></i> Copy
                   </button>
                 </div>
               </div>
               <div style="text-align: right;">
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem;">Trạng Thái Hồ Sơ</div>
-                <span id="conf-status-badge" class="status-pill pending" style="font-size: 0.9rem; padding: 0.35rem 0.85rem;">
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.35rem;">Trạng Thái Hồ Sơ</div>
+                <span id="conf-status-badge" class="status-pill pending" style="font-size: 0.88rem; padding: 0.35rem 0.85rem;">
                   <i class="fa-solid fa-clock"></i> Đã Gửi - Chờ Lễ Tân Xác Nhận
                 </span>
               </div>
             </div>
 
-            <!-- 5-Step Process Progress Bar -->
-            <div style="margin-bottom: 1.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem;">
-              <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem;">LỘ TRÌNH XỬ LÝ DỊCH VỤ</div>
-              <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center;">
-                <div style="padding: 0.5rem; border-radius: 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);">
-                  <i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-                  <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-main);">1. Đã Gửi Yêu Cầu</div>
-                  <div style="font-size: 0.7rem; color: #10b981;">Hoàn thành</div>
-                </div>
-                <div style="padding: 0.5rem; border-radius: 8px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4);">
-                  <i class="fa-solid fa-clipboard-check" style="color: #38bdf8; font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-                  <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8;">2. Lễ Tân Xác Nhận</div>
-                  <div style="font-size: 0.7rem; color: #38bdf8;">Đang xử lý...</div>
-                </div>
-                <div style="padding: 0.5rem; border-radius: 8px; background: var(--bg-card); opacity: 0.6;">
-                  <i class="fa-solid fa-calendar-check" style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-                  <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">3. Đã Chốt Hẹn</div>
-                  <div style="font-size: 0.7rem; color: var(--text-muted);">Chờ xác nhận</div>
-                </div>
-                <div style="padding: 0.5rem; border-radius: 8px; background: var(--bg-card); opacity: 0.6;">
-                  <i class="fa-solid fa-screwdriver-wrench" style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-                  <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">4. Đang Sửa Chữa</div>
-                  <div style="font-size: 0.7rem; color: var(--text-muted);">Tại xưởng</div>
-                </div>
-                <div style="padding: 0.5rem; border-radius: 8px; background: var(--bg-card); opacity: 0.6;">
-                  <i class="fa-solid fa-flag-checkered" style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 0.25rem;"></i>
-                  <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">5. Bàn Giao Xe</div>
-                  <div style="font-size: 0.7rem; color: var(--text-muted);">Hoàn tất</div>
-                </div>
+            <!-- 5-step progress -->
+            <div class="step-track" style="margin-bottom: 1.5rem;">
+              <div class="step-item done">
+                <div class="step-dot"><i class="fa-solid fa-check" style="font-size: 0.65rem;"></i></div>
+                <div class="step-label">1. Đã Gửi</div>
+              </div>
+              <div class="step-item current">
+                <div class="step-dot"><i class="fa-solid fa-clipboard-check" style="font-size: 0.65rem;"></i></div>
+                <div class="step-label">2. Lễ Tân XN</div>
+              </div>
+              <div class="step-item">
+                <div class="step-dot">3</div>
+                <div class="step-label">3. Chốt Hẹn</div>
+              </div>
+              <div class="step-item">
+                <div class="step-dot">4</div>
+                <div class="step-label">4. Đang Sửa</div>
+              </div>
+              <div class="step-item">
+                <div class="step-dot">5</div>
+                <div class="step-label">5. Bàn Giao</div>
               </div>
             </div>
 
-            <!-- 3-Block Information Grid -->
+            <!-- Info grid -->
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-              
-              <!-- Block 1: Customer Info -->
               <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.1rem;">
-                <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
-                  <i class="fa-solid fa-user"></i> Khách Hàng
-                </div>
-                <div style="font-size: 0.86rem; line-height: 1.7; color: var(--text-main);">
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; margin-bottom: 0.6rem;"><i class="fa-solid fa-user"></i> Khách Hàng</div>
+                <div style="font-size: 0.85rem; line-height: 1.7; color: var(--text-main);">
                   <div>Họ tên: <strong id="conf-cust-name">-</strong></div>
                   <div>Số ĐT: <strong id="conf-cust-phone" style="color: var(--accent-cyan);">-</strong></div>
                   <div>Email: <span id="conf-cust-email">-</span></div>
                   <div>Địa chỉ: <span id="conf-cust-address">-</span></div>
                 </div>
               </div>
-
-              <!-- Block 2: Vehicle Info -->
               <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.1rem;">
-                <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
-                  <i class="fa-solid fa-car"></i> Phương Tiện
-                </div>
-                <div style="font-size: 0.86rem; line-height: 1.7; color: var(--text-main);">
-                  <div>Biển số: <span id="conf-veh-plate" style="color: var(--accent-cyan); font-weight: 800; font-size: 1.05rem;">-</span></div>
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 0.6rem;"><i class="fa-solid fa-car"></i> Phương Tiện</div>
+                <div style="font-size: 0.85rem; line-height: 1.7; color: var(--text-main);">
+                  <div>Biển số: <span id="conf-veh-plate" style="color: var(--accent-cyan); font-weight: 800; font-size: 1rem;">-</span></div>
                   <div>Dòng xe: <strong id="conf-veh-brandmodel">-</strong></div>
                   <div>Năm SX: <span id="conf-veh-year">2020</span></div>
-                  <div>Số Odo: <span id="conf-veh-mileage">50,000 km</span></div>
+                  <div>Số Odo: <span id="conf-veh-mileage">0 km</span></div>
                 </div>
               </div>
-
-              <!-- Block 3: Booking Info -->
               <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.1rem;">
-                <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-purple); text-transform: uppercase; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
-                  <i class="fa-solid fa-wrench"></i> Dịch Vụ & Lịch Hẹn
-                </div>
-                <div style="font-size: 0.86rem; line-height: 1.7; color: var(--text-main);">
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent-purple); text-transform: uppercase; margin-bottom: 0.6rem;"><i class="fa-solid fa-wrench"></i> Dịch Vụ & Lịch Hẹn</div>
+                <div style="font-size: 0.85rem; line-height: 1.7; color: var(--text-main);">
                   <div>Loại dịch vụ: <strong id="conf-service-type" style="color: #fb7185;">-</strong></div>
                   <div>Thời gian hẹn: <strong id="conf-pref-datetime" style="color: #38bdf8;">-</strong></div>
                   <div>Nội dung: <span id="conf-symptoms">-</span></div>
                   <div>Ghi chú: <span id="conf-note">-</span></div>
                 </div>
               </div>
-
             </div>
 
-            <!-- Notice & Instructions Box -->
-            <div style="background: rgba(37, 99, 235, 0.08); border: 1px dashed rgba(37, 99, 235, 0.35); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 0.85rem; align-items: flex-start;">
+            <!-- Notice -->
+            <div style="background: rgba(37,99,235,0.08); border: 1px dashed rgba(37,99,235,0.35); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 0.85rem; align-items: flex-start;">
               <i class="fa-solid fa-circle-info" style="color: #38bdf8; font-size: 1.2rem; margin-top: 2px;"></i>
-              <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+              <div style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.6;">
                 <div>• <strong>Lễ tân Garage VTV</strong> sẽ xác nhận trực tiếp với quý khách theo số điện thoại đã cung cấp để chốt lịch và điều phối khoang sửa chữa.</div>
                 <div>• Quý khách có thể chụp ảnh màn hình hoặc lưu lại <strong>Mã phiếu tiếp nhận</strong> để tra cứu tiến độ xe bất cứ lúc nào qua thanh tra cứu trên cùng.</div>
               </div>
             </div>
 
-            <!-- Action Footer -->
+            <!-- Footer actions -->
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
               <button class="btn btn-secondary" onclick="lookupCustomerVehicleProgress(document.getElementById('conf-veh-plate')?.innerText || '')">
-                <i class="fa-solid fa-magnifying-glass"></i> Tra Cứu Tiến Độ Sửa Chữa Biển Số Này
+                <i class="fa-solid fa-magnifying-glass"></i> Tra Cứu Tiến Độ Sửa Chữa
               </button>
               <div style="display: flex; gap: 0.75rem;">
                 <button class="btn btn-secondary" onclick="printBookingConfirmation()">
@@ -787,24 +1484,23 @@
                 </button>
               </div>
             </div>
-
           </div>
 
-          <!-- Side Quick Contact & Support Card -->
+          <!-- Side: Contact & AI quick cards -->
           <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-            
-            <!-- Hotline Phone Popup Trigger Box -->
-            <div class="table-card" style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(8, 145, 178, 0.4);">
+
+            <!-- Hotline card -->
+            <div class="table-card" style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a, #1e293b); border: 1px solid rgba(8,145,178,0.4);">
               <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;">
-                <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(8, 145, 178, 0.2); border: 1px solid rgba(8, 145, 178, 0.4); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.2rem;">
+                <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(8,145,178,0.2); border: 1px solid rgba(8,145,178,0.4); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.2rem;">
                   <i class="fa-solid fa-phone-volume"></i>
                 </div>
                 <div>
-                  <h4 style="font-family: Arial; margin: 0; color: #ffffff; font-size: 1.05rem;">Hotline Tư Vấn SĐT</h4>
-                  <span style="font-size: 0.78rem; color: #94a3b8;">Hỗ trợ 24/7 & Cứu hộ lưu động</span>
+                  <h4 style="margin: 0; color: #ffffff; font-size: 1rem;">Hotline Tư Vấn SĐT</h4>
+                  <span style="font-size: 0.76rem; color: #94a3b8;">Hỗ trợ 24/7 & Cứu hộ lưu động</span>
                 </div>
               </div>
-              <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 1rem;">
+              <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 1rem;">
                 Quý khách cần tư vấn gấp hoặc gọi cứu hộ gầm xe? Mở ngay popup liên hệ SĐT trực tiếp với Garage VTV!
               </p>
               <button class="btn btn-primary" onclick="openPhoneContactModal()" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700; padding: 0.75rem;">
@@ -812,18 +1508,18 @@
               </button>
             </div>
 
-            <!-- AI Quick Advisor Trigger Box -->
-            <div class="table-card" style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 1px solid rgba(139, 92, 246, 0.4);">
+            <!-- AI quick advisor card -->
+            <div class="table-card" style="padding: 1.5rem; background: linear-gradient(135deg, #0f172a, #1e1b4b); border: 1px solid rgba(139,92,246,0.4);">
               <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;">
-                <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); display: flex; align-items: center; justify-content: center; color: #c084fc; font-size: 1.2rem;">
+                <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.4); display: flex; align-items: center; justify-content: center; color: #c084fc; font-size: 1.2rem;">
                   <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
                 <div>
-                  <h4 style="font-family: Arial; margin: 0; color: #ffffff; font-size: 1.05rem;">Trợ lý GarageAI</h4>
-                  <span style="font-size: 0.78rem; color: #94a3b8;">Tư vấn kỹ thuật thông minh</span>
+                  <h4 style="margin: 0; color: #ffffff; font-size: 1rem;">AI Quản Trị</h4>
+                  <span style="font-size: 0.76rem; color: #94a3b8;">Tư vấn kỹ thuật thông minh</span>
                 </div>
               </div>
-              <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 1rem;">
+              <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 1rem;">
                 Hỏi đáp về quy trình bảo dưỡng xe máy, ô tô, combo nhớt và dự toán chi phí tự động cùng AI!
               </p>
               <button class="btn btn-ai" onclick="openAIAssistantModal()" style="width: 100%; justify-content: center; font-weight: 700; padding: 0.75rem;">
@@ -832,26 +1528,26 @@
             </div>
 
           </div>
-
         </div>
       </section>
 
-      <!-- VIEW 404: Access Denied / Page Not Found -->
+      <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 404: Access Denied        ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
       <section id="view-404-error" class="view-section">
-        <div style="max-width: 600px; margin: 3rem auto; text-align: center; background: var(--bg-card); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: var(--radius-lg); padding: 3rem 2rem; box-shadow: var(--shadow-lg);">
-          <div style="font-size: 5rem; font-weight: 900; font-family: Arial, sans-serif; color: #f43f5e; line-height: 1; margin-bottom: 0.5rem; text-shadow: 0 0 20px rgba(244, 63, 94, 0.4);">
+        <div style="max-width: 600px; margin: 3rem auto; text-align: center; background: var(--bg-card); border: 1px solid rgba(244,63,94,0.3); border-radius: var(--radius-lg); padding: 3rem 2rem; box-shadow: var(--shadow-lg);">
+          <div style="font-size: 5rem; font-weight: 900; color: #f43f5e; line-height: 1; margin-bottom: 0.5rem; text-shadow: 0 0 20px rgba(244,63,94,0.4);">
             404
           </div>
-          <div style="font-size: 0.85rem; font-weight: 700; color: #fb7185; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;">
-            HTTP 404 - NOT FOUND & ACCESS DENIED
+          <div style="font-size: 0.82rem; font-weight: 700; color: #fb7185; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;">
+            HTTP 404 — NOT FOUND & ACCESS DENIED
           </div>
-          <h2 style="font-family: Arial; font-size: 1.4rem; color: var(--text-main); margin-bottom: 1rem;">
+          <h2 style="font-size: 1.4rem; color: var(--text-main); margin-bottom: 1rem;">
             Trang Không Tồn Tại Hoặc Không Có Quyền Truy Cập
           </h2>
           <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.75rem;">
             Trang quản trị nội bộ này chỉ dành riêng cho nhân viên được cấp quyền (Quản lý, Lễ tân, KTV, Thu ngân). Tài khoản của bạn hiện không có quyền truy cập hệ thống vận hành.
           </p>
-
           <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
             <a href="customer.html" class="btn btn-primary" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #0891b2, #0284c7); border: none; font-weight: 700;">
               <i class="fa-solid fa-arrow-left"></i> Về Cổng Khách Hàng
@@ -863,103 +1559,90 @@
         </div>
       </section>
 
-
     </div>
   </main>
 
-  <!-- MODALS SECTION -->
+  <!-- ══════════════════ MODALS ══════════════════ -->
 
-  <!-- Modal AI Garage Assistant (GarageAI) -->
+  <!-- Modal: AI Garage Assistant -->
   <div id="modal-ai-result" class="modal-backdrop">
-    <div class="modal-card garage-ai-modal" style="max-width: 580px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148, 163, 184, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
-      
-      <!-- Modal Header -->
-      <div class="garage-ai-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+    <div class="modal-card garage-ai-modal" style="max-width: 580px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148,163,184,0.2); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);">
+
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.06);">
         <div style="display: flex; align-items: center; gap: 0.85rem;">
-          <div class="ai-header-icon" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #164e63 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #164e63, #0891b2); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(8,145,178,0.3);">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
           </div>
           <div>
-            <h3 id="modal-ai-title" style="font-family: Arial, sans-serif; color: #ffffff; font-size: 1.2rem; font-weight: 700; margin: 0; line-height: 1.2;">Trợ lý GarageAI</h3>
-            <span style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #64748b; text-transform: uppercase; margin-top: 3px; display: block;">TƯ VẤN TRƯỚC KHI ĐẾN GARAGE</span>
+            <h3 id="modal-ai-title" style="color: #ffffff; font-size: 1.15rem; font-weight: 700; margin: 0; line-height: 1.2;">AI Quản Trị</h3>
+            <span style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; color: #64748b; text-transform: uppercase; display: block; margin-top: 2px;">TƯ VẤN TRƯỚC KHI ĐẾN GARAGE</span>
           </div>
         </div>
-        <button class="close-btn" onclick="closeModal('modal-ai-result')" style="color: #94a3b8; font-size: 1.35rem; background: transparent; border: none; cursor: pointer; padding: 0.2rem 0.5rem; transition: color 0.2s;" title="Đóng">
+        <button class="close-btn" onclick="closeModal('modal-ai-result')" style="color: #94a3b8; font-size: 1.35rem; background: transparent; border: none; cursor: pointer; padding: 0.2rem 0.5rem;" title="Đóng">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <!-- Security Notice Banner -->
-      <div class="garage-ai-banner" style="background: rgba(255, 255, 255, 0.03); padding: 0.75rem 1.35rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.82rem; color: #94a3b8; line-height: 1.45;">
+      <div style="background: rgba(255,255,255,0.03); padding: 0.75rem 1.35rem; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.82rem; color: #94a3b8; line-height: 1.45;">
         Không nhập mật khẩu, mã OTP hoặc dữ liệu nhạy cảm. AI chỉ tư vấn sơ bộ, không thay thế kỹ thuật viên kiểm tra trực tiếp.
       </div>
 
-      <!-- Chat History Area -->
-      <div id="modal-ai-chat-body" class="garage-ai-body" style="padding: 1.35rem; max-height: 380px; min-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; background: #0f172a;">
-        
-        <!-- Default AI Greeting Message matching screenshot -->
-        <div class="garage-ai-msg-row ai-msg" style="display: flex; gap: 0.85rem; align-items: flex-start;">
-          <div class="ai-msg-avatar" style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 116, 144, 0.3); border: 1px solid rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0; margin-top: 2px;">
+      <div id="modal-ai-chat-body" style="padding: 1.35rem; max-height: 380px; min-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; background: #0f172a;">
+        <div style="display: flex; gap: 0.85rem; align-items: flex-start;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14,116,144,0.3); border: 1px solid rgba(6,182,212,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1rem; flex-shrink: 0; margin-top: 2px;">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
           </div>
-          <div class="ai-msg-bubble" style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem 1.25rem; color: #e2e8f0; font-size: 0.92rem; line-height: 1.6; max-width: 88%;">
-            Tôi có thể giải thích dịch vụ, combo bảo dưỡng và quy trình đặt lịch. Bạn có thể nêu loại xe và số km trong câu hỏi để tôi gợi ý sát hơn. Tôi không thể chẩn đoán xe hoặc xác nhận an toàn từ xa; với dấu hiệu bất thường, hãy liên hệ garage để được kiểm tra trực tiếp.
+          <div style="background: rgba(30,41,59,0.65); border: 1px solid rgba(148,163,184,0.15); border-radius: 14px; padding: 1.1rem 1.25rem; color: #e2e8f0; font-size: 0.92rem; line-height: 1.6; max-width: 88%;">
+            Tôi có thể giải thích dịch vụ, combo bảo dưỡng và quy trình đặt lịch. Bạn có thể nêu loại xe và số km trong câu hỏi để tôi gợi ý sát hơn.
           </div>
         </div>
-
       </div>
 
-      <!-- Footer Input Area -->
-      <div class="garage-ai-footer" style="padding: 1.15rem 1.35rem; background: #0f172a; border-top: 1px solid rgba(255, 255, 255, 0.06); display: flex; gap: 0.75rem; align-items: flex-end;">
+      <div style="padding: 1.15rem 1.35rem; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 0.75rem; align-items: flex-end;">
         <div style="flex: 1;">
-          <textarea id="modal-ai-question-input" class="garage-ai-input" rows="2"
+          <textarea id="modal-ai-question-input" rows="2"
             placeholder="Ví dụ: Xe máy đã đi 5.000 km nên bảo dưỡng gì?"
-            style="width: 100%; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 14px; color: #f8fafc; padding: 0.85rem 1rem; font-size: 0.92rem; resize: none; font-family: inherit; outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box;"
+            style="width: 100%; background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.2); border-radius: 14px; color: #f8fafc; padding: 0.85rem 1rem; font-size: 0.92rem; resize: none; font-family: inherit; outline: none; transition: border-color 0.2s; box-sizing: border-box;"
             onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submitModalAIQuestion(); }"></textarea>
         </div>
-        <button class="garage-ai-send-btn" onclick="submitModalAIQuestion()" title="Gửi câu hỏi"
+        <button onclick="submitModalAIQuestion()" title="Gửi câu hỏi"
           style="width: 48px; height: 48px; border-radius: 12px; background: #2b7a8c; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; transition: all 0.2s ease;">
           <i class="fa-solid fa-paper-plane" style="transform: rotate(10deg);"></i>
         </button>
       </div>
-
     </div>
   </div>
 
-  <!-- Modal Phone Contact Popup (Liên Hệ SĐT & Hotline) -->
+  <!-- Modal: Phone Contact Popup -->
   <div id="modal-phone-contact" class="modal-backdrop">
-    <div class="modal-card phone-contact-card" style="max-width: 500px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148, 163, 184, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
-      
-      <!-- Modal Header -->
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+    <div class="modal-card" style="max-width: 500px; width: 95%; padding: 0; overflow: hidden; border-radius: 18px; background: #0f172a; border: 1px solid rgba(148,163,184,0.2); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);">
+
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem 1.35rem; background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.06);">
         <div style="display: flex; align-items: center; gap: 0.85rem;">
-          <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #155e75 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #155e75, #0891b2); display: flex; align-items: center; justify-content: center; color: #67e8f9; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(8,145,178,0.3);">
             <i class="fa-solid fa-phone-volume"></i>
           </div>
           <div>
-            <h3 style="font-family: Arial, sans-serif; color: #ffffff; font-size: 1.15rem; font-weight: 700; margin: 0;">Hotline Liên Hệ Garage VTV</h3>
-            <span style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: #64748b; text-transform: uppercase;">TƯ VẤN TRỰC TIẾP QUÁ SỐ ĐIỆN THOẠI</span>
+            <h3 style="color: #ffffff; font-size: 1.1rem; font-weight: 700; margin: 0;">Hotline Liên Hệ Garage VTV</h3>
+            <span style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; color: #64748b; text-transform: uppercase;">TƯ VẤN TRỰC TIẾP QUA SỐ ĐIỆN THOẠI</span>
           </div>
         </div>
-        <button class="close-btn" onclick="closeModal('modal-phone-contact')" style="color: #94a3b8; font-size: 1.35rem; background: transparent; border: none; cursor: pointer; padding: 0.2rem 0.5rem;" title="Đóng">
+        <button class="close-btn" onclick="closeModal('modal-phone-contact')" style="color: #94a3b8; font-size: 1.35rem; background: transparent; border: none; cursor: pointer; padding: 0.2rem 0.5rem;">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <!-- Phone Contact Body -->
       <div style="padding: 1.35rem; background: #0f172a; display: flex; flex-direction: column; gap: 1rem;">
-        
-        <!-- Hotline Call Card 1 -->
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
+
+        <!-- Hotline 1 -->
+        <div style="background: rgba(30,41,59,0.6); border: 1px solid rgba(148,163,184,0.15); border-radius: 14px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <div style="font-size: 0.78rem; color: #94a3b8; font-weight: 600;">📞 HOTLINE KĨ THUẬT & ĐẶT LỊCH (24/7):</div>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; font-family: Arial, sans-serif; margin-top: 2px;">
-              033.344.2358
-            </div>
-            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Lễ tân & KTV Trưởng trực cuộc gọi</div>
+            <div style="font-size: 0.76rem; color: #94a3b8; font-weight: 600;">📞 HOTLINE KỸ THUẬT & ĐẶT LỊCH (24/7):</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; margin-top: 2px;">033.344.2358</div>
+            <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">Lễ tân & KTV Trưởng trực cuộc gọi</div>
           </div>
           <div style="display: flex; gap: 0.5rem;">
-            <button class="btn btn-secondary btn-sm" onclick="copyTextToClipboard('0333442358', 'Số điện thoại Hotline')" title="Sao chép SĐT">
+            <button class="btn btn-secondary btn-sm" onclick="copyTextToClipboard('0333442358', 'Số điện thoại Hotline')">
               <i class="fa-solid fa-copy"></i>
             </button>
             <a href="tel:0333442358" class="btn btn-primary btn-sm" style="background: #0891b2; border: none; font-weight: 700;">
@@ -968,29 +1651,28 @@
           </div>
         </div>
 
-        <!-- Hotline Call Card 2: Emergency Rescue -->
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(244, 63, 94, 0.25); border-radius: 14px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
+        <!-- Hotline 2: Emergency -->
+        <div style="background: rgba(30,41,59,0.6); border: 1px solid rgba(244,63,94,0.25); border-radius: 14px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <div style="font-size: 0.78rem; color: #f43f5e; font-weight: 600;">🚨 HOTLINE CỨU HỘ GẦM & SỬA LƯU ĐỘNG:</div>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #fb7185; font-family: Arial, sans-serif; margin-top: 2px;">
-              1900.6868
-            </div>
-            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Xe kéo cứu hộ & KTV cơ động đến tận nơi</div>
+            <div style="font-size: 0.76rem; color: #f43f5e; font-weight: 600;">🚨 HOTLINE CỨU HỘ & SỬA LƯU ĐỘNG:</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #fb7185; margin-top: 2px;">1900.6868</div>
+            <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">Xe kéo cứu hộ & KTV cơ động đến tận nơi</div>
           </div>
           <a href="tel:19006868" class="btn btn-primary btn-sm" style="background: #e11d48; border: none; font-weight: 700;">
             <i class="fa-solid fa-truck-medical"></i> Cứu Hộ
           </a>
         </div>
 
-        <!-- Request Callback Form -->
-        <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px; padding: 1.1rem; margin-top: 0.25rem;">
-          <h4 style="font-family: Arial; font-size: 0.95rem; color: #ffffff; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+        <!-- Callback form -->
+        <div style="background: rgba(15,23,42,0.8); border: 1px solid rgba(148,163,184,0.15); border-radius: 14px; padding: 1.1rem;">
+          <h4 style="font-size: 0.93rem; color: #ffffff; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
             <i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8;"></i> Hoặc yêu cầu Garage gọi lại trong 5 phút:
           </h4>
           <form onsubmit="submitCallbackRequest(event)">
             <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
-              <input type="tel" id="cb-phone" class="form-control" placeholder="Nhập SĐT của bạn..." required style="background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
-              <select id="cb-time" class="form-control" style="width: 140px; background: rgba(30, 41, 59, 0.7); border-color: rgba(148, 163, 184, 0.2); color: white;">
+              <input type="tel" id="cb-phone" class="form-control" placeholder="Nhập SĐT của bạn..." required
+                style="background: rgba(30,41,59,0.7); border-color: rgba(148,163,184,0.2); color: white;">
+              <select id="cb-time" class="form-control" style="width: 140px; background: rgba(30,41,59,0.7); border-color: rgba(148,163,184,0.2); color: white;">
                 <option value="immediate">Gọi ngay (5p)</option>
                 <option value="morning">Sáng (8h-11h)</option>
                 <option value="afternoon">Chiều (14h-17h)</option>
@@ -1003,17 +1685,14 @@
         </div>
 
       </div>
-
     </div>
   </div>
 
-
-
-  <!-- Modal New Appointment -->
+  <!-- Modal: New Appointment -->
   <div id="modal-new-appointment" class="modal-backdrop">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 style="font-family: Arial;"><i class="fa-solid fa-calendar-plus"></i> Tạo Lịch Hẹn Mới</h3>
+        <h3><i class="fa-solid fa-calendar-plus"></i> Tạo Lịch Hẹn Mới</h3>
         <button class="close-btn" onclick="closeModal('modal-new-appointment')">&times;</button>
       </div>
       <form id="form-new-appointment" onsubmit="submitNewAppointment(event)">
@@ -1038,11 +1717,11 @@
     </div>
   </div>
 
-  <!-- Modal New Repair Order -->
+  <!-- Modal: New Repair Order -->
   <div id="modal-new-ro" class="modal-backdrop">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 style="font-family: Arial;"><i class="fa-solid fa-car"></i> Tiếp Nhận Xe & Tạo Phiếu Sửa Chữa</h3>
+        <h3><i class="fa-solid fa-car"></i> Tiếp Nhận Xe & Tạo Phiếu Sửa Chữa</h3>
         <button class="close-btn" onclick="closeModal('modal-new-ro')">&times;</button>
       </div>
       <form id="form-new-ro" onsubmit="submitNewRO(event)">
@@ -1067,28 +1746,50 @@
     </div>
   </div>
 
-  <!-- Modal RO Detail & Items Management -->
+  <!-- Modal: RO Detail & Items -->
   <div id="modal-ro-detail" class="modal-backdrop">
     <div class="modal-card" style="max-width: 800px;">
       <div class="modal-header">
-        <h3 id="ro-detail-title" style="font-family: Arial;"><i class="fa-solid fa-wrench"></i> Chi Tiết Phiếu Sửa
-          Chữa</h3>
+        <h3 id="ro-detail-title"><i class="fa-solid fa-wrench"></i> Chi Tiết Phiếu Sửa Chữa</h3>
         <button type="button" class="close-btn" onclick="closeModal('modal-ro-detail')">&times;</button>
       </div>
 
       <div id="ro-detail-info" style="margin-bottom: 1rem; line-height: 1.6; font-size: 0.93rem;"></div>
 
+      <!-- Quick Status Modifier Box -->
+      <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem 1.1rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+          <label for="ro-detail-status-select" style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-arrows-rotate" style="color: #38bdf8;"></i> Chuyển Trạng Thái:
+          </label>
+          <select id="ro-detail-status-select" class="form-control" style="width: auto; min-width: 200px; font-weight: 700; font-size: 0.85rem; padding: 0.45rem 0.8rem; background: var(--bg-card); color: var(--text-main); border-color: var(--border-color); cursor: pointer;">
+            <option value="received">🔵 Tiếp Nhận</option>
+            <option value="ai_draft">🟣 Dự Thảo AI (AI_DRAFT)</option>
+            <option value="under_review">🟠 Thợ Kiểm Tra (UNDER_REVIEW)</option>
+            <option value="approved">🟢 Phê Duyệt (APPROVED)</option>
+            <option value="in_progress">⚡ Đang Sửa Chữa (IN_PROGRESS)</option>
+            <option value="finished">✅ Hoàn Thành (FINISHED)</option>
+            <option value="invoiced">🧾 Đã Lập Hóa Đơn (INVOICED)</option>
+            <option value="cancelled">❌ Hủy Bỏ (CANCELLED)</option>
+          </select>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm btn-shimmer" onclick="saveRODetailStatus()" style="font-weight: 700; padding: 0.5rem 1.1rem; border-radius: 8px;">
+          <i class="fa-solid fa-floppy-disk"></i> Cập Nhật Trạng Thái
+        </button>
+      </div>
+
       <div class="form-group">
         <label>Chẩn Đoán Kỹ Thuật (KTV Điền):</label>
         <textarea id="ro-tech-diagnosis" class="form-control" rows="2"
           placeholder="Ghi chú chẩn đoán kỹ thuật..."></textarea>
-        <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;" onclick="saveTechDiagnosis()">Lưu Ghi Chú
-          Kỹ Thuật</button>
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;" onclick="saveTechDiagnosis()">
+          Lưu Ghi Chú Kỹ Thuật
+        </button>
       </div>
 
       <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
 
-      <h4 style="font-family: Arial; margin-bottom: 0.75rem;">Thêm Hạng Mục (Dịch Vụ & Phụ Tùng):</h4>
+      <h4 style="margin-bottom: 0.75rem;">Thêm Hạng Mục (Dịch Vụ & Phụ Tùng):</h4>
       <div style="display: grid; grid-template-columns: 1fr 1fr 100px 100px; gap: 0.5rem; margin-bottom: 1rem;">
         <select id="item-type-select" class="form-control" onchange="toggleItemSelectType()">
           <option value="service">Dịch Vụ</option>
@@ -1096,7 +1797,9 @@
         </select>
         <select id="item-catalog-select" class="form-control"></select>
         <input type="number" id="item-qty" class="form-control" value="1" min="1" placeholder="SL">
-        <button type="button" id="btn-add-ro-item" class="btn btn-primary" onclick="addItemToRO()"><i class="fa-solid fa-plus"></i> Thêm</button>
+        <button type="button" id="btn-add-ro-item" class="btn btn-primary" onclick="addItemToRO()">
+          <i class="fa-solid fa-plus"></i> Thêm
+        </button>
       </div>
 
       <div class="table-responsive">
@@ -1116,24 +1819,27 @@
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div><strong>Tổng Chi Phí: </strong><span id="ro-detail-total"
-            style="font-family: Arial; font-size: 1.3rem; color: var(--accent-emerald); font-weight: 800;">0
-            VNĐ</span></div>
+        <div>
+          <strong>Tổng Chi Phí: </strong>
+          <span id="ro-detail-total" style="font-size: 1.3rem; color: var(--accent-emerald); font-weight: 800;">0 VNĐ</span>
+        </div>
         <div style="display: flex; gap: 0.5rem;">
-          <button type="button" class="btn btn-ai" onclick="triggerAIFromRODetail('assistant')"><i class="fa-solid fa-robot"></i> Trợ
-            Lý AI Garage</button>
-          <button type="button" class="btn btn-primary" onclick="createInvoiceFromRODetail()"><i class="fa-solid fa-file-invoice"></i>
-            Lập Hóa Đơn</button>
+          <button type="button" class="btn btn-ai" onclick="triggerAIFromRODetail('assistant')">
+            <i class="fa-solid fa-robot"></i> Trợ Lý AI Garage
+          </button>
+          <button type="button" class="btn btn-primary" onclick="createInvoiceFromRODetail()">
+            <i class="fa-solid fa-file-invoice"></i> Lập Hóa Đơn
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal New Customer -->
+  <!-- Modal: New Customer -->
   <div id="modal-new-customer" class="modal-backdrop">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 style="font-family: Arial;"><i class="fa-solid fa-user-plus"></i> Thêm Khách Hàng & Đăng Ký Xe</h3>
+        <h3><i class="fa-solid fa-user-plus"></i> Thêm Khách Hàng & Đăng Ký Xe</h3>
         <button class="close-btn" onclick="closeModal('modal-new-customer')">&times;</button>
       </div>
       <form id="form-new-customer" onsubmit="submitNewCustomer(event)">
@@ -1150,7 +1856,7 @@
           <input type="text" id="cust-address" class="form-control" placeholder="Số 123 Đường XYZ...">
         </div>
         <hr style="border-color: var(--border-color); margin: 1rem 0;">
-        <h4 style="font-family: Arial;">Thông Tin Xe Ban Đầu:</h4>
+        <h4>Thông Tin Xe Ban Đầu:</h4>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
           <input type="text" id="cust-veh-plate" class="form-control" required placeholder="Biển số (VD: 51H-999.99)">
           <input type="text" id="cust-veh-brand" class="form-control" required placeholder="Hãng (VD: Toyota)">
@@ -1167,11 +1873,11 @@
     </div>
   </div>
 
-  <!-- Modal Payment Checkout -->
+  <!-- Modal: Payment Checkout -->
   <div id="modal-payment" class="modal-backdrop">
     <div class="modal-card" style="max-width: 540px;">
       <div class="modal-header">
-        <h3 style="font-family: Arial;"><i class="fa-solid fa-credit-card"></i> Ghi Nhận Thanh Toán Hóa Đơn</h3>
+        <h3><i class="fa-solid fa-credit-card"></i> Ghi Nhận Thanh Toán Hóa Đơn</h3>
         <button class="close-btn" onclick="closeModal('modal-payment')">&times;</button>
       </div>
       <form id="form-payment" onsubmit="submitPayment(event)">
@@ -1183,7 +1889,7 @@
         <div class="form-group">
           <label>Tổng Tiền Cần Thanh Toán:</label>
           <input type="text" id="pay-total-amount" class="form-control" readonly
-            style="font-family: Arial; color: var(--accent-emerald); font-size: 1.2rem; font-weight: 800;">
+            style="color: var(--accent-emerald); font-size: 1.2rem; font-weight: 800;">
         </div>
         <div class="form-group">
           <label>Phương Thức Thanh Toán:</label>
@@ -1194,34 +1900,28 @@
           </select>
         </div>
 
-        <!-- VietQR Techcombank Container -->
+        <!-- VietQR Techcombank -->
         <div id="bank-qr-container" class="qr-card-box">
           <div class="qr-header">
-            <div class="qr-bank-title">
-              <i class="fa-solid fa-qrcode"></i> TECHCOMBANK
-            </div>
+            <div class="qr-bank-title"><i class="fa-solid fa-qrcode"></i> TECHCOMBANK</div>
             <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">VietQR | Napas 247</span>
           </div>
           <div class="qr-image-wrapper">
-            <img id="qr-bank-image" src="https://img.vietqr.io/image/TCB-4443338386-compact2.png"
-              alt="Mã QR Chuyển Khoản Techcombank">
+            <img id="qr-bank-image" src="https://img.vietqr.io/image/TCB-4443338386-compact2.png" alt="Mã QR Chuyển Khoản Techcombank">
           </div>
           <div class="qr-account-info">
             <div class="qr-info-row">
               <span class="qr-info-label">Chủ tài khoản:</span>
               <span class="qr-info-val">
                 DUONG CONG VINH
-                <button type="button" class="copy-chip"
-                  onclick="copyTextToClipboard('DUONG CONG VINH', 'Tên chủ tài khoản')"><i
-                    class="fa-solid fa-copy"></i></button>
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard('DUONG CONG VINH', 'Tên chủ tài khoản')"><i class="fa-solid fa-copy"></i></button>
               </span>
             </div>
             <div class="qr-info-row">
               <span class="qr-info-label">Số tài khoản:</span>
               <span class="qr-info-val">
                 4443 3383 86
-                <button type="button" class="copy-chip" onclick="copyTextToClipboard('4443338386', 'Số tài khoản')"><i
-                    class="fa-solid fa-copy"></i></button>
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard('4443338386', 'Số tài khoản')"><i class="fa-solid fa-copy"></i></button>
               </span>
             </div>
             <div class="qr-info-row">
@@ -1230,21 +1930,16 @@
             </div>
             <div class="qr-info-row">
               <span class="qr-info-label">Số tiền chuyển khoản:</span>
-              <span class="qr-info-val" id="qr-amount-val"
-                style="color: var(--accent-emerald); font-size: 1rem; font-weight: 800;">
+              <span class="qr-info-val" id="qr-amount-val" style="color: var(--accent-emerald); font-weight: 800;">
                 0 VNĐ
-                <button type="button" class="copy-chip"
-                  onclick="copyTextToClipboard(document.getElementById('pay-amount').value, 'Số tiền chuyển khoản')"><i
-                    class="fa-solid fa-copy"></i></button>
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard(document.getElementById('pay-amount').value, 'Số tiền')"><i class="fa-solid fa-copy"></i></button>
               </span>
             </div>
             <div class="qr-info-row">
               <span class="qr-info-label">Nội dung CK:</span>
               <span class="qr-info-val" id="qr-memo-val">
                 THANHTOAN HOADON
-                <button type="button" class="copy-chip"
-                  onclick="copyTextToClipboard(document.getElementById('qr-memo-text').innerText, 'Nội dung chuyển khoản')"><i
-                    class="fa-solid fa-copy"></i></button>
+                <button type="button" class="copy-chip" onclick="copyTextToClipboard(document.getElementById('qr-memo-text').innerText, 'Nội dung chuyển khoản')"><i class="fa-solid fa-copy"></i></button>
               </span>
               <span id="qr-memo-text" style="display:none;">THANHTOAN HOADON</span>
             </div>
@@ -1255,20 +1950,21 @@
           <label>Số Tiền Khách Đưa / Chuyển Khoản:</label>
           <input type="number" id="pay-amount" class="form-control" required oninput="updateQRAmountLive()">
         </div>
-
         <div style="text-align: right; margin-top: 1.25rem;">
           <button type="button" class="btn btn-secondary" onclick="closeModal('modal-payment')">Hủy</button>
-          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-circle-check"></i> Xác Nhận Đã Thu
-            Tiền</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-circle-check"></i> Xác Nhận Đã Thu Tiền
+          </button>
         </div>
       </form>
     </div>
   </div>
-  <!-- Modal New Service -->
+
+  <!-- Modal: New Service -->
   <div id="modal-new-service" class="modal-backdrop">
     <div class="modal-card" style="max-width: 480px;">
       <div class="modal-header">
-        <h3 style="font-family: Arial;"><i class="fa-solid fa-list-check"></i> Thêm Dịch Vụ Mới</h3>
+        <h3><i class="fa-solid fa-list-check"></i> Thêm Dịch Vụ Mới</h3>
         <button class="close-btn" onclick="closeModal('modal-new-service')">&times;</button>
       </div>
       <form id="form-new-service" onsubmit="submitCreateService(event)">
@@ -1292,11 +1988,11 @@
     </div>
   </div>
 
-  <!-- Modal New Part -->
+  <!-- Modal: New Part -->
   <div id="modal-new-part" class="modal-backdrop">
     <div class="modal-card" style="max-width: 500px;">
       <div class="modal-header">
-        <h3 style="font-family: Arial;"><i class="fa-solid fa-box-open"></i> Nhập Phụ Tùng Mới Vào Kho</h3>
+        <h3><i class="fa-solid fa-box-open"></i> Nhập Phụ Tùng Mới Vào Kho</h3>
         <button class="close-btn" onclick="closeModal('modal-new-part')">&times;</button>
       </div>
       <form id="form-new-part" onsubmit="submitCreatePart(event)">
@@ -1330,11 +2026,11 @@
     </div>
   </div>
 
-  <!-- Modal Customer Request Detail -->
+  <!-- Modal: Customer Request Detail -->
   <div id="modal-customer-request" class="modal-backdrop" style="display: none;">
     <div class="modal-card" style="max-width: 680px; width: 95%;">
       <div class="modal-header">
-        <h3 style="font-family: Arial;"><i class="fa-solid fa-clipboard-check" style="color: var(--accent-cyan);"></i> Chi Tiết Yêu Cầu Đặt Lịch</h3>
+        <h3><i class="fa-solid fa-clipboard-check" style="color: var(--accent-cyan);"></i> Chi Tiết Yêu Cầu Đặt Lịch</h3>
         <button class="close-btn" onclick="closeModal('modal-customer-request')">&times;</button>
       </div>
       <div id="modal-cr-body" style="padding: 1.5rem;">
@@ -1343,11 +2039,11 @@
     </div>
   </div>
 
-  <!-- Modal Request Detail & AI Dialog -->
+  <!-- Modal: AI Dialog -->
   <div id="modal-ai-dialog" class="modal-backdrop" style="display: none;">
     <div class="modal-card" style="max-width: 680px; width: 95%;">
       <div class="modal-header">
-        <h3 id="modal-ai-dialog-title" style="font-family: Arial;"><i class="fa-solid fa-clipboard-check" style="color: var(--accent-cyan);"></i> Chi Tiết Yêu Cầu Dịch Vụ</h3>
+        <h3 id="modal-ai-dialog-title"><i class="fa-solid fa-clipboard-check" style="color: var(--accent-cyan);"></i> Chi Tiết Yêu Cầu Dịch Vụ</h3>
         <button class="close-btn" onclick="closeModal('modal-ai-dialog')">&times;</button>
       </div>
       <div id="modal-ai-dialog-body" style="padding: 0.5rem 0;">
@@ -1356,7 +2052,7 @@
     </div>
   </div>
 
-  <!-- Mobile Bottom Navigation Bar -->
+  <!-- Mobile Bottom Nav -->
   <nav class="mobile-bottom-nav">
     <div class="mobile-nav-item active" data-view="customer-requests" onclick="switchView('customer-requests')">
       <i class="fa-solid fa-clipboard-list"></i>
@@ -1380,18 +2076,239 @@
     </div>
   </nav>
 
-  <!-- Floating GarageAI Assistant Quick Trigger Button -->
-  <button class="floating-ai-trigger" onclick="openAIAssistantModal()" title="Mở Trợ lý GarageAI">
+  <!-- Floating AI Button -->
+  <button class="floating-ai-trigger" onclick="openAIAssistantModal()" title="Mở AI Quản Trị">
     <i class="fa-solid fa-wand-magic-sparkles"></i>
   </button>
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="app.js?v=11.0"></script>
+
+  <script>
+    // ─── Chart.js Revenue Chart (Dashboard) ───────────────────────
+    // ─── 6-Month Revenue Column Chart & Comparison Table ─────────
+    const REVENUE_DATA = [
+      { month: 'Tháng 4', actual: 185, target: 180, mom: '—', status: 'pass', note: 'Đạt chỉ tiêu' },
+      { month: 'Tháng 5', actual: 210, target: 200, mom: '+13.5%', status: 'pass', note: 'Vượt chỉ tiêu' },
+      { month: 'Tháng 6', actual: 198, target: 205, mom: '-5.7%', status: 'warn', note: 'Cần tối ưu' },
+      { month: 'Tháng 7', actual: 225, target: 215, mom: '+13.6%', status: 'pass', note: 'Vượt chỉ tiêu' },
+      { month: 'Tháng 8', actual: 240, target: 230, mom: '+6.7%', status: 'pass', note: 'Vượt chỉ tiêu' },
+      { month: 'Tháng 9', actual: 245, target: 240, mom: '+2.1%', status: 'pass', note: 'Xuất sắc' }
+    ];
+
+    window.setRevenueViewMode = function(mode) {
+      const chartBox = document.getElementById('revenue-chart-box');
+      const tableBox = document.getElementById('revenue-table-box');
+      const btnBoth = document.getElementById('btn-rev-mode-both');
+      const btnChart = document.getElementById('btn-rev-mode-chart');
+      const btnTable = document.getElementById('btn-rev-mode-table');
+
+      [btnBoth, btnChart, btnTable].forEach(b => {
+        if (b) {
+          b.style.background = 'transparent';
+          b.style.color = 'var(--text-muted)';
+        }
+      });
+
+      if (mode === 'chart') {
+        if (chartBox) chartBox.style.display = 'block';
+        if (tableBox) tableBox.style.display = 'none';
+        if (btnChart) { btnChart.style.background = 'var(--accent-primary)'; btnChart.style.color = '#fff'; }
+      } else if (mode === 'table') {
+        if (chartBox) chartBox.style.display = 'none';
+        if (tableBox) tableBox.style.display = 'block';
+        if (btnTable) { btnTable.style.background = 'var(--accent-primary)'; btnTable.style.color = '#fff'; }
+      } else {
+        if (chartBox) chartBox.style.display = 'block';
+        if (tableBox) tableBox.style.display = 'block';
+        if (btnBoth) { btnBoth.style.background = 'var(--accent-primary)'; btnBoth.style.color = '#fff'; }
+      }
+    };
+
+    (function initRevenueChartAndTable() {
+      // 1. Populate Table
+      const tbody = document.getElementById('revenue-comparison-tbody');
+      if (tbody) {
+        tbody.innerHTML = REVENUE_DATA.map(row => {
+          const diff = row.actual - row.target;
+          const diffFormatted = (diff >= 0 ? '+' : '') + diff + 'M';
+          const pct = ((row.actual / row.target) * 100).toFixed(1) + '%';
+          const diffColor = diff >= 0 ? '#10b981' : '#f43f5e';
+          const badgeBg = row.status === 'pass' ? 'rgba(16,185,129,0.12)' : 'rgba(244,63,94,0.12)';
+          const badgeColor = row.status === 'pass' ? '#10b981' : '#f43f5e';
+          const momColor = row.mom.startsWith('+') ? '#10b981' : (row.mom.startsWith('-') ? '#f43f5e' : 'var(--text-muted)');
+
+          return `
+            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+              <td style="padding: 0.55rem 0.6rem; font-weight: 700; color: var(--text-main);">${row.month}</td>
+              <td style="padding: 0.55rem 0.6rem; text-align: right; color: #38bdf8; font-weight: 700;">${row.actual}M VNĐ</td>
+              <td style="padding: 0.55rem 0.6rem; text-align: right; color: #818cf8; font-weight: 600;">${row.target}M VNĐ</td>
+              <td style="padding: 0.55rem 0.6rem; text-align: right; color: ${diffColor}; font-weight: 700;">${diffFormatted}</td>
+              <td style="padding: 0.55rem 0.6rem; text-align: right; color: ${diffColor}; font-weight: 700;">${pct}</td>
+              <td style="padding: 0.55rem 0.6rem; text-align: right; color: ${momColor}; font-weight: 600;">${row.mom}</td>
+              <td style="padding: 0.55rem 0.6rem; text-align: center;">
+                <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 2px 7px; border-radius: 99px; font-weight: 700; font-size: 0.7rem;">
+                  ${row.note}
+                </span>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // 2. Render Column Chart
+      const canvas = document.getElementById('revenue-chart-canvas');
+      if (!canvas) return;
+
+      const isDark = () => document.documentElement.getAttribute('data-theme') !== 'light';
+      const gridColor = () => isDark() ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+      const textColor = () => isDark() ? '#94a3b8' : '#64748b';
+
+      const ctx = canvas.getContext('2d');
+
+      const gradientActual = ctx.createLinearGradient(0, 0, 0, 230);
+      gradientActual.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+      gradientActual.addColorStop(1, 'rgba(56, 189, 248, 0.01)');
+
+      const gradientTarget = ctx.createLinearGradient(0, 0, 0, 230);
+      gradientTarget.addColorStop(0, 'rgba(168, 85, 247, 0.2)');
+      gradientTarget.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
+
+      window._revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: REVENUE_DATA.map(d => d.month),
+          datasets: [
+            {
+              label: 'Thực Tế (Doanh Thu)',
+              data: REVENUE_DATA.map(d => d.actual),
+              borderColor: '#38bdf8',
+              backgroundColor: gradientActual,
+              borderWidth: 3,
+              fill: true,
+              tension: 0.38,
+              pointRadius: 5,
+              pointHoverRadius: 8,
+              pointBackgroundColor: '#38bdf8',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointHoverBackgroundColor: '#ffffff',
+              pointHoverBorderColor: '#38bdf8',
+              pointHoverBorderWidth: 3
+            },
+            {
+              label: 'Mục Tiêu Kế Hoạch',
+              data: REVENUE_DATA.map(d => d.target),
+              borderColor: '#a855f7',
+              backgroundColor: gradientTarget,
+              borderWidth: 2.5,
+              borderDash: [6, 6],
+              fill: false,
+              tension: 0.38,
+              pointRadius: 4,
+              pointHoverRadius: 7,
+              pointBackgroundColor: '#a855f7',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 1.5,
+              pointHoverBackgroundColor: '#ffffff',
+              pointHoverBorderColor: '#a855f7',
+              pointHoverBorderWidth: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              align: 'end',
+              labels: {
+                color: textColor(),
+                font: { size: 11, family: 'Huninn, sans-serif' },
+                boxWidth: 12,
+                boxHeight: 12,
+                padding: 12
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  const idx = ctx.dataIndex;
+                  const item = REVENUE_DATA[idx];
+                  if (ctx.datasetIndex === 0) {
+                    const diff = item.actual - item.target;
+                    const diffStr = (diff >= 0 ? '+' : '') + diff + 'M';
+                    const pct = ((item.actual / item.target) * 100).toFixed(1);
+                    return ` Thực tế: ${item.actual} Tr (${diffStr} | Đạt ${pct}%)`;
+                  } else {
+                    return ` Kế hoạch: ${item.target} Tr`;
+                  }
+                }
+              },
+              backgroundColor: '#1e293b',
+              titleColor: '#f8fafc',
+              bodyColor: '#94a3b8',
+              borderColor: 'rgba(148,163,184,0.2)',
+              borderWidth: 1,
+              padding: 10,
+              cornerRadius: 8
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: gridColor(), drawBorder: false },
+              ticks: { color: textColor(), font: { size: 11, family: 'Huninn, sans-serif' } }
+            },
+            y: {
+              grid: { color: gridColor(), drawBorder: false },
+              ticks: {
+                color: textColor(),
+                font: { size: 11, family: 'Huninn, sans-serif' },
+                callback: v => v + 'M'
+              },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      // Update chart colors when theme changes
+      const origToggle = window.toggleTheme;
+      window.toggleTheme = function() {
+        if (origToggle) origToggle();
+        setTimeout(() => {
+          if (window._revenueChart) {
+            window._revenueChart.options.scales.x.grid.color = gridColor();
+            window._revenueChart.options.scales.x.ticks.color = textColor();
+            window._revenueChart.options.scales.y.grid.color = gridColor();
+            window._revenueChart.options.scales.y.ticks.color = textColor();
+            if (window._revenueChart.options.plugins.legend) {
+              window._revenueChart.options.plugins.legend.labels.color = textColor();
+            }
+            window._revenueChart.update();
+          }
+        }, 50);
+      };
+    })();
+
+    // ─── Update sidebar user info from localStorage ────────────────
+    (function updateSidebarUser() {
+      const role = localStorage.getItem('garage_user_role') || 'receptionist';
+      const roleLabels = {
+        manager: 'Quản Lý (Admin)',
+        receptionist: 'Lễ Tân',
+        technician: 'Kỹ Thuật Viên',
+        cashier: 'Thu Ngân',
+        customer: 'Khách Hàng'
+      };
+      const el = document.getElementById('sidebar-role-label');
+      if (el) el.textContent = roleLabels[role] || role;
+    })();
+  </script>
 </body>
-
-
-
-
 
 </html>

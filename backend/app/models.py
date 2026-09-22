@@ -514,6 +514,31 @@ class AILog(Base):
     price_variance = Column(Float, default=0.0) # Bắt buộc = 0.0%
 
     created_at = Column(DateTime, default=get_utc_now)
+    
+    feedbacks = relationship("AIFeedback", back_populates="ai_log", cascade="all, delete-orphan")
+
+class AIFeedback(Base):
+    __tablename__ = "ai_feedbacks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    ai_log_id = Column(Integer, ForeignKey("ai_logs.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    rating = Column(Integer, nullable=False) # 1 to 5 stars, or 1/-1
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=get_utc_now)
+
+    ai_log = relationship("AILog", back_populates="feedbacks")
+    user = relationship("User")
+
+class AIKnowledgeBase(Base):
+    __tablename__ = "ai_knowledge_base"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category = Column(String(50), nullable=False, default="general") # general, technical, pricing, rule
+    content = Column(Text, nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=get_utc_now)
+    updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now)
 
 class CustomerRequest(Base):
     __tablename__ = "customer_requests"

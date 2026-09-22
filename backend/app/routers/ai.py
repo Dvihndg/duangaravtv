@@ -3,11 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.app.database import get_db
-from backend.app.models import AILog, User, UserRole
+from backend.app.models import AILog, User, UserRole, AIFeedback, AIKnowledgeBase
 from backend.app.schemas import (
     AIAssistantRequest, AIHistorySummaryRequest, AIServiceExplainerRequest, AIDraftQuotationRequest, AIResponse,
     AIEvaluationMetricsResponse, DemoScenarioResponse, AITechnicalTroubleshootRequest, AIOBDDiagnosticRequest,
-    AIBusinessAnalysisRequest, AIPredictiveMaintenanceRequest, AICustomerProgressRequest
+    AIBusinessAnalysisRequest, AIPredictiveMaintenanceRequest, AICustomerProgressRequest,
+    AIFeedbackCreate, AIKnowledgeBaseCreate, AIKnowledgeBaseOut
 )
 from backend.app.auth import get_current_user, require_roles
 from backend.app.ai.service import AIService
@@ -162,3 +163,68 @@ def lookup_customer_progress(
     current_user = Depends(get_current_user)
 ):
     return AIService.lookup_customer_vehicle_progress(db, req.license_plate_or_phone)
+
+# =====================================================================
+# KNOWLEDGE BASE & FEEDBACK (Continuous Improvement & Monitoring)
+# =====================================================================
+
+@router.post("/feedback/{log_id}", status_code=status.HTTP_201_CREATED)
+def submit_ai_feedback(
+    log_id: int,
+    feedback: AIFeedbackCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """Gửi phản hồi/đánh giá (Rating) cho một kết quả AI"""
+    log = db.query(AILog).filter(AILog.id == log_id).first()
+    if not log:
+        raise HTTPException(status_code=404, detail="AI Log không tồn tại")
+    
+    new_feedback = AIFeedback(
+        ai_log_id=log_id,
+        user_id=current_user.id,
+        rating=feedback.rating,
+        comment=feedback.comment
+    )
+    db.add(new_feedback)
+    db.commit()
+    return {"message": "Cảm ơn bạn đã gửi phản hồi"}
+
+@router.post("/knowledge", response_model=AIKnowledgeBaseOut, status_code=status.HTTP_201_CREATED)
+def create_knowledge(
+    req: AIKnowledgeBaseCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_roles([UserRole.MANAGER]))
+):
+    """Thêm một luật/kiến thức mới vào AI Memory (Chỉ Manager)"""
+    kb = AIKnowledgeBase(
+        category=req.category,
+        content=req.content,
+        is_active=req.is_active
+    )
+    db.add(kb)
+    db.commit()
+    db.refresh(kb)
+    return kb
+
+@router.get("/knowledge", response_model=List[AIKnowledgeBaseOut])
+def list_knowledge(
+    db: Session = Depends(get_db),
+    current_user = Depends(require_roles([UserRole.MANAGER]))
+):
+    """Danh sách các luật/kiến thức của AI"""
+    return db.query(AIKnowledgeBase).order_by(AIKnowledgeBase.created_at.desc()).all()
+
+@router.delete("/knowledge/{kb_id}")
+def delete_knowledge(
+    kb_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_roles([UserRole.MANAGER]))
+):
+    """Xóa một quy tắc trí nhớ của AI"""
+    kb = db.query(AIKnowledgeBase).filter(AIKnowledgeBase.id == kb_id).first()
+    if not kb:
+        raise HTTPException(status_code=404, detail="Không tìm thấy Knowledge Base")
+    db.delete(kb)
+    db.commit()
+    return {"message": "Đã xóa kiến thức"}

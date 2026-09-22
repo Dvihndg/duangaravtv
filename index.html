@@ -29,7 +29,7 @@
     body {
       background: var(--bg-primary);
       color: var(--text-main);
-      font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+      font-family: 'Plus Jakarta Sans', "Huninn", sans-serif;
       margin: 0;
       padding: 0;
       overflow-x: hidden;
@@ -519,6 +519,9 @@
       background: var(--bg-card);
     }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -537,35 +540,50 @@
     </nav>
 
     <div class="header-actions">
-      <button class="btn-login" onclick="openPhoneContactModal()"
-        style="border-color: #0891b2; color: #38bdf8; background: transparent; cursor: pointer;">
+      <button class="btn-login card-hover-lift" onclick="openPhoneContactModal()"
+        style="border-color: #0891b2; color: #38bdf8; background: rgba(8, 145, 178, 0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+        <span class="live-dot cyan" style="margin: 0;"></span>
         <i class="fa-solid fa-phone"></i> Hotline: 033.344.2358
       </button>
-      <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng/Tối">
+      <button class="theme-toggle card-hover-lift" id="theme-btn" onclick="toggleTheme()"
+        title="Chuyển chế độ Sáng/Tối">
         <i class="fa-solid fa-moon"></i>
       </button>
-      <a href="login.html" class="btn-login" style="display: none;"><i class="fa-solid fa-lock"></i> Đăng Nhập Nội Bộ</a>
+      <a href="login.html" class="btn-login" style="display: none;"><i class="fa-solid fa-lock"></i> Đăng Nhập Nội
+        Bộ</a>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="hero">
+  <!-- Hero Section with Ambient Motion Orbs -->
+  <section class="hero" style="position: relative; overflow: hidden;">
+    <div class="ambient-glow-orb"
+      style="top: 8%; left: 8%; width: 360px; height: 360px; background: radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 70%);">
+    </div>
+    <div class="ambient-glow-orb"
+      style="top: 20%; right: 6%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 70%); animation-delay: -6s;">
+    </div>
     <div class="floating-ai"></div>
+
     <div class="hero-content">
-      <div class="badge"><i class="fa-solid fa-microchip"></i> Tiên Phong Ứng Dụng AI</div>
-      <h1>Chăm Sóc Xế Yêu Của Bạn <span>Chuẩn Xác & Thông Minh</span></h1>
-      <p>Hệ thống Garage VTV mang đến trải nghiệm bảo dưỡng xe minh bạch, nhanh chóng với sự hỗ trợ của công nghệ chẩn
+      <div class="badge anim-fade-in" style="display: inline-flex; align-items: center; gap: 8px;">
+        <span class="live-dot cyan" style="margin: 0;"></span>
+        <i class="fa-solid fa-microchip"></i> Tiên Phong Ứng Dụng AI
+      </div>
+      <h1 class="anim-fade-in anim-delay-1">Chăm Sóc Xế Yêu Của Bạn <span>Chuẩn Xác & Thông Minh</span></h1>
+      <p class="anim-fade-in anim-delay-2">Hệ thống Garage VTV mang đến trải nghiệm bảo dưỡng xe minh bạch, nhanh chóng
+        với sự hỗ trợ của công nghệ chẩn
         đoán lỗi bằng Trí Tuệ Nhân Tạo (AI) độc quyền.</p>
 
-      <div class="hero-buttons">
-        <a href="#booking" class="btn-glow btn-primary-glow">
+      <div class="hero-buttons anim-fade-in anim-delay-3">
+        <a href="#booking" class="btn-glow btn-primary-glow btn-shimmer card-hover-lift">
           <i class="fa-regular fa-calendar-check"></i> Đặt Lịch Ngay
         </a>
-        <a href="#tracking" class="btn-glow btn-secondary-glow">
+        <a href="#tracking" class="btn-glow btn-secondary-glow card-hover-lift">
           <i class="fa-solid fa-magnifying-glass"></i> Tra Cứu Tiến Độ
         </a>
         <button onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn các dịch vụ bảo dưỡng phù hợp cho xe của tôi')"
-          class="btn-glow btn-secondary-glow" style="border-color: var(--accent-purple); color: var(--accent-purple);">
+          class="btn-glow btn-secondary-glow card-hover-lift"
+          style="border-color: var(--accent-purple); color: var(--accent-purple);">
           <i class="fa-solid fa-robot"></i> Trợ Lý AI
         </button>
       </div>
@@ -573,25 +591,25 @@
   </section>
 
   <!-- Services Section -->
-  <section id="services" class="section">
+  <section id="services" class="section reveal-init">
     <div class="section-title">
       <h2>Dịch Vụ Cao Cấp</h2>
       <p>Chất lượng dịch vụ là ưu tiên hàng đầu tại Garage VTV</p>
     </div>
     <div class="services-grid">
-      <div class="service-card">
+      <div class="service-card card-hover-lift">
         <div class="service-icon"><i class="fa-solid fa-oil-can"></i></div>
         <h3>Bảo Dưỡng Định Kỳ</h3>
         <p>Quy trình bảo dưỡng tiêu chuẩn hãng, thay nhớt, lọc gió, kiểm tra 40 hạng mục an toàn giúp xe luôn vận hành
           êm ái.</p>
       </div>
-      <div class="service-card">
+      <div class="service-card card-hover-lift">
         <div class="service-icon"><i class="fa-solid fa-wrench"></i></div>
         <h3>Sửa Chữa Chuyên Sâu</h3>
         <p>Khắc phục triệt để các vấn đề về động cơ, hộp số, khung gầm với phụ tùng chính hãng và kỹ thuật viên tay nghề
           cao.</p>
       </div>
-      <div class="service-card">
+      <div class="service-card card-hover-lift">
         <div class="service-icon"><i class="fa-solid fa-robot"></i></div>
         <h3>Chẩn Đoán Trợ Lý AI</h3>
         <p>Tương tác với GarageAI để chẩn đoán sơ bộ nguyên nhân báo lỗi trên taplo trước khi mang xe đến xưởng.</p>
@@ -604,7 +622,7 @@
     <div class="action-container">
 
       <!-- Booking Form -->
-      <div id="booking" class="glass-panel">
+      <div id="booking" class="glass-panel card-hover-lift reveal-init">
         <h3><i class="fa-solid fa-calendar-plus"></i> Đặt Lịch Dịch Vụ</h3>
         <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">
           Gửi yêu cầu bảo dưỡng/sửa chữa. Kỹ thuật viên sẽ liên hệ lại ngay để xác nhận.
@@ -613,11 +631,13 @@
         <form id="bookingForm" onsubmit="handleBooking(event)">
           <div class="form-group">
             <label class="form-label" for="bf_name">Họ và Tên (*)</label>
-            <input type="text" id="bf_name" class="form-control" required autocomplete="name" placeholder="VD: Nguyễn Văn A">
+            <input type="text" id="bf_name" class="form-control" required autocomplete="name"
+              placeholder="VD: Nguyễn Văn A">
           </div>
           <div class="form-group">
             <label class="form-label" for="bf_phone">Số Điện Thoại (*)</label>
-            <input type="tel" id="bf_phone" class="form-control" required autocomplete="tel" inputmode="tel" placeholder="VD: 0987654321">
+            <input type="tel" id="bf_phone" class="form-control" required autocomplete="tel" inputmode="tel"
+              placeholder="VD: 0987654321">
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
@@ -644,7 +664,7 @@
               placeholder="Mô tả chi tiết hơn về vấn đề xe của bạn..."></textarea>
           </div>
 
-          <button type="submit" class="submit-btn" id="btnSubmitBooking">
+          <button type="submit" class="submit-btn btn-shimmer" id="btnSubmitBooking">
             <i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu
           </button>
         </form>
@@ -655,7 +675,8 @@
         <div class="booking-success-icon"><i class="fa-solid fa-check"></i></div>
         <p class="booking-success-kicker">ĐẶT LỊCH THÀNH CÔNG</p>
         <h3>Cảm ơn bạn đã gửi yêu cầu</h3>
-        <p class="booking-success-copy">Thông tin đã được chuyển đến hệ thống lễ tân. Chúng tôi sẽ liên hệ lại để xác nhận lịch hẹn.</p>
+        <p class="booking-success-copy">Thông tin đã được chuyển đến hệ thống lễ tân. Chúng tôi sẽ liên hệ lại để xác
+          nhận lịch hẹn.</p>
         <div class="booking-code-box">
           <span>Mã theo dõi</span>
           <strong id="booking-success-code">Đang tạo mã...</strong>
@@ -665,22 +686,25 @@
           <span><i class="fa-solid fa-phone"></i> <b id="booking-success-phone">—</b></span>
         </div>
         <div class="booking-success-actions">
-          <button type="button" class="submit-btn" onclick="copyBookingSuccessCode()"><i class="fa-regular fa-copy"></i> Sao chép mã</button>
-          <button type="button" class="booking-secondary-btn" onclick="resetBookingSuccess()"><i class="fa-solid fa-plus"></i> Gửi yêu cầu khác</button>
+          <button type="button" class="submit-btn btn-shimmer" onclick="copyBookingSuccessCode()"><i
+              class="fa-regular fa-copy"></i> Sao chép mã</button>
+          <button type="button" class="booking-secondary-btn" onclick="resetBookingSuccess()"><i
+              class="fa-solid fa-plus"></i> Gửi yêu cầu khác</button>
         </div>
       </div>
 
       <!-- Tracking Form -->
-      <div id="tracking" class="glass-panel">
+      <div id="tracking" class="glass-panel card-hover-lift reveal-init">
         <h3><i class="fa-solid fa-search"></i> Tra Cứu Tiến Độ</h3>
         <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">
           Nhập mã yêu cầu (VD: REQ-20260915-0001) để xem trạng thái dịch vụ.
         </p>
 
         <div class="form-group">
-          <input type="text" id="track_input" class="form-control" placeholder="Nhập mã REQ của bạn..." autocomplete="off">
+          <input type="text" id="track_input" class="form-control" placeholder="Nhập mã REQ của bạn..."
+            autocomplete="off">
         </div>
-        <button class="submit-btn" onclick="handleTracking()"
+        <button class="submit-btn btn-shimmer" onclick="handleTracking()"
           style="background: var(--bg-sidebar); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);">
           <i class="fa-solid fa-radar"></i> Tra Cứu Ngay
         </button>
@@ -703,12 +727,51 @@
         <span style="font-weight: 800; font-size: 1.2rem; color: var(--text-main);">GARAGE VTV</span>
       </div>
       <div class="footer-text">
-        &copy; 2026 Garage VTV Automotive. Tự động hóa bởi Trí Tuệ Nhân Tạo. | <a href="login.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.8rem;" title="Đăng nhập nội bộ">Nhân Viên</a>
+        &copy; 2026 Garage VTV Automotive. Tự động hóa bởi Trí Tuệ Nhân Tạo.
       </div>
     </div>
   </footer>
 
+  <!-- Toast notification (thay thế alert) -->
+  <div id="global-toast" style="
+    position: fixed; top: 1.25rem; left: 50%; transform: translateX(-50%) translateY(-20px);
+    min-width: 300px; max-width: 90vw;
+    background: #1e293b; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 0.9rem 1.1rem;
+    display: flex; align-items: center; gap: 0.75rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 99999; opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: none;
+  ">
+    <i id="global-toast-icon" class="fa-solid fa-circle-exclamation" style="font-size:1.1rem; flex-shrink:0;"></i>
+    <span id="global-toast-text" style="font-size:0.88rem; color:#f8fafc; font-weight:500;"></span>
+  </div>
+
   <script>
+    let _toastTimer;
+    function showToast(type, msg, duration = 4500) {
+      const el = document.getElementById('global-toast');
+      const icon = document.getElementById('global-toast-icon');
+      const txt = document.getElementById('global-toast-text');
+      const cfg = {
+        error: { icon: 'fa-circle-exclamation', color: '#f43f5e' },
+        warn: { icon: 'fa-triangle-exclamation', color: '#f59e0b' },
+        success: { icon: 'fa-circle-check', color: '#10b981' },
+      };
+      const c = cfg[type] || cfg.error;
+      icon.className = `fa-solid ${c.icon}`;
+      icon.style.color = c.color;
+      txt.textContent = msg;
+      el.style.opacity = '1';
+      el.style.transform = 'translateX(-50%) translateY(0)';
+      clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(-50%) translateY(-20px)';
+      }, duration);
+    }
+
     const themeBtn = document.getElementById('theme-btn');
     const htmlEl = document.documentElement;
     const savedTheme = localStorage.getItem('vtv_theme') || 'dark';
@@ -740,6 +803,81 @@
       }
     });
 
+    function saveLocalCustomerRequest(payload) {
+      const now = new Date();
+      const d = String(now.getDate()).padStart(2, '0');
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const y = now.getFullYear();
+      const dateStr = `${y}${m}${d}`;
+      const prefix = `REQ-${dateStr}-`;
+
+      let requests = [];
+      try {
+        requests = JSON.parse(localStorage.getItem('vtv_customer_requests_data') || '[]');
+      } catch (_) { requests = []; }
+
+      const todayExisting = requests.filter(r => (r.requestCode || "").startsWith(prefix));
+      const seq = String(todayExisting.length + 1).padStart(4, '0');
+      const reqCode = `${prefix}${seq}`;
+      const reqId = Date.now();
+
+      const newReq = {
+        id: reqId,
+        requestCode: reqCode,
+        fullName: payload.fullName,
+        phone: payload.phone,
+        licensePlate: payload.licensePlate,
+        vehicleBrand: payload.vehicleBrand || "Không xác định",
+        vehicleModel: payload.vehicleModel || "",
+        serviceType: payload.serviceType,
+        description: payload.description || "",
+        preferredDate: payload.preferredDate || null,
+        status: "Pending",
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString()
+      };
+
+      requests.unshift(newReq);
+      localStorage.setItem('vtv_customer_requests_data', JSON.stringify(requests));
+
+      // Auto save/update customer in vtv_customers_data
+      try {
+        let customers = JSON.parse(localStorage.getItem('vtv_customers_data') || '[]');
+        let cust = customers.find(c => c.phone === payload.phone);
+        if (!cust) {
+          const nextCustId = customers.length ? Math.max(...customers.map(c => c.id || 0)) + 1 : 1;
+          cust = {
+            id: nextCustId,
+            customer_code: `KH-${String(nextCustId).padStart(4, '0')}`,
+            full_name: payload.fullName,
+            phone: payload.phone,
+            created_at: now.toISOString()
+          };
+          customers.push(cust);
+          localStorage.setItem('vtv_customers_data', JSON.stringify(customers));
+        }
+
+        // Auto save/update vehicle in vtv_vehicles_data
+        let vehicles = JSON.parse(localStorage.getItem('vtv_vehicles_data') || '[]');
+        let veh = vehicles.find(v => (v.license_plate || '').toUpperCase() === (payload.licensePlate || '').toUpperCase());
+        if (!veh) {
+          const nextVehId = vehicles.length ? Math.max(...vehicles.map(v => v.id || 0)) + 1 : 1;
+          veh = {
+            id: nextVehId,
+            customer_id: cust.id,
+            license_plate: payload.licensePlate,
+            brand: payload.vehicleBrand || "Khác",
+            model: payload.vehicleModel || "Chưa rõ",
+            created_at: now.toISOString()
+          };
+          vehicles.push(veh);
+          localStorage.setItem('vtv_vehicles_data', JSON.stringify(vehicles));
+        }
+      } catch (_) { }
+
+      return newReq;
+    }
+
     async function handleBooking(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSubmitBooking');
@@ -748,42 +886,51 @@
       btn.disabled = true;
 
       const payload = {
-        fullName: document.getElementById('bf_name').value,
-        phone: document.getElementById('bf_phone').value,
-        vehicleBrand: "Không xác định", // Backend requires this field
-        vehicleModel: document.getElementById('bf_model').value,
-        licensePlate: document.getElementById('bf_plate').value,
+        fullName: document.getElementById('bf_name').value.trim(),
+        phone: document.getElementById('bf_phone').value.trim(),
+        vehicleBrand: "Không xác định",
+        vehicleModel: document.getElementById('bf_model').value.trim(),
+        licensePlate: document.getElementById('bf_plate').value.trim(),
         serviceType: document.getElementById('bf_service').value,
-        description: document.getElementById('bf_desc').value
+        description: document.getElementById('bf_desc').value.trim()
       };
 
       const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
       const API_BASE = isLocal ? "http://127.0.0.1:8000/api/v1" : "/api/v1";
+
+      let bookedData = null;
       try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 2000);
         const response = await fetch(`${API_BASE}/customer-requests`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          signal: ctrl.signal
         });
+        clearTimeout(t);
 
         if (response.ok) {
-          const data = await response.json();
-          showBookingSuccess({
-            ...payload,
-            ...data,
-            requestCode: data.requestCode || data.request_code || data.code
-          });
-        } else {
-          const err = await response.json();
-          alert('Lỗi: ' + (err.detail || 'Không thể gửi yêu cầu'));
+          bookedData = await response.json();
         }
-      } catch (error) {
-        console.error(error);
-        alert('Lỗi kết nối đến máy chủ.');
-      } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+      } catch (_) {
+        // Backend offline / mạng không khả dụng -> fallback lưu local
       }
+
+      if (!bookedData) {
+        bookedData = saveLocalCustomerRequest(payload);
+      }
+
+      const finalCode = bookedData.requestCode || bookedData.request_code || bookedData.code || "REQ-SUCCESS";
+      showBookingSuccess({
+        ...payload,
+        ...bookedData,
+        requestCode: finalCode
+      });
+      showToast('success', `Đặt lịch thành công! Mã: ${finalCode}`);
+
+      btn.innerHTML = originalText;
+      btn.disabled = false;
     }
 
     async function handleTracking() {
@@ -800,43 +947,67 @@
 
       const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
       const API_BASE = isLocal ? "http://127.0.0.1:8000/api/v1" : "/api/v1";
-      try {
-        const response = await fetch(`${API_BASE}/customer-requests/code/${encodeURIComponent(q)}`);
-        if (response.ok) {
-          const req = await response.json();
-            const statusMap = {
-              Pending: ['#f59e0b', 'Chờ Xác Nhận'],
-              Contacted: ['#3b82f6', 'Đã Liên Hệ'],
-              Confirmed: ['#3b82f6', 'Đã Xác Nhận'],
-              InProgress: ['#10b981', 'Đang Xử Lý'],
-              Completed: ['#059669', 'Hoàn Thành'],
-              Cancelled: ['#ef4444', 'Đã Hủy'],
-              Rejected: ['#ef4444', 'Đã Từ Chối'],
-              PENDING: ['#f59e0b', 'Chờ Xác Nhận'],
-              APPROVED: ['#3b82f6', 'Đã Phê Duyệt'],
-              IN_PROGRESS: ['#10b981', 'Đang Xử Lý'],
-              COMPLETED: ['#059669', 'Hoàn Thành'],
-              CANCELLED: ['#ef4444', 'Đã Hủy']
-            };
-            const [statusColor, statusText] = statusMap[req.status] || ['#94a3b8', req.status || 'Đang xử lý'];
 
-            const html = `
-              <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; margin-bottom: 0.8rem; border-left: 4px solid ${statusColor};">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                  <strong style="color: var(--text-main);">${req.requestCode}</strong>
-                  <span style="background: ${statusColor}20; color: ${statusColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">${statusText}</span>
-                </div>
-                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;"><i class="fa-solid fa-screwdriver-wrench"></i> Dịch vụ: ${req.serviceType || 'Đang tiếp nhận'}</div>
-                <div style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> Lịch dự kiến: ${req.preferredDate || 'Lễ tân sẽ liên hệ xác nhận'}</div>
-              </div>
-            `;
-          resDiv.innerHTML = html;
-        } else {
-          resDiv.innerHTML = '<div style="color: var(--accent-rose);">Lỗi khi tải dữ liệu tra cứu.</div>';
+      let req = null;
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 2000);
+        const response = await fetch(`${API_BASE}/customer-requests/code/${encodeURIComponent(q)}`, {
+          signal: ctrl.signal
+        });
+        clearTimeout(t);
+        if (response.ok) {
+          req = await response.json();
         }
-      } catch (error) {
-        console.error(error);
-        resDiv.innerHTML = '<div style="color: var(--accent-rose);">Lỗi kết nối đến máy chủ.</div>';
+      } catch (_) {
+        // Backend offline
+      }
+
+      if (!req) {
+        try {
+          const list = JSON.parse(localStorage.getItem('vtv_customer_requests_data') || '[]');
+          const qNorm = q.toLowerCase();
+          const qDigits = q.replace(/\D/g, '');
+          req = list.find(r =>
+            (r.requestCode && r.requestCode.toLowerCase() === qNorm) ||
+            (qDigits && r.phone && r.phone.replace(/\D/g, '') === qDigits) ||
+            (r.licensePlate && r.licensePlate.toLowerCase().replace(/[^a-z0-9]/g, '') === qNorm.replace(/[^a-z0-9]/g, ''))
+          );
+        } catch (_) { }
+      }
+
+      if (req) {
+        const statusMap = {
+          Pending: ['#f59e0b', 'Chờ Xác Nhận'],
+          Contacted: ['#3b82f6', 'Đã Liên Hệ'],
+          Confirmed: ['#3b82f6', 'Đã Xác Nhận'],
+          InProgress: ['#10b981', 'Đang Xử Lý'],
+          Completed: ['#059669', 'Hoàn Thành'],
+          Cancelled: ['#ef4444', 'Đã Hủy'],
+          Rejected: ['#ef4444', 'Đã Từ Chối'],
+          PENDING: ['#f59e0b', 'Chờ Xác Nhận'],
+          APPROVED: ['#3b82f6', 'Đã Phê Duyệt'],
+          IN_PROGRESS: ['#10b981', 'Đang Xử Lý'],
+          COMPLETED: ['#059669', 'Hoàn Thành'],
+          CANCELLED: ['#ef4444', 'Đã Hủy']
+        };
+        const [statusColor, statusText] = statusMap[req.status] || ['#94a3b8', req.status || 'Đang xử lý'];
+
+        const html = `
+          <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; margin-bottom: 0.8rem; border-left: 4px solid ${statusColor};">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+              <strong style="color: var(--text-main);">${req.requestCode || 'Yêu Cầu'}</strong>
+              <span style="background: ${statusColor}20; color: ${statusColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">${statusText}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;"><i class="fa-solid fa-user"></i> Khách hàng: ${req.fullName || '—'} (${req.phone || '—'})</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;"><i class="fa-solid fa-car"></i> Xe: ${req.vehicleModel || req.vehicleBrand || '—'} (${req.licensePlate || '—'})</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;"><i class="fa-solid fa-screwdriver-wrench"></i> Dịch vụ: ${req.serviceType || 'Đang tiếp nhận'}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> Thời gian: ${req.createdAt ? new Date(req.createdAt).toLocaleString('vi-VN') : 'Mới tạo'}</div>
+          </div>
+        `;
+        resDiv.innerHTML = html;
+      } else {
+        resDiv.innerHTML = '<div style="color: var(--accent-rose);"><i class="fa-solid fa-circle-exclamation"></i> Không tìm thấy yêu cầu đặt lịch nào với mã, SĐT hoặc biển số này.</div>';
       }
     }
   </script>
@@ -853,8 +1024,8 @@
             <i class="fa-solid fa-wand-magic-sparkles"></i>
           </div>
           <div>
-            <h3 id="modal-ai-title"
-              style="font-family: Arial, sans-serif; color: #ffffff; font-size: 1.2rem; font-weight: 700; margin: 0; line-height: 1.2;">
+            <h3 id="modal-ai-title" style="font-family: " Huninn", sans-serif; color: #ffffff; font-size: 1.2rem;
+              font-weight: 700; margin: 0; line-height: 1.2;">
               Trợ lý GarageAI</h3>
             <span
               style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #64748b; text-transform: uppercase; margin-top: 3px; display: block;">Tư
@@ -916,7 +1087,7 @@
           </div>
           <div>
             <h3
-              style="font-family: Arial, sans-serif; color: #ffffff; font-size: 1.15rem; font-weight: 700; margin: 0;">
+              style="font-family: 'Huninn', sans-serif; color: #ffffff; font-size: 1.15rem; font-weight: 700; margin: 0;">
               Hotline Liên Hệ Garage VTV</h3>
             <span
               style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: #64748b; text-transform: uppercase;">Tư
@@ -935,8 +1106,8 @@
           <div>
             <div style="font-size: 0.78rem; color: #94a3b8; font-weight: 600;">📞 HOTLINE KĨ THUẬT & ĐẶT LỊCH (24/7):
             </div>
-            <div
-              style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; font-family: Arial, sans-serif; margin-top: 2px;">
+            <div style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; font-family: " Huninn", sans-serif;
+              margin-top: 2px;">
               033.344.2358</div>
             <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Lễ tân & KTV Trưởng trực cuộc gọi</div>
           </div>
@@ -956,8 +1127,8 @@
           <div>
             <div style="font-size: 0.78rem; color: #f43f5e; font-weight: 600;">🚨 HOTLINE CỨU HỘ GẦM & SỬA LƯU ĐỘNG:
             </div>
-            <div
-              style="font-size: 1.35rem; font-weight: 800; color: #fb7185; font-family: Arial, sans-serif; margin-top: 2px;">
+            <div style="font-size: 1.35rem; font-weight: 800; color: #fb7185; font-family: " Huninn", sans-serif;
+              margin-top: 2px;">
               1900.6868</div>
             <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Xe kéo cứu hộ & KTV cơ động đến tận nơi
             </div>
@@ -998,17 +1169,39 @@
     </div>
   </div>
 
-  <button class="floating-phone-trigger" onclick="openPhoneContactModal()" title="Hotline Tư Vấn"
-    style="position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #0891b2, #0284c7); color: white; border: none; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(8, 145, 178, 0.4); z-index: 9999; transition: transform 0.3s;">
+  <button class="floating-phone-trigger phone-ring-anim" onclick="openPhoneContactModal()" title="Hotline Tư Vấn (24/7)"
+    style="position: fixed; bottom: 30px; left: 30px; width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(135deg, #0891b2, #0284c7); color: white; border: 2px solid rgba(255,255,255,0.25); font-size: 1.55rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 8px 25px rgba(8, 145, 178, 0.45); z-index: 9999; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
     <i class="fa-solid fa-phone-volume"></i>
   </button>
 
-  <button class="floating-ai-trigger" onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn nhanh')"
+  <button class="floating-ai-trigger card-hover-lift" onclick="openAIAssistantModal('Trợ lý GarageAI', 'Tư vấn nhanh')"
     title="Mở Trợ lý GarageAI"
-    style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; border: none; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); z-index: 9999; transition: transform 0.3s;">
+    style="position: fixed; bottom: 30px; right: 30px; width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; border: 2px solid rgba(255,255,255,0.25); font-size: 1.55rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 8px 25px rgba(139, 92, 246, 0.45); z-index: 9999; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
     <i class="fa-solid fa-wand-magic-sparkles"></i>
   </button>
+
   <script src="app.js?v=11.0"></script>
+  <script>
+    // Smooth Scroll Reveal Engine
+    document.addEventListener('DOMContentLoaded', () => {
+      const revealElements = document.querySelectorAll('.reveal-init');
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-revealed');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+        revealElements.forEach(el => observer.observe(el));
+      } else {
+        // Fallback for older browsers
+        revealElements.forEach(el => el.classList.add('is-revealed'));
+      }
+    });
+  </script>
 </body>
 
 </html>

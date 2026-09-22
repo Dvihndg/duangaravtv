@@ -25,5 +25,5 @@ COPY . .
 # Mở cổng cho FastAPI và Streamlit
 EXPOSE 8000 8501
 
-# Lệnh mặc định khởi động FastAPI Backend
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Lệnh mặc định khởi động FastAPI Backend với Gunicorn
+CMD ["gunicorn", "backend.app.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]

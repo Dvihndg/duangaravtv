@@ -6,7 +6,8 @@ from typing import Any, Dict, Optional, Tuple
 from sqlalchemy.orm import Session
 
 from backend.app.config import settings
-from backend.app.models import AILog, RepairOrder, Vehicle
+from backend.app.models import AILog, RepairOrder, Vehicle, AIKnowledgeBase
+from backend.app.ai.tools import AGENT_TOOLS, execute_tool
 from backend.app.ai.prompts import (
     SYSTEM_GARAGE_ASSISTANT,
     PROMPT_AI_ASSISTANT,
@@ -141,6 +142,21 @@ class AIService:
         except Exception:
             db.rollback()
             logger.exception("Không thể lưu AI log.")
+
+    @classmethod
+    def _get_system_prompt_with_memory(cls, db: Session, base_prompt: str) -> str:
+        """Thêm các quy tắc từ AIKnowledgeBase vào System Prompt"""
+        try:
+            active_rules = db.query(AIKnowledgeBase).filter(AIKnowledgeBase.is_active == True).all()
+            if not active_rules:
+                return base_prompt
+            
+            rules_text = "\n".join(f"- {rule.content}" for rule in active_rules)
+            injected_prompt = base_prompt + "\n\n--- QUY TẮC BỔ SUNG (KNOWLEDGE BASE) ---\n" + rules_text
+            return injected_prompt
+        except Exception as e:
+            logger.warning("Lỗi đọc AIKnowledgeBase: %s", e)
+            return base_prompt
 
     # ============================================================
     # LLM INTEGRATION
@@ -582,7 +598,8 @@ class AIService:
             "QUAN TRỌNG: Không tự thay đổi các số tiền trên. Không tự thêm phụ tùng hoặc dịch vụ chưa có trong dữ liệu."
         )
 
-        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, user_prompt)
+        system_prompt = cls._get_system_prompt_with_memory(db, SYSTEM_GARAGE_ASSISTANT)
+        output_text, model_used = cls._call_llm(system_prompt, user_prompt)
 
         ro.estimated_cost = grand_total  # type: ignore
         ro.ai_draft_quotation_notes = output_text  # type: ignore
@@ -610,6 +627,91 @@ class AIService:
                 "total_labor": total_labor,
             },
         }
+
+    # ============================================================
+    # AGENT ORCHESTRATOR
+    # ============================================================
+    
+    @classmethod
+    def _call_llm_agent(cls, db: Session, system_prompt: str, user_prompt: str) -> Tuple[str, str]:
+        """Vòng lặp Agent gọi Tools tự động bằng Function Calling của Groq."""
+        # pyrefly: ignore [missing-import]
+        import httpx
+        import json
+        
+        groq_api_key = getattr(settings, "GROQ_API_KEY", "") or os.getenv("GROQ_API_KEY", "")
+        # Nếu không có key hoặc chỉ dùng Fallback thì gọi LLM thường (không tools)
+        if not groq_api_key:
+            return cls._call_llm(system_prompt, user_prompt)
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+        
+        groq_headers = {
+            "Authorization": f"Bearer {groq_api_key}",
+            "Content-Type": "application/json",
+        }
+        
+        model_name = "llama-3.3-70b-versatile" # Khuyến nghị cho Tool Calling trên Groq
+        
+        # Cho phép tối đa 3 vòng lặp (Max 3 tool calls)
+        for i in range(3):
+            payload = {
+                "model": model_name,
+                "messages": messages,
+                "tools": AGENT_TOOLS,
+                "tool_choice": "auto",
+                "temperature": 0.2,
+                "max_tokens": 2048,
+            }
+            try:
+                res = httpx.post("https://api.groq.com/openai/v1/chat/completions", headers=groq_headers, json=payload, timeout=20.0)
+                if res.status_code != 200:
+                    logger.warning("Groq Agent API Error: %s", res.text)
+                    return cls._call_llm(system_prompt, user_prompt)
+                
+                data = res.json()
+                message = data["choices"][0]["message"]
+                
+                # Cập nhật danh sách messages với phản hồi của Assistant
+                if message.get("content") is None:
+                    message["content"] = ""
+                
+                # Nếu LLM quyết định gọi tool
+                if message.get("tool_calls"):
+                    # Groq API yêu cầu đẩy lại thông báo của LLM với tool_calls vào mảng messages
+                    messages.append(message)
+                    
+                    # Duyệt qua các tools LLM muốn gọi
+                    for tool_call in message["tool_calls"]:
+                        func_name = tool_call["function"]["name"]
+                        try:
+                            kwargs = json.loads(tool_call["function"]["arguments"])
+                        except:
+                            kwargs = {}
+                        
+                        logger.info(f"[Agent] Calling tool: {func_name} with args: {kwargs}")
+                        tool_result = execute_tool(db, func_name, kwargs)
+                        logger.info(f"[Agent] Tool result length: {len(tool_result)}")
+                        
+                        messages.append({
+                            "role": "tool",
+                            "tool_call_id": tool_call["id"],
+                            "name": func_name,
+                            "content": tool_result
+                        })
+                    # Vòng lặp tiếp tục: gửi lại messages (bao gồm kết quả tool) cho LLM
+                else:
+                    # Nếu LLM không gọi tool nào, trả về kết quả cuối cùng
+                    return message.get("content", "").strip(), f"Groq Agent ({model_name})"
+            except Exception as e:
+                logger.warning(f"Lỗi Agent Loop: {e}")
+                break
+        
+        # Fallback sau 3 lượt fail
+        return cls._call_llm(system_prompt, user_prompt)
 
     # ============================================================
     # GENERAL AI ASSISTANT
@@ -681,7 +783,8 @@ class AIService:
             context_info=context_info,
         )
 
-        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, user_prompt)
+        system_prompt = cls._get_system_prompt_with_memory(db, SYSTEM_GARAGE_ASSISTANT)
+        output_text, model_used = cls._call_llm_agent(db, system_prompt, user_prompt)
         cls._save_ai_log(
             db=db,
             feature="ai_assistant",
@@ -707,7 +810,8 @@ class AIService:
         """AI Chức năng Chẩn đoán Kỹ thuật cho KTV"""
         untrusted_symptoms = f"<UNTRUSTED_CUSTOMER_DATA>\n{symptoms}\n</UNTRUSTED_CUSTOMER_DATA>"
         prompt = PROMPT_TECHNICAL_TROUBLESHOOTING.format(symptoms=untrusted_symptoms, car_model=car_model)
-        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, prompt)
+        system_prompt = cls._get_system_prompt_with_memory(db, SYSTEM_GARAGE_ASSISTANT)
+        output_text, model_used = cls._call_llm(system_prompt, prompt)
         return {
             "success": True,
             "feature": "technical_troubleshooting",
@@ -721,7 +825,8 @@ class AIService:
         prompt = PROMPT_OBD_DIAGNOSTIC.format(
             brand=brand, model=model, year=year, mileage=mileage, symptoms=symptoms, obd_code=obd_code
         )
-        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, prompt)
+        system_prompt = cls._get_system_prompt_with_memory(db, SYSTEM_GARAGE_ASSISTANT)
+        output_text, model_used = cls._call_llm(system_prompt, prompt)
         return {
             "success": True,
             "feature": "obd_diagnostic",
@@ -740,7 +845,8 @@ class AIService:
             "Tỷ lệ khách hàng quay lại: 74.2% | Hiệu suất KTV dẫn đầu: KTV Phạm Văn Minh (18 phiếu)"
         )
         prompt = PROMPT_BUSINESS_INTELLIGENCE.format(question=question, business_data=business_data)
-        output_text, model_used = cls._call_llm(SYSTEM_GARAGE_ASSISTANT, prompt)
+        system_prompt = cls._get_system_prompt_with_memory(db, SYSTEM_GARAGE_ASSISTANT)
+        output_text, model_used = cls._call_llm(system_prompt, prompt)
         return {
             "success": True,
             "feature": "business_intelligence",

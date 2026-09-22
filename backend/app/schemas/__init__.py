@@ -281,3 +281,23 @@ class DemoScenarioResponse(BaseModel):
     estimated_total: float
     warnings: List[str]
     ai_raw_output: str
+
+class AIFeedbackCreate(BaseModel):
+    ai_log_id: int
+    rating: int
+    comment: Optional[str] = None
+
+class AIKnowledgeBaseCreate(BaseModel):
+    category: str
+    content: str
+    is_active: Optional[bool] = True
+
+class AIKnowledgeBaseOut(BaseModel):
+    id: int
+    category: str
+    content: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

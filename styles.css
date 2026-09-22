@@ -83,7 +83,7 @@ video {
 }
 
 body, input, button, select, textarea, h1, h2, h3, h4, h5, h6, p, a, label {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Huninn", sans-serif;
 }
 
 i, .fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands, [class^="fa-"], [class*=" fa-"] {
@@ -96,7 +96,7 @@ i, .fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands, [class^="fa-"], [c
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Huninn", sans-serif;
   background: var(--bg-primary);
   color: var(--text-main);
   min-height: 100vh;
@@ -128,9 +128,11 @@ body {
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  padding: 1.5rem 1.2rem;
+  /* padding managed per-page via inline style */
   z-index: 100;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .brand-header {
@@ -1633,3 +1635,203 @@ select.form-control option {
 
 
 
+
+.huninn-regular {
+  font-family: "Huninn", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* ==========================================================================
+   PREMIUM MOTION & ANIMATION SYSTEM (GARAGE VTV ENGINE)
+   ========================================================================== */
+
+/* 1. Keyframe Animations */
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  33% { transform: translate(35px, -30px) scale(1.15); opacity: 0.75; }
+  66% { transform: translate(-25px, 25px) scale(0.92); opacity: 0.6; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(8, 145, 178, 0.35), inset 0 0 10px rgba(8, 145, 178, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(8, 145, 178, 0.7), inset 0 0 16px rgba(8, 145, 178, 0.35);
+  }
+}
+
+@keyframes shimmerSweep {
+  0% { transform: translateX(-120%) rotate(25deg); }
+  100% { transform: translateX(250%) rotate(25deg); }
+}
+
+@keyframes fadeInUpSmooth {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleInPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.93);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes livePulseDot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 9px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes phoneVibrate {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  8%, 24%, 40% { transform: rotate(-9deg) scale(1.06); }
+  16%, 32%, 48% { transform: rotate(9deg) scale(1.06); }
+  56% { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes subtleGradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes textGradientShine {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 2. Stagger Animation Utility Classes */
+.anim-fade-in {
+  animation: fadeInUpSmooth 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.anim-delay-1 { animation-delay: 0.08s !important; }
+.anim-delay-2 { animation-delay: 0.18s !important; }
+.anim-delay-3 { animation-delay: 0.28s !important; }
+.anim-delay-4 { animation-delay: 0.38s !important; }
+.anim-delay-5 { animation-delay: 0.48s !important; }
+
+/* 3. Interactive Hover Lifts */
+.card-hover-lift {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, border-color 0.35s ease !important;
+}
+.card-hover-lift:hover {
+  transform: translateY(-6px) scale(1.01) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35), 0 0 24px rgba(8, 145, 178, 0.25) !important;
+  border-color: rgba(8, 145, 178, 0.5) !important;
+}
+
+/* 4. Shimmer Button Effect */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 75%
+  );
+  transform: rotate(25deg);
+  animation: shimmerSweep 4.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+/* 5. Live Radar Indicator Dot */
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  animation: livePulseDot 2s infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.live-dot.cyan {
+  background-color: #06b6d4;
+  box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
+}
+.live-dot.amber {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+}
+.live-dot.rose {
+  background-color: #f43f5e;
+  box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7);
+}
+
+/* 6. Floating Ambient Orbs */
+.ambient-glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.45;
+  will-change: transform, opacity;
+  animation: floatOrb 12s ease-in-out infinite alternate;
+}
+
+/* 7. Table Row Smooth Micro-Interaction */
+.table-hover-glow tbody tr {
+  transition: all 0.22s ease;
+}
+.table-hover-glow tbody tr:hover {
+  background-color: rgba(59, 130, 246, 0.09) !important;
+  transform: translateX(4px);
+}
+
+/* 8. Interactive Phone Ringing */
+.phone-ring-anim {
+  animation: phoneVibrate 4s ease-in-out infinite;
+}
+.phone-ring-anim:hover {
+  animation: none;
+  transform: scale(1.12) !important;
+}
+
+/* 9. Scroll Reveal Classes */
+.reveal-init {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal-init.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
