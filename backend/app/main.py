@@ -103,7 +103,7 @@ def init_db_background():
 
     try:
         from backend.app.models import User, UserRole, Service, Part
-        from backend.app.auth import get_password_hash
+        from backend.app.auth import get_password_hash, verify_password
         db = SessionLocal()
         try:
             seed_passwords = {
@@ -135,6 +135,19 @@ def init_db_background():
                 )
                 db.add_all([admin_user, letan_user, tech_user, cashier_user])
                 db.commit()
+
+            # Password reset is opt-in and environment-managed. This avoids
+            # silently changing credentials on every deployment while still
+            # allowing a controlled reset when the current password is lost.
+            admin_password = seed_passwords["admin"].strip()
+            if (
+                os.getenv("SYNC_ADMIN_PASSWORD", "false").lower() == "true"
+                and admin_password
+            ):
+                admin = db.query(User).filter(User.username == "admin").first()
+                if admin and not verify_password(admin_password, str(admin.hashed_password)):
+                    admin.hashed_password = get_password_hash(admin_password)
+                    db.commit()
 
             if not db.query(Service).first():
                 s1 = Service(code="DV-001", name="Bảo dưỡng định kỳ 5,000 km", category="Bảo dưỡng", labor_cost=450000, estimated_duration=60)
