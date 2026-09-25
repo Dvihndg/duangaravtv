@@ -284,7 +284,7 @@ graph TD
   4. Nếu khớp, Backend sinh JSON Web Token (JWT) có payload chứa `sub: user.id`, `role: user.role` với thời gian sống `exp: 12h`.
   5. Client lưu token vào `localStorage.setItem('garage_access_token', token)` và chuyển hướng vào `admin.html`.
 - **Luồng sự kiện thay thế (Offline Fallback):**
-  - Nếu kết nối tới Backend thất bại, hệ thống tự động kiểm tra tài khoản thử nghiệm nội bộ trong `app.js` (`admin/admin123`, `letan/letan123`, `kythuat/tech123`, `thungan/cashier123`), cấp phiên làm việc Local Storage Engine để người dùng không bị gián đoạn công việc.
+  - Nếu kết nối tới Backend thất bại, hệ thống tự động kiểm tra tài khoản thử nghiệm nội bộ trong `app.js` (`admin/[configured via environment]`, `letan/[configured via environment]`, `kythuat/[configured via environment]`, `thungan/[configured via environment]`), cấp phiên làm việc Local Storage Engine để người dùng không bị gián đoạn công việc.
 
 ### 2.5.2. UC-02: Đặt lịch sửa chữa (Appointment Booking)
 - **Tác nhân:** Khách hàng (Portal), Lễ tân (Admin).

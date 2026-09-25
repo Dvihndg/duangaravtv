@@ -19,7 +19,7 @@
 ---
 
 ## 2. HƯỚNG DẪN DÀNH CHO LỄ TÂN (RECEPTIONIST)
-- **Đăng nhập mẫu**: `letan` / `letan123`
+- **Đăng nhập**: Sử dụng tài khoản do quản trị viên cấp; mật khẩu được cấu hình qua biến môi trường, không ghi trong tài liệu.
 - **Quy trình thao tác**:
   1. **Tiếp Nhận Khách Hàng**:
      - Vào menu **Lịch Hẹn / Yêu Cầu Dịch Vụ**, kiểm tra các yêu cầu khách gửi tới.
@@ -34,7 +34,7 @@
 ---
 
 ## 3. HƯỚNG DẪN DÀNH CHO KỸ THUẬT VIÊN (TECHNICIAN)
-- **Đăng nhập mẫu**: `kythuat` / `tech123`
+- **Đăng nhập**: Sử dụng tài khoản do quản trị viên cấp; mật khẩu được cấu hình qua biến môi trường, không ghi trong tài liệu.
 - **Quy trình thao tác**:
   1. **Xem Xe Được Phân Công**: Vào mục **Phiếu Sửa Chữa**, lọc các phiếu có tên mình phụ trách.
   2. **Thực Hiện Khảo Sát Kỹ Thuật (Inspection)**:
@@ -48,7 +48,7 @@
 ---
 
 ## 4. HƯỚNG DẪN DÀNH CHO THU NGÂN (CASHIER)
-- **Đăng nhập mẫu**: `thungan` / `cashier123`
+- **Đăng nhập**: Sử dụng tài khoản do quản trị viên cấp; mật khẩu được cấu hình qua biến môi trường, không ghi trong tài liệu.
 - **Quy trình thao tác**:
   1. **Lập Hóa Đơn (Invoice)**:
      - Khi xe đã kiểm định chất lượng xong (`QUALITY_CHECK`), thu ngân vào mục Hóa Đơn và chọn **Lập Hóa Đơn**: Hệ thống chốt số tiền theo đúng báo giá đã được duyệt.
@@ -60,7 +60,7 @@
 ---
 
 ## 5. HƯỚNG DẪN DÀNH CHO QUẢN LÝ (MANAGER / ADMIN)
-- **Đăng nhập mẫu**: `admin` / `admin123`
+- **Đăng nhập**: Sử dụng tài khoản quản trị được cấu hình qua `DEFAULT_ADMIN_USERNAME` và `DEFAULT_ADMIN_PASSWORD`; không ghi mật khẩu trong tài liệu.
 - **Các tính năng nâng cao**:
   1. **Dashboard KPIs Realtime**: Theo dõi doanh thu theo ngày, tháng, số xe đang nằm xưởng, công suất làm việc của thợ.
   2. **Quản Lý Kho & Đơn Giá**: Cập nhật giá bán, giá nhập, định mức cảnh báo tồn ít cho từng mã phụ tùng.

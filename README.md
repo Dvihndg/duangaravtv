@@ -16,28 +16,26 @@ Hệ thống Quản lý Vận hành Toàn diện cho Chuỗi Garage Ô tô kết
 - **Khu vực Quản trị Nội bộ (Internal Admin)**: [https://duangaravtv.vercel.app/admin](https://duangaravtv.vercel.app/admin).
 - **Tài liệu API Tự động (Swagger UI)**: [https://duangaravtv.vercel.app/docs](https://duangaravtv.vercel.app/docs).
 
-### 🔑 Tài khoản Thử nghiệm 4 Vai trò (RBAC):
-| Vai trò | Tên đăng nhập | Mật khẩu | Quyền hạn chính |
-|---|---|---|---|
-| **Quản lý (Manager)** | `admin` | `admin123` | Toàn quyền cấu hình, xem báo cáo doanh thu, audit logs, AI logs, xóa mềm |
-| **Lễ tân (Receptionist)** | `letan` | `letan123` | Tiếp nhận xe, đặt lịch hẹn, tạo báo giá, gửi khách duyệt, tra cứu tiến độ |
-| **Kỹ thuật viên (Technician)** | `kythuat` | `tech123` | Thực hiện chẩn đoán, đề xuất phụ tùng, cập nhật tiến độ xe được giao (IDOR safe) |
-| **Thu ngân (Cashier)** | `thungan` | `cashier123` | Lập hóa đơn từ RO, ghi nhận thanh toán (tiền mặt / chuyển khoản), in hóa đơn |
+### 🔑 Tài khoản và phân quyền (RBAC):
+Tài khoản quản trị ban đầu phải được cấu hình bằng các biến môi trường `DEFAULT_ADMIN_USERNAME`, `DEFAULT_ADMIN_PASSWORD`, `DEFAULT_RECEPTIONIST_PASSWORD`, `DEFAULT_TECHNICIAN_PASSWORD` và `DEFAULT_CASHIER_PASSWORD`. Không sử dụng hoặc commit mật khẩu mẫu trong mã nguồn.
 
 ---
 
 ## 🏗️ 2. KIẾN TRÚC HỆ THỐNG & TÀI LIỆU KỸ THUẬT (DOCUMENTATION)
-Toàn bộ tài liệu thiết kế chi tiết được đặt trong thư mục [`docs/`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs):
-- 📘 [`docs/REQUIREMENTS.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/REQUIREMENTS.md): Đặc tả yêu cầu, Actor, RBAC Permission Matrix, Sơ đồ Use Case, Sequence Workflow và State Machine.
-- 🏛️ [`docs/ARCHITECTURE.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/ARCHITECTURE.md): Kiến trúc Clean Architecture, Layered Services, API-first principles và khả năng di động CSDL.
-- 🗄️ [`docs/DATABASE.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/DATABASE.md): Sơ đồ ERD Mermaid, Từ điển dữ liệu Data Dictionary 18 bảng chuẩn 3NF, Khóa ngoại và Chỉ mục.
-- 📡 [`docs/API.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/API.md): Đặc tả toàn diện các RESTful Endpoints, Request/Response JSON schemas và HTTP Status Codes.
-- 🤖 [`docs/AI.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/AI.md): Kiến trúc AI đa nhà cung cấp, System Prompts, Thẻ `<UNTRUSTED_DATA>`, Khử PII và Fallback Engine.
-- 🛡️ [`docs/SECURITY.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/SECURITY.md): Phòng chống OWASP Top 10, IDOR, SQL Injection, CSRF/XSS và Audit Trail.
-- 🧪 [`docs/TESTING.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/TESTING.md): Chiến lược kiểm thử tự động, danh mục 17 Test Cases bắt buộc (TC01 - TC17).
-- 🚀 [`docs/DEPLOYMENT.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/DEPLOYMENT.md): Hướng dẫn triển khai Docker Compose, Vercel Serverless và Supabase PostgreSQL.
-- 📖 [`docs/USER_GUIDE.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/USER_GUIDE.md): Sổ tay hướng dẫn sử dụng cho Khách hàng, Lễ tân, Kỹ thuật viên, Thu ngân và Quản lý.
-- 📝 [`docs/SDLC_AI_USAGE.md`](file:///c:/Users/Duong%20Ngan/OneDrive/Desktop/demotesthethong/docs/SDLC_AI_USAGE.md): Báo cáo ứng dụng AI trong cả 4 giai đoạn vòng đời phát triển phần mềm.
+Toàn bộ tài liệu kỹ thuật hiện hành được đặt trong thư mục [`docs/`](docs/):
+- 📘 [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md): Đặc tả yêu cầu, Actor, RBAC Permission Matrix, Sơ đồ Use Case, Sequence Workflow và State Machine.
+- 🏛️ [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): Kiến trúc Clean Architecture, Layered Services, API-first principles và khả năng di động CSDL.
+- 🗄️ [`docs/DATABASE.md`](docs/DATABASE.md): Sơ đồ ERD Mermaid, từ điển dữ liệu, khóa ngoại và chỉ mục.
+- 📡 [`docs/API.md`](docs/API.md): Đặc tả RESTful endpoints, request/response schemas và HTTP status codes.
+- 🤖 [`docs/AI.md`](docs/AI.md): Kiến trúc AI đa nhà cung cấp, system prompts, khử PII và fallback engine.
+- 🛡️ [`docs/SECURITY.md`](docs/SECURITY.md): Phòng chống OWASP Top 10, IDOR, SQL Injection, CSRF/XSS và audit trail.
+- 🧪 [`docs/TESTING.md`](docs/TESTING.md): Chiến lược kiểm thử tự động và danh mục test cases.
+- 🚀 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): Hướng dẫn triển khai Docker Compose, Vercel Serverless và PostgreSQL.
+- 📖 [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md): Sổ tay hướng dẫn sử dụng cho các vai trò trong hệ thống.
+- 📝 [`docs/SDLC_AI_USAGE.md`](docs/SDLC_AI_USAGE.md): Báo cáo ứng dụng AI trong vòng đời phát triển phần mềm.
+- 🎨 [`docs/ui-design-system.md`](docs/ui-design-system.md): Hệ thống thiết kế giao diện.
+
+> Các báo cáo và tài liệu phiên bản cũ được giữ tại [`docs/archive/`](docs/archive/) để tham khảo lịch sử, không dùng làm nguồn thông tin hiện hành.
 
 ---
 
@@ -106,4 +104,4 @@ python -m streamlit run streamlit_app.py
 5. **Prompt Injection & PII Protection**:
    - Mọi dữ liệu do người dùng nhập được bọc trong thẻ `<UNTRUSTED_DATA>...</UNTRUSTED_DATA>`.
    - Toàn bộ thông tin cá nhân (SĐT, Email) được khử định danh trước khi gửi tới API bên ngoài.
-   - Khi mạng gián đoạn, **Smart Offline Fallback Engine** tự động kích hoạt bảo đảm hoạt động 24/7.
+   - Khi SSE không khả dụng, frontend chuyển sang polling API; dữ liệu nghiệp vụ vẫn phải được xác nhận và lưu bởi backend.
