@@ -42,6 +42,7 @@ app = FastAPI(
 
 from backend.app.config import settings
 from backend.app.database import engine, SessionLocal, Base
+from backend.app.auth import get_password_hash, verify_password
 from backend.app.routers import (
     auth, customers, appointments, inventory, repair_orders, invoices, ai, analytics,
     customer_requests, receptions, quotations, audit_logs, settings as settings_router
@@ -86,6 +87,22 @@ def initialize_database():
     """
     try:
         Base.metadata.create_all(bind=engine)
+        if (
+            os.getenv("SYNC_ADMIN_PASSWORD", "false").lower() == "true"
+            and os.getenv("DEFAULT_ADMIN_PASSWORD", "").strip()
+        ):
+            from backend.app.models import User
+
+            admin_password = os.getenv("DEFAULT_ADMIN_PASSWORD", "").strip()
+            db = SessionLocal()
+            try:
+                admin = db.query(User).filter(User.username == "admin").first()
+                if admin and not verify_password(admin_password, str(admin.hashed_password)):
+                    admin.hashed_password = get_password_hash(admin_password)
+                    db.commit()
+            finally:
+                db.close()
+
         inspector = inspect(engine)
         if "customer_requests" not in inspector.get_table_names():
             return
