@@ -1,6 +1,11 @@
 import sqlite3
+import os
 
-correct_hash = "$pbkdf2-sha256$29000$z9lbi7GWMiZk7L1XKmVs7Q$qCjB77NeDxDWeP4AzsMa1JcOadNgyR8N.LLk9PIIuFs"
+from passlib.hash import pbkdf2_sha256
+new_password = os.getenv("RESET_ALL_PASSWORD", "").strip()
+if not new_password:
+    raise SystemExit("Set RESET_ALL_PASSWORD before resetting passwords.")
+correct_hash = pbkdf2_sha256.hash(new_password)
 
 # Update for backend/garage.db
 try:
@@ -22,4 +27,4 @@ try:
 except:
     pass
 
-print("All passwords reset to admin123")
+print("All user passwords reset successfully.")

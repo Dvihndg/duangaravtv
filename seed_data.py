@@ -1,4 +1,5 @@
 import sys
+import os
 from datetime import datetime, timedelta
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -14,6 +15,15 @@ from backend.app.models import (
 )
 from backend.app.auth import get_password_hash
 
+SEED_PASSWORDS = {
+    "admin": os.getenv("DEFAULT_ADMIN_PASSWORD", "").strip(),
+    "receptionist": os.getenv("DEFAULT_RECEPTIONIST_PASSWORD", "").strip(),
+    "technician": os.getenv("DEFAULT_TECHNICIAN_PASSWORD", "").strip(),
+    "cashier": os.getenv("DEFAULT_CASHIER_PASSWORD", "").strip(),
+}
+if not all(SEED_PASSWORDS.values()):
+    raise SystemExit("Set DEFAULT_ADMIN_PASSWORD, DEFAULT_RECEPTIONIST_PASSWORD, DEFAULT_TECHNICIAN_PASSWORD, and DEFAULT_CASHIER_PASSWORD before seeding.")
+
 def seed_database():
     print("--- Khởi tạo CSDL Garage VTV AI Management System ---")
     Base.metadata.drop_all(bind=engine)
@@ -26,7 +36,7 @@ def seed_database():
         manager = User(
             username="admin",
             email="admin@garage.com",
-            hashed_password=get_password_hash("admin123"),
+            hashed_password=get_password_hash(SEED_PASSWORDS["admin"]),
             full_name="Nguyễn Văn Quản Lý",
             role=UserRole.MANAGER,
             phone="0901111111"
@@ -34,7 +44,7 @@ def seed_database():
         receptionist = User(
             username="letan",
             email="letan@garage.com",
-            hashed_password=get_password_hash("letan123"),
+            hashed_password=get_password_hash(SEED_PASSWORDS["receptionist"]),
             full_name="Trần Thị Lễ Tân",
             role=UserRole.RECEPTIONIST,
             phone="0902222222"
@@ -42,7 +52,7 @@ def seed_database():
         tech1 = User(
             username="kythuat",
             email="kythuat@garage.com",
-            hashed_password=get_password_hash("tech123"),
+            hashed_password=get_password_hash(SEED_PASSWORDS["technician"]),
             full_name="Lê Hoàng Kỹ Thuật (KTV Trưởng)",
             role=UserRole.TECHNICIAN,
             phone="0903333333"
@@ -58,7 +68,7 @@ def seed_database():
         cashier = User(
             username="thungan",
             email="thungan@garage.com",
-            hashed_password=get_password_hash("cashier123"),
+            hashed_password=get_password_hash(SEED_PASSWORDS["cashier"]),
             full_name="Phạm Thu Ngân",
             role=UserRole.CASHIER,
             phone="0904444444"

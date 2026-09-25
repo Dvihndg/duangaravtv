@@ -803,81 +803,6 @@
       }
     });
 
-    function saveLocalCustomerRequest(payload) {
-      const now = new Date();
-      const d = String(now.getDate()).padStart(2, '0');
-      const m = String(now.getMonth() + 1).padStart(2, '0');
-      const y = now.getFullYear();
-      const dateStr = `${y}${m}${d}`;
-      const prefix = `REQ-${dateStr}-`;
-
-      let requests = [];
-      try {
-        requests = JSON.parse(localStorage.getItem('vtv_customer_requests_data') || '[]');
-      } catch (_) { requests = []; }
-
-      const todayExisting = requests.filter(r => (r.requestCode || "").startsWith(prefix));
-      const seq = String(todayExisting.length + 1).padStart(4, '0');
-      const reqCode = `${prefix}${seq}`;
-      const reqId = Date.now();
-
-      const newReq = {
-        id: reqId,
-        requestCode: reqCode,
-        fullName: payload.fullName,
-        phone: payload.phone,
-        licensePlate: payload.licensePlate,
-        vehicleBrand: payload.vehicleBrand || "Không xác định",
-        vehicleModel: payload.vehicleModel || "",
-        serviceType: payload.serviceType,
-        description: payload.description || "",
-        preferredDate: payload.preferredDate || null,
-        status: "Pending",
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString()
-      };
-
-      requests.unshift(newReq);
-      localStorage.setItem('vtv_customer_requests_data', JSON.stringify(requests));
-
-      // Auto save/update customer in vtv_customers_data
-      try {
-        let customers = JSON.parse(localStorage.getItem('vtv_customers_data') || '[]');
-        let cust = customers.find(c => c.phone === payload.phone);
-        if (!cust) {
-          const nextCustId = customers.length ? Math.max(...customers.map(c => c.id || 0)) + 1 : 1;
-          cust = {
-            id: nextCustId,
-            customer_code: `KH-${String(nextCustId).padStart(4, '0')}`,
-            full_name: payload.fullName,
-            phone: payload.phone,
-            created_at: now.toISOString()
-          };
-          customers.push(cust);
-          localStorage.setItem('vtv_customers_data', JSON.stringify(customers));
-        }
-
-        // Auto save/update vehicle in vtv_vehicles_data
-        let vehicles = JSON.parse(localStorage.getItem('vtv_vehicles_data') || '[]');
-        let veh = vehicles.find(v => (v.license_plate || '').toUpperCase() === (payload.licensePlate || '').toUpperCase());
-        if (!veh) {
-          const nextVehId = vehicles.length ? Math.max(...vehicles.map(v => v.id || 0)) + 1 : 1;
-          veh = {
-            id: nextVehId,
-            customer_id: cust.id,
-            license_plate: payload.licensePlate,
-            brand: payload.vehicleBrand || "Khác",
-            model: payload.vehicleModel || "Chưa rõ",
-            created_at: now.toISOString()
-          };
-          vehicles.push(veh);
-          localStorage.setItem('vtv_vehicles_data', JSON.stringify(vehicles));
-        }
-      } catch (_) { }
-
-      return newReq;
-    }
-
     async function handleBooking(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSubmitBooking');
@@ -896,41 +821,36 @@
       };
 
       const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-      const API_BASE = isLocal ? "http://127.0.0.1:8000/api/v1" : "/api/v1";
+      const API_BASE = window.GARAGE_API_BASE || (isLocal ? `http://${window.location.hostname}:8000/api/v1` : "/api/v1");
 
-      let bookedData = null;
       try {
         const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 2000);
+        const timeoutId = setTimeout(() => ctrl.abort(), 10000);
         const response = await fetch(`${API_BASE}/customer-requests`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
           signal: ctrl.signal
         });
-        clearTimeout(t);
-
-        if (response.ok) {
-          bookedData = await response.json();
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.detail || `Máy chủ trả về lỗi ${response.status}.`);
         }
-      } catch (_) {
-        // Backend offline / mạng không khả dụng -> fallback lưu local
+        const bookedData = await response.json();
+        const finalCode = bookedData.requestCode || bookedData.request_code || bookedData.code;
+        if (!finalCode) throw new Error('Phản hồi máy chủ không có mã yêu cầu.');
+        showBookingSuccess({ ...payload, ...bookedData, requestCode: finalCode });
+        showToast('success', `Đặt lịch thành công! Mã: ${finalCode}`);
+      } catch (err) {
+        const message = err.name === 'AbortError'
+          ? 'Máy chủ phản hồi quá lâu. Vui lòng thử lại.'
+          : (err.message || 'Không thể kết nối máy chủ.');
+        showToast('error', `Không thể gửi yêu cầu: ${message}`);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
       }
-
-      if (!bookedData) {
-        bookedData = saveLocalCustomerRequest(payload);
-      }
-
-      const finalCode = bookedData.requestCode || bookedData.request_code || bookedData.code || "REQ-SUCCESS";
-      showBookingSuccess({
-        ...payload,
-        ...bookedData,
-        requestCode: finalCode
-      });
-      showToast('success', `Đặt lịch thành công! Mã: ${finalCode}`);
-
-      btn.innerHTML = originalText;
-      btn.disabled = false;
     }
 
     async function handleTracking() {
@@ -946,35 +866,20 @@
       resDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tìm kiếm...';
 
       const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-      const API_BASE = isLocal ? "http://127.0.0.1:8000/api/v1" : "/api/v1";
+      const API_BASE = window.GARAGE_API_BASE || (isLocal ? `http://${window.location.hostname}:8000/api/v1` : "/api/v1");
 
-      let req = null;
       try {
         const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 2000);
-        const response = await fetch(`${API_BASE}/customer-requests/code/${encodeURIComponent(q)}`, {
+        const timeoutId = setTimeout(() => ctrl.abort(), 10000);
+        const response = await fetch(`${API_BASE}/customer-requests/lookup?query=${encodeURIComponent(q)}`, {
           signal: ctrl.signal
         });
-        clearTimeout(t);
-        if (response.ok) {
-          req = await response.json();
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.detail || `Máy chủ trả về lỗi ${response.status}.`);
         }
-      } catch (_) {
-        // Backend offline
-      }
-
-      if (!req) {
-        try {
-          const list = JSON.parse(localStorage.getItem('vtv_customer_requests_data') || '[]');
-          const qNorm = q.toLowerCase();
-          const qDigits = q.replace(/\D/g, '');
-          req = list.find(r =>
-            (r.requestCode && r.requestCode.toLowerCase() === qNorm) ||
-            (qDigits && r.phone && r.phone.replace(/\D/g, '') === qDigits) ||
-            (r.licensePlate && r.licensePlate.toLowerCase().replace(/[^a-z0-9]/g, '') === qNorm.replace(/[^a-z0-9]/g, ''))
-          );
-        } catch (_) { }
-      }
+        const req = await response.json();
 
       if (req) {
         const statusMap = {
@@ -1006,8 +911,12 @@
           </div>
         `;
         resDiv.innerHTML = html;
-      } else {
-        resDiv.innerHTML = '<div style="color: var(--accent-rose);"><i class="fa-solid fa-circle-exclamation"></i> Không tìm thấy yêu cầu đặt lịch nào với mã, SĐT hoặc biển số này.</div>';
+      }
+      } catch (err) {
+        const message = err.name === 'AbortError'
+          ? 'Máy chủ phản hồi quá lâu. Vui lòng thử lại.'
+          : (err.message || 'Không thể kết nối máy chủ.');
+        resDiv.innerHTML = `<div style="color: var(--accent-rose);"><i class="fa-solid fa-circle-exclamation"></i> ${message}</div>`;
       }
     }
   </script>

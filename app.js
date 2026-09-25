@@ -3183,7 +3183,7 @@ function renderBookingConfirmation(reqData) {
   if (!confCard) return;
 
   const codeEl = document.getElementById("conf-request-code");
-  if (codeEl) codeEl.innerText = reqData.requestCode || reqData.code || "REQ-SUCCESS";
+  if (codeEl) codeEl.innerText = reqData.requestCode || reqData.code || "—";
 
   const nameEl = document.getElementById("conf-cust-name");
   if (nameEl) nameEl.innerText = reqData.fullName || reqData.name || "";
@@ -4199,7 +4199,7 @@ function showBookingSuccess(data) {
   const success = document.getElementById("booking-confirmation");
   if (!success) return;
 
-  const code = data.requestCode || data.request_code || data.code || "REQ-SUCCESS";
+  const code = data.requestCode || data.request_code || data.code || "—";
   const codeEl = document.getElementById("booking-success-code");
   const nameEl = document.getElementById("booking-success-name");
   const phoneEl = document.getElementById("booking-success-phone");

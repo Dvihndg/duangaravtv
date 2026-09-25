@@ -18,7 +18,7 @@ def db():
         user = User(
             username="test_scenarios_admin",
             email="scenarios_admin@garage.vtv",
-            hashed_password=get_password_hash("admin123"),
+            hashed_password=get_password_hash("test-admin-pass"),
             full_name="Scenarios Admin",
             role=UserRole.MANAGER
         )
