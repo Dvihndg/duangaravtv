@@ -9,7 +9,7 @@ from sqlalchemy import desc, or_
 from backend.app.database import get_db
 from backend.app.models import (
     CustomerRequest, CustomerRequestStatus, Customer, Vehicle, Appointment, AppointmentStatus,
-    RepairOrder, RepairOrderStatus, User, UserRole
+    RepairOrder, RepairOrderStatus, VehicleReception, User, UserRole
 )
 from backend.app.schemas.customer_request import (
     CustomerRequestCreate, CustomerRequestUpdateStatus,
@@ -143,6 +143,12 @@ async def create_customer_request(payload: CustomerRequestCreate, db: Session = 
         )
         db.add(customer)
         db.flush()
+    else:
+        customer.full_name = payload.fullName
+        if payload.email:
+            customer.email = payload.email
+        if payload.address:
+            customer.address = payload.address
 
     # Section 5: Tự động nhận diện Xe cũ / tạo Xe mới
     vehicle = db.query(Vehicle).filter(Vehicle.license_plate == payload.licensePlate).first()
@@ -169,7 +175,9 @@ async def create_customer_request(payload: CustomerRequestCreate, db: Session = 
 
     try:
         if payload.preferredDate:
-            apt_datetime = datetime.fromisoformat(payload.preferredDate)
+            apt_datetime = datetime.fromisoformat(
+                f"{payload.preferredDate}T{payload.preferredTime or '09:00'}"
+            )
         else:
             apt_datetime = datetime.now(timezone.utc) + timedelta(days=1)
     except Exception:
@@ -180,6 +188,9 @@ async def create_customer_request(payload: CustomerRequestCreate, db: Session = 
         customer_id=customer.id,
         vehicle_id=vehicle.id,
         appointment_date=apt_datetime,
+        start_time=payload.preferredTime,
+        service_type=payload.serviceType,
+        description=payload.description,
         notes=f"[{payload.serviceType}] {payload.description or ''}".strip(),
         status=AppointmentStatus.PENDING
     )
@@ -260,7 +271,28 @@ def get_request_by_code(request_code: str, db: Session = Depends(get_db)):
 
     return {
         "requestCode": req.request_code,
-        "status": req.status,
+        "status": req.status.value if hasattr(req.status, "value") else req.status,
+        "serviceType": req.service_type,
+        "preferredDate": req.preferred_date,
+        "preferredTime": req.preferred_time,
+        "createdAt": req.created_at,
+        "updatedAt": req.updated_at,
+    }
+
+
+@router.get("/lookup")
+def lookup_request_public(query: str = Query(..., min_length=3, max_length=30), db: Session = Depends(get_db)):
+    """Return only customer-safe status data for a request code or plate."""
+    value = query.strip().upper()
+    req = db.query(CustomerRequest).filter(CustomerRequest.request_code == value).first()
+    if not req:
+        req = db.query(CustomerRequest).filter(CustomerRequest.license_plate == value).order_by(desc(CustomerRequest.created_at)).first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Không tìm thấy yêu cầu này trên hệ thống!")
+    return {
+        "requestCode": req.request_code,
+        "licensePlate": req.license_plate,
+        "status": req.status.value if hasattr(req.status, "value") else req.status,
         "serviceType": req.service_type,
         "preferredDate": req.preferred_date,
         "preferredTime": req.preferred_time,
@@ -278,49 +310,35 @@ def list_customer_requests(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.RECEPTIONIST]))
 ):
-    try:
-        query = db.query(CustomerRequest)
+    query = db.query(CustomerRequest)
 
-        if status_filter:
-            sf = status_filter.strip()
-            query = query.filter(
-                or_(
-                    CustomerRequest.status == sf,
-                    CustomerRequest.status == sf.capitalize(),
-                    CustomerRequest.status == sf.lower()
-                )
+    if status_filter:
+        sf = status_filter.strip()
+        query = query.filter(
+            or_(
+                CustomerRequest.status == sf,
+                CustomerRequest.status == sf.capitalize(),
+                CustomerRequest.status == sf.lower()
             )
+        )
 
-        if service_type:
-            query = query.filter(CustomerRequest.service_type == service_type)
+    if service_type:
+        query = query.filter(CustomerRequest.service_type == service_type)
 
-        if search:
-            s = f"%{search.strip()}%"
-            query = query.filter(
-                or_(
-                    CustomerRequest.request_code.like(s),
-                    CustomerRequest.full_name.like(s),
-                    CustomerRequest.phone.like(s),
-                    CustomerRequest.license_plate.like(s),
-                    CustomerRequest.email.like(s)
-                )
+    if search:
+        s = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                CustomerRequest.request_code.like(s),
+                CustomerRequest.full_name.like(s),
+                CustomerRequest.phone.like(s),
+                CustomerRequest.license_plate.like(s),
+                CustomerRequest.email.like(s)
             )
+        )
 
-        requests = query.order_by(desc(CustomerRequest.created_at)).all()
-        return [map_to_response(r) for r in requests]
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print(f"[ERROR in list_customer_requests]: {e}")
-        # Self-healing attempt: if table missing or schema mismatch
-        try:
-            from backend.app.database import engine
-            CustomerRequest.__table__.create(bind=engine, checkfirst=True)
-            requests = db.query(CustomerRequest).order_by(desc(CustomerRequest.created_at)).all()
-            return [map_to_response(r) for r in requests]
-        except Exception as retry_e:
-            print(f"[Fallback]: {retry_e}")
-            return []
+    requests = query.order_by(desc(CustomerRequest.created_at)).all()
+    return [map_to_response(r) for r in requests]
 
 
 # 5. ADMIN/MANAGER: GET /api/v1/customer-requests/{id} (Chi Tiết Yêu Cầu)
@@ -342,7 +360,7 @@ async def update_request_status(
     req_id: int,
     payload: CustomerRequestUpdateStatus,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.RECEPTIONIST]))
 ):
     req = db.query(CustomerRequest).filter(CustomerRequest.id == req_id).first()
     if not req:
@@ -388,18 +406,45 @@ async def convert_request_to_reception(
         vehicle = db.query(Vehicle).filter(Vehicle.license_plate == req.license_plate).first()
 
     customer = db.query(Customer).filter(Customer.id == req.customer_id).first() if req.customer_id else None
+    if not customer and vehicle:
+        customer = db.query(Customer).filter(Customer.id == vehicle.customer_id).first()
+    if not vehicle or not customer:
+        raise HTTPException(status_code=409, detail="Không thể chuyển đổi vì thiếu liên kết khách hàng hoặc phương tiện.")
+    if req.appointment_id and db.query(RepairOrder).filter(RepairOrder.appointment_id == req.appointment_id).first():
+        raise HTTPException(status_code=409, detail="Lịch hẹn này đã được chuyển thành phiếu sửa chữa.")
 
-    # Auto Create RepairOrder in atomic transaction
+    # Auto Create Reception + RepairOrder in one transaction
     today_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     ro_count = db.query(RepairOrder).filter(RepairOrder.code.like(f"RO-{today_str}-%")).count()
     ro_code = f"RO-{today_str}-{(ro_count + 1):04d}"
 
+    mileage = req.current_mileage or vehicle.current_mileage or 0
+    reception_code = f"REC-{today_str}-{db.query(VehicleReception).filter(VehicleReception.reception_code.like(f'REC-{today_str}-%')).count() + 1:04d}"
+    reception = VehicleReception(
+        reception_code=reception_code,
+        customer_id=customer.id,
+        vehicle_id=vehicle.id,
+        appointment_id=req.appointment_id,
+        mileage=mileage,
+        customer_complaint=f"[{req.service_type}] {req.description or ''}".strip(),
+        requested_services=req.service_type,
+        notes=req.note,
+        received_by_id=current_user.id,
+        received_at=datetime.now(timezone.utc),
+    )
+    db.add(reception)
+    db.flush()
+
     ro = RepairOrder(
         code=ro_code,
-        vehicle_id=vehicle.id if vehicle else 1,
-        customer_id=customer.id if customer else (vehicle.customer_id if vehicle else 1),
+        vehicle_id=vehicle.id,
+        customer_id=customer.id,
+        appointment_id=req.appointment_id,
+        reception_id=reception.id,
         receptionist_id=current_user.id,
-        mileage_at_reception=req.current_mileage or (vehicle.current_mileage if vehicle else 0),
+        mileage_at_reception=mileage,
+        mileage_in=mileage,
+        customer_complaint=f"[{req.service_type}] {req.description or ''}".strip(),
         initial_symptoms=f"[{req.service_type}] {req.description or ''}".strip(),
         status=RepairOrderStatus.RECEIVED,
         estimated_cost=0.0,
@@ -419,6 +464,8 @@ async def convert_request_to_reception(
     req.reviewed_by_id = current_user.id
     req.updated_at = datetime.now(timezone.utc)
 
+    if mileage > (vehicle.current_mileage or 0):
+        vehicle.current_mileage = mileage
     db.commit()
     db.refresh(ro)
     db.refresh(req)

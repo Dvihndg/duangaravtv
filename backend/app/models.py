@@ -67,6 +67,7 @@ class CustomerRequestStatus(str, enum.Enum):
     CONVERTED = "Converted"
     CANCELLED = "Cancelled"
     REJECTED = "Rejected"
+    NO_SHOW = "NoShow"
 
 class InspectionCategory(str, enum.Enum):
     ENGINE = "ENGINE"

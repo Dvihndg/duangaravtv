@@ -53,7 +53,7 @@ for key, def_val in int_env_defaults.items():
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Hệ thống Quản lý Garage Tích hợp AI"
     # SECRET_KEY: Use env var in production. Fallback generates a random key (not persistent across restarts!)
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "garage-vtv-must-set-secret-key-in-prod-env")
+    SECRET_KEY: str = os.getenv("SECRET_KEY") or secrets.token_urlsafe(32)
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: Any = 1440
 
@@ -69,6 +69,8 @@ class Settings(BaseSettings):
     # DeepSeek / OpenAI-compatible (dự phòng, để trống nếu không dùng)
     DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
     DEEPSEEK_BASE_URL: str = os.getenv("DEEPSEEK_BASE_URL", "")
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000")
+    ENABLE_OFFLINE_DEMO: bool = os.getenv("ENABLE_OFFLINE_DEMO", "false").lower() == "true"
 
     class Config:
         env_file = ".env"
@@ -80,4 +82,3 @@ except Exception:
     for key, def_val in int_env_defaults.items():
         os.environ[key] = def_val
     settings = Settings()
-

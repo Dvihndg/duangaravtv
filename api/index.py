@@ -180,11 +180,14 @@ def auto_setup_db(request: Request):
         try:
             # Check if admin exists
             admin = db.query(User).filter(User.username == "admin").first()
+            initial_admin_password = os.getenv("INITIAL_ADMIN_PASSWORD", "").strip()
+            if not admin and not initial_admin_password:
+                raise HTTPException(status_code=500, detail="INITIAL_ADMIN_PASSWORD is not configured")
             if not admin:
                 new_admin = User(
                     username="admin",
                     email="admin@vtvgarage.com",
-                    hashed_password=get_password_hash("password"),
+                    hashed_password=get_password_hash(initial_admin_password),
                     full_name="Quản trị viên",
                     role=UserRole.MANAGER,
                     phone="0987654321",

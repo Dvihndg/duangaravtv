@@ -106,25 +106,31 @@ def init_db_background():
         from backend.app.auth import get_password_hash
         db = SessionLocal()
         try:
-            if not db.query(User).filter(User.username == "admin").first():
+            seed_passwords = {
+                "admin": os.getenv("DEFAULT_ADMIN_PASSWORD", ""),
+                "letan": os.getenv("DEFAULT_RECEPTIONIST_PASSWORD", ""),
+                "kythuat": os.getenv("DEFAULT_TECHNICIAN_PASSWORD", ""),
+                "thungan": os.getenv("DEFAULT_CASHIER_PASSWORD", ""),
+            }
+            if not db.query(User).filter(User.username == "admin").first() and all(seed_passwords.values()):
                 admin_user = User(
                     username="admin", email="admin@garage.com",
-                    hashed_password=get_password_hash("admin123"),
+                    hashed_password=get_password_hash(seed_passwords["admin"]),
                     full_name="Nguyễn Văn Quản Lý", role=UserRole.MANAGER, phone="0901111111"
                 )
                 letan_user = User(
                     username="letan", email="letan@garage.com",
-                    hashed_password=get_password_hash("letan123"),
+                    hashed_password=get_password_hash(seed_passwords["letan"]),
                     full_name="Trần Thị Lễ Tân", role=UserRole.RECEPTIONIST, phone="0902222222"
                 )
                 tech_user = User(
                     username="kythuat", email="kythuat@garage.com",
-                    hashed_password=get_password_hash("tech123"),
+                    hashed_password=get_password_hash(seed_passwords["kythuat"]),
                     full_name="Lê Hoàng Kỹ Thuật", role=UserRole.TECHNICIAN, phone="0903333333"
                 )
                 cashier_user = User(
                     username="thungan", email="thungan@garage.com",
-                    hashed_password=get_password_hash("cashier123"),
+                    hashed_password=get_password_hash(seed_passwords["thungan"]),
                     full_name="Phạm Thị Thu Ngân", role=UserRole.CASHIER, phone="0904444444"
                 )
                 db.add_all([admin_user, letan_user, tech_user, cashier_user])
@@ -164,10 +170,11 @@ app = FastAPI(
 
 
 
-# Cấu hình CORS cho phép Live Server kết nối
+# Cấu hình CORS theo environment, không dùng wildcard với credentials.
+cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Cho phép tất cả các nguồn truy cập
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -180,12 +187,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={"detail": f"Internal Server Error: {str(exc)}"},
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-        }
+        headers={"Access-Control-Allow-Credentials": "true"}
     )
 
 # Include API Routers
@@ -343,4 +345,3 @@ try:
     handler = Mangum(app, lifespan="off")
 except Exception:
     handler = app
-

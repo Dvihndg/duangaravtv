@@ -468,10 +468,10 @@
     }
 
     const CREDS = {
-      manager:      { username: 'admin',   passwords: ['admin123', 'admin', '123456'] },
-      receptionist: { username: 'letan',   passwords: ['letan123', 'letan', '123456'] },
-      technician:   { username: 'kythuat', passwords: ['tech123', 'kythuat', '123456'] },
-      cashier:      { username: 'thungan', passwords: ['cashier123', 'thungan', '123456'] }
+      manager:      { username: 'admin' },
+      receptionist: { username: 'letan' },
+      technician:   { username: 'kythuat' },
+      cashier:      { username: 'thungan' }
     };
 
     function setLoading(on) {
@@ -495,22 +495,15 @@
       setLoading(true);
 
       const roleInfo = CREDS[selectedRole] || CREDS.manager;
-      const isValidPassword = roleInfo.passwords.includes(pass) || pass === 'admin123' || pass === '123456';
-
-      if (!isValidPassword) {
-        setLoading(false);
-        showError('Mật khẩu không chính xác. Vui lòng thử lại.');
-        return;
-      }
-
-      // Thử đồng bộ token với backend nếu backend có chạy (không bắt buộc)
+      // Authentication is always performed by FastAPI. Never create a local
+      // session or trust a password list embedded in this public HTML.
       try {
         const body = new URLSearchParams({
           username: roleInfo.username,
           password: pass
         });
         const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 800);
+        const t = setTimeout(() => ctrl.abort(), 10000);
         const res = await fetch(`${API_BASE}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -519,22 +512,25 @@
         }).catch(() => null);
         clearTimeout(t);
 
-        if (res && res.ok) {
-          const data = await res.json().catch(() => ({}));
-          if (data && data.access_token) {
-            localStorage.setItem('garage_access_token', data.access_token);
-          }
+        if (!res || !res.ok) {
+          const detail = res ? await res.json().catch(() => ({})) : {};
+          throw new Error(detail.detail || 'Không thể kết nối máy chủ xác thực.');
         }
-      } catch (_) {
-        // Hoạt động offline/local bình thường
+        const data = await res.json();
+        if (!data.access_token) throw new Error('Máy chủ không trả token hợp lệ.');
+        if (data.user?.role && data.user.role !== selectedRole) {
+          throw new Error('Tài khoản không thuộc vai trò đã chọn.');
+        }
+        localStorage.setItem('garage_access_token', data.access_token);
+      } catch (err) {
+        setLoading(false);
+        showError(err.message || 'Đăng nhập thất bại.');
+        return;
       }
 
       // Thiết lập thông tin phiên đăng nhập
       localStorage.setItem('garage_user_role', selectedRole);
       localStorage.setItem('garage_is_logged_in', 'true');
-      if (!localStorage.getItem('garage_access_token')) {
-        localStorage.setItem('garage_access_token', 'local_session_' + Date.now());
-      }
 
       // Chuyển hướng mượt mà
       setTimeout(() => {
