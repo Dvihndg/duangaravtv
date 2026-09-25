@@ -5,7 +5,7 @@ const _isLocalhost = _origin.includes("localhost") || _origin.includes("127.0.0.
 const ENABLE_OFFLINE_DEMO = window.ENABLE_OFFLINE_DEMO === true;
 const API_BASE = configuredApiBase || (
   (_isLocalFile || _isLocalhost)
-    ? "http://127.0.0.1:8000/api/v1"
+    ? `http://${window.location.hostname}:8000/api/v1`
     : "/api/v1"
 );
 

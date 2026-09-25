@@ -426,11 +426,10 @@
 
   </div>
 
+  <script src="static-config.js?v=1.0"></script>
   <script>
-    const API_BASE = (
-      window.location.origin.includes('localhost') ||
-      window.location.origin.includes('127.0.0.1')
-    ) ? 'http://127.0.0.1:8000/api/v1' : '/api/v1';
+    const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_BASE = window.GARAGE_API_BASE || (isLocalHost ? `http://${window.location.hostname}:8000/api/v1` : '/api/v1');
 
     let selectedRole = 'receptionist';
 

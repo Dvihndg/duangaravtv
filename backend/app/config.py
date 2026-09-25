@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     # DeepSeek / OpenAI-compatible (dự phòng, để trống nếu không dùng)
     DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
     DEEPSEEK_BASE_URL: str = os.getenv("DEEPSEEK_BASE_URL", "")
-    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000")
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000,http://localhost:5500,http://127.0.0.1:5500")
     ENABLE_OFFLINE_DEMO: bool = os.getenv("ENABLE_OFFLINE_DEMO", "false").lower() == "true"
 
     class Config:

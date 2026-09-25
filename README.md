@@ -16,6 +16,15 @@ Hệ thống Quản lý Vận hành Toàn diện cho Chuỗi Garage Ô tô kết
 - **Khu vực Quản trị Nội bộ (Internal Admin)**: [https://duangaravtv.vercel.app/admin](https://duangaravtv.vercel.app/admin).
 - **Tài liệu API Tự động (Swagger UI)**: [https://duangaravtv.vercel.app/docs](https://duangaravtv.vercel.app/docs).
 
+### Triển khai frontend static + API riêng
+Frontend gồm các file HTML/CSS/JS thuần và có thể host trên GitHub Pages, Netlify, Cloudflare Pages hoặc bất kỳ static host nào. Nếu API không cùng domain, sửa `static-config.js`:
+
+```js
+window.GARAGE_API_BASE = "https://api.example.com/api/v1";
+```
+
+Đồng thời cấu hình `CORS_ORIGINS` ở backend bằng domain frontend cụ thể. Không dùng `*` khi API bật credentials.
+
 ### 🔑 Tài khoản và phân quyền (RBAC):
 Tài khoản quản trị ban đầu phải được cấu hình bằng các biến môi trường `DEFAULT_ADMIN_USERNAME`, `DEFAULT_ADMIN_PASSWORD`, `DEFAULT_RECEPTIONIST_PASSWORD`, `DEFAULT_TECHNICIAN_PASSWORD` và `DEFAULT_CASHIER_PASSWORD`. Không sử dụng hoặc commit mật khẩu mẫu trong mã nguồn.
 

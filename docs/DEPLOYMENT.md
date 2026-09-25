@@ -16,6 +16,21 @@
 - **Cơ sở dữ liệu Sản xuất**: Supabase PostgreSQL với kết nối Pure-Python `pg8000` (không phụ thuộc `libpq.so.5` của hệ điều hành).
 - **Cơ chế đệm khẩn cấp**: Tự động hạ cấp sang `/tmp/garage.db` (Zero Downtime) khi Supabase bảo trì.
 
+### 1.3. Frontend Static + API Backend Riêng
+Frontend có thể triển khai độc lập trên GitHub Pages, Netlify, Cloudflare Pages hoặc một static host bất kỳ vì không cần Node.js hay server-side rendering.
+
+1. Upload các file `*.html`, `*.css`, `*.js`, hình ảnh và `static-config.js` lên static host.
+2. Trong `static-config.js`, đặt URL API công khai, bao gồm `/api/v1`:
+
+   ```js
+   window.GARAGE_API_BASE = "https://api.example.com/api/v1";
+   ```
+
+3. Trên backend, đặt `CORS_ORIGINS` bằng đúng origin frontend, ví dụ `https://garage.example.com`.
+4. Giữ HTTPS cho cả frontend và API; không đặt secret, database URL hoặc mật khẩu vào static files.
+
+Khi frontend và API cùng origin (ví dụ cấu hình Vercel hiện tại), để `window.GARAGE_API_BASE = ""` trong `static-config.js` để frontend tự dùng `/api/v1`.
+
 ---
 
 ## 2. TRIỂN KHAI BẰNG DOCKER & DOCKER COMPOSE
@@ -55,4 +70,4 @@ docker compose down
 | `OPENAI_API_KEY` | `sk-...` | Khóa API OpenAI |
 | `VAT_RATE` | `0.10` | Tỷ lệ thuế VAT mặc định (10%) |
 | `DEFAULT_CURRENCY` | `VND` | Đơn vị tiền tệ chính |
-| `CORS_ORIGINS` | `*` | Danh sách domain được phép gọi API |
+| `CORS_ORIGINS` | `https://garage.example.com` | Danh sách origin frontend được phép gọi API, phân tách bằng dấu phẩy |
