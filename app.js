@@ -4239,5 +4239,4 @@ window.convertRequestToRepairOrder = convertRequestToRepairOrder;
 window.openTrackRequestModal = openTrackRequestModal;
 window.submitCreateService = submitCreateService;
 window.submitCreatePart = submitCreatePart;
-window.openAIAssistantModal = function() { switchView('ai-studio'); };
 window.switchView = switchView;
