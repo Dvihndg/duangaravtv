@@ -44,7 +44,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try { setupGlobalEventDelegation(); } catch (e) { console.error("setupGlobalEventDelegation:", e); }
+  try { setupPhoneInputGuards(); } catch (e) { console.error("setupPhoneInputGuards:", e); }
 });
+
+// Phone fields accept digits only, including pasted/autofilled values.
+function setupPhoneInputGuards() {
+  document.querySelectorAll('input[type="tel"], input[data-phone-input="true"]').forEach((input) => {
+    input.inputMode = "numeric";
+    input.pattern = "[0-9]*";
+    input.addEventListener("input", () => {
+      const digitsOnly = input.value.replace(/[^0-9]/g, "");
+      if (input.value !== digitsOnly) input.value = digitsOnly;
+    });
+    input.addEventListener("beforeinput", (event) => {
+      if (event.data && /[^0-9]/.test(event.data)) event.preventDefault();
+    });
+  });
+}
 
 function setupTheme() {
   const savedTheme = localStorage.getItem("garage_theme") || "light";

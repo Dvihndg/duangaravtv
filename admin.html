@@ -1316,7 +1316,7 @@
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
                   <label>Số Điện Thoại Liên Hệ (*):</label>
-                  <input type="tel" id="cp-cust-phone" class="form-control" placeholder="0333442358" required>
+                  <input type="tel" id="cp-cust-phone" inputmode="numeric" pattern="[0-9]*" class="form-control" placeholder="0333442358" required>
                 </div>
               </div>
 
@@ -1672,7 +1672,7 @@
           </h4>
           <form onsubmit="submitCallbackRequest(event)">
             <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
-              <input type="tel" id="cb-phone" class="form-control" placeholder="Nhập SĐT của bạn..." required
+              <input type="tel" id="cb-phone" inputmode="numeric" pattern="[0-9]*" class="form-control" placeholder="Nhập SĐT của bạn..." required
                 style="background: rgba(30,41,59,0.7); border-color: rgba(148,163,184,0.2); color: white;">
               <select id="cb-time" class="form-control" style="width: 140px; background: rgba(30,41,59,0.7); border-color: rgba(148,163,184,0.2); color: white;">
                 <option value="immediate">Gọi ngay (5p)</option>
@@ -1851,7 +1851,7 @@
         </div>
         <div class="form-group">
           <label>Số Điện Thoại:</label>
-          <input type="text" id="cust-phone" class="form-control" required placeholder="0333442358">
+          <input type="tel" id="cust-phone" inputmode="numeric" pattern="[0-9]*" class="form-control" required placeholder="0333442358">
         </div>
         <div class="form-group">
           <label>Địa Chỉ:</label>

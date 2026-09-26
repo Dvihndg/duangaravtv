@@ -636,7 +636,7 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="bf_phone">Số Điện Thoại (*)</label>
-            <input type="tel" id="bf_phone" class="form-control" required autocomplete="tel" inputmode="tel"
+            <input type="tel" id="bf_phone" inputmode="numeric" pattern="[0-9]*" class="form-control" required autocomplete="tel"
               placeholder="VD: 0987654321">
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -1056,7 +1056,7 @@
           </h4>
           <form onsubmit="submitCallbackRequest(event)">
             <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
-              <input type="tel" id="cb-phone" class="form-control" placeholder="Nhập SĐT của bạn..." required
+              <input type="tel" id="cb-phone" inputmode="numeric" pattern="[0-9]*" class="form-control" placeholder="Nhập SĐT của bạn..." required
                 style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-main);">
               <select id="cb-time" class="form-control"
                 style="width: 140px; background: var(--bg-input); border-color: var(--border-color); color: var(--text-main);">

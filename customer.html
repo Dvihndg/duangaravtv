@@ -201,7 +201,7 @@
             </div>
             <div class="form-group" style="margin-bottom: 0;">
               <label>Số Điện Thoại (*):</label>
-              <input type="tel" id="cp-cust-phone" class="form-control" placeholder="VD: 0901234567" required>
+              <input type="tel" id="cp-cust-phone" inputmode="numeric" pattern="[0-9]*" class="form-control" placeholder="VD: 0901234567" required>
             </div>
           </div>
           <div class="responsive-grid-2col" style="gap: 1rem; margin-bottom: 1rem;">
@@ -645,7 +645,7 @@
           </h4>
           <form onsubmit="submitCallbackRequest(event)">
             <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
-              <input type="tel" id="cb-phone" class="form-control" placeholder="Nhập SĐT của bạn..." required
+              <input type="tel" id="cb-phone" inputmode="numeric" pattern="[0-9]*" class="form-control" placeholder="Nhập SĐT của bạn..." required
                 style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-main);">
               <select id="cb-time" class="form-control"
                 style="width: 140px; background: var(--bg-input); border-color: var(--border-color); color: var(--text-main);">
