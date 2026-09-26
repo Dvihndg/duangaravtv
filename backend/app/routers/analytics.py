@@ -124,8 +124,8 @@ def get_dashboard_summary(
             "type": "request",
             "time_ago_mins": max(0, ago),
             "created_at": req.created_at,
-            "title": f"YÃƒÂªu cÃ¡ÂºÂ§u tÃ¡Â»Â« {req.full_name}",
-            "description": f"Xe {req.license_plate} - {req.service_type or 'BÃ¡ÂºÂ£o dÃ†Â°Ã¡Â»Â¡ng'}",
+            "title": f"Yêu cầu từ {req.full_name}",
+            "description": f"Xe {req.license_plate} - {req.service_type or 'Bảo dưỡng'}",
             "icon": "fa-bell",
             "color": "#fbbf24"
         })
@@ -137,7 +137,7 @@ def get_dashboard_summary(
             "type": "order",
             "time_ago_mins": max(0, ago),
             "created_at": ro.created_at,
-            "title": f"LÃ¡ÂºÂ­p phiÃ¡ÂºÂ¿u sÃ¡Â»Â­a chÃ¡Â»Â¯a {ro.code}",
+            "title": f"Lập phiếu sửa chữa {ro.code}",
             "description": f"Xe {getattr(vehicle, 'license_plate', None) or 'N/A'}",
             "icon": "fa-wrench",
             "color": "#38bdf8"

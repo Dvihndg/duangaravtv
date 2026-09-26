@@ -1126,9 +1126,9 @@ async function loadDashboard() {
                   </div>
                   <div style="flex: 1; font-size: 0.82rem;">
                     <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">
-                      ${act.title} <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 400;">${timeStr}</span>
+                      ${escapeHTML(act.title || "Hoạt động mới")} <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 400;">${timeStr}</span>
                     </div>
-                    <div style="color: var(--text-muted); line-height: 1.35;">${act.description}</div>
+                    <div style="color: var(--text-muted); line-height: 1.35;">${escapeHTML(act.description || "")}</div>
                   </div>
                 </div>
               `;
