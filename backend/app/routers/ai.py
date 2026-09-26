@@ -30,7 +30,8 @@ def ask_ai_assistant(
         db,
         question=req.question,
         repair_order_id=req.repair_order_id,
-        vehicle_id=req.vehicle_id
+        vehicle_id=req.vehicle_id,
+        mode="admin"
     )
     if not res.get("success", False):
         raise HTTPException(status_code=400, detail=res.get("output", "Lỗi AI"))
@@ -48,7 +49,8 @@ def ask_ai_assistant_open(
         db,
         question=req.question,
         repair_order_id=req.repair_order_id,
-        vehicle_id=req.vehicle_id
+        vehicle_id=req.vehicle_id,
+        mode="customer"
     )
     if not res.get("success", False):
         raise HTTPException(status_code=400, detail=res.get("output", "Lỗi AI"))

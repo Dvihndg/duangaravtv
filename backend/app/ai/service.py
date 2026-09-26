@@ -10,7 +10,9 @@ from backend.app.models import AILog, RepairOrder, Vehicle, AIKnowledgeBase
 from backend.app.ai.tools import AGENT_TOOLS, execute_tool
 from backend.app.ai.prompts import (
     SYSTEM_GARAGE_ASSISTANT,
+    SYSTEM_GARAGE_ADMIN_ASSISTANT,
     PROMPT_AI_ASSISTANT,
+    PROMPT_ADMIN_ASSISTANT,
     PROMPT_HISTORY_SUMMARY,
     PROMPT_SERVICE_EXPLAINER,
     PROMPT_DRAFT_QUOTATION,
@@ -724,8 +726,9 @@ class AIService:
         question: str,
         repair_order_id: Optional[int] = None,
         vehicle_id: Optional[int] = None,
+        mode: str = "customer",
     ) -> Dict[str, Any]:
-        """Trợ lý AI Garage tổng quát."""
+        """Trợ lý AI: customer chỉ tư vấn xe; admin hỗ trợ vận hành nội bộ."""
         question = (question or "").strip()
         if not question:
             return {
@@ -778,16 +781,19 @@ class AIService:
 
         context_info = "\n\n".join(context_parts) if context_parts else "Không có thông tin xe hoặc phiếu sửa chữa cụ thể."
 
-        user_prompt = PROMPT_AI_ASSISTANT.format(
+        is_admin = mode == "admin"
+        prompt_template = PROMPT_ADMIN_ASSISTANT if is_admin else PROMPT_AI_ASSISTANT
+        user_prompt = prompt_template.format(
             question=question,
             context_info=context_info,
         )
 
-        system_prompt = cls._get_system_prompt_with_memory(db, SYSTEM_GARAGE_ASSISTANT)
+        base_system_prompt = SYSTEM_GARAGE_ADMIN_ASSISTANT if is_admin else SYSTEM_GARAGE_ASSISTANT
+        system_prompt = cls._get_system_prompt_with_memory(db, base_system_prompt)
         output_text, model_used = cls._call_llm_agent(db, system_prompt, user_prompt)
         cls._save_ai_log(
             db=db,
-            feature="ai_assistant",
+            feature="ai_admin_assistant" if is_admin else "ai_assistant",
             prompt_input=user_prompt,
             response_output=output_text,
             model_used=model_used,
@@ -802,6 +808,7 @@ class AIService:
                 "question": question,
                 "repair_order_id": repair_order_id,
                 "vehicle_id": vehicle_id,
+                "mode": "admin" if is_admin else "customer",
             },
         }
 
@@ -885,4 +892,3 @@ class AIService:
             "output": output_text,
             "model_used": model_used
         }
-

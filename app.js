@@ -3069,11 +3069,11 @@ async function sendAIChatMessage() {
 function triggerQuickPrompt(promptKey) {
   const promptsMap = {
     vios_vibration: "Xe Toyota Vios 2018 bị rung khi chạy không tải thì có thể do đâu?",
-    history_analysis: "Phân tích lịch sử sửa chữa xe 51H-888.88",
-    draft_mazda: "Xe Mazda 3 cần thay dầu máy, lọc dầu và kiểm tra phanh.",
-    business_analysis: "Doanh thu tháng này thế nào?",
-    predict_maintenance: "Dự đoán bảo dưỡng đợt tiếp theo cho xe 51H-888.88",
-    customer_progress: "Xe của tôi đang sửa đến đâu rồi?"
+    history_analysis: "Tiếp nhận xe 51H-888.88: phân tích lịch sử sửa chữa và các điểm cần ưu tiên kiểm tra",
+    draft_mazda: "Kho hiện còn thiếu phụ tùng nào cho ca Mazda 3 thay dầu và kiểm tra phanh? Đề xuất cách bổ sung.",
+    business_analysis: "Phân tích doanh thu, công nợ và dấu hiệu thất thoát cần đối soát trong tháng này.",
+    predict_maintenance: "Lập kế hoạch điều phối các phiếu đang chờ theo mức độ ưu tiên và năng lực kỹ thuật viên.",
+    customer_progress: "Xem lịch hẹn hôm nay và đề xuất cách chăm sóc các khách hàng đang chờ."
   };
 
   const text = promptsMap[promptKey] || promptKey;
