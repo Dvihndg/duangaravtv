@@ -835,7 +835,27 @@ function getOfflineMockResponse(endpoint, options) {
       { id: 13, code: "CB-KHO-003", name: "Combo kho: Má phanh trước + dầu phanh DOT 4", unit_price: 1650000, stock_quantity: 3, min_stock_alert: 2 },
       { id: 14, code: "CB-KHO-004", name: "Combo kho: Vệ sinh điều hòa + gas R134a", unit_price: 950000, stock_quantity: 6, min_stock_alert: 2 },
       { id: 15, code: "CB-KHO-005", name: "Combo kho: Chăm sóc nội thất & ngoại thất", unit_price: 1800000, stock_quantity: 4, min_stock_alert: 2 },
-      { id: 16, code: "CB-KHO-006", name: "Combo kho: Sẵn sàng đường dài", unit_price: 2450000, stock_quantity: 2, min_stock_alert: 2 }
+      { id: 16, code: "CB-KHO-006", name: "Combo kho: Sẵn sàng đường dài", unit_price: 2450000, stock_quantity: 2, min_stock_alert: 2 },
+      { id: 17, code: "PT-021", name: "Lọc dầu động cơ Hyundai/Kia", unit_price: 195000, stock_quantity: 22, min_stock_alert: 5 },
+      { id: 18, code: "PT-022", name: "Lọc gió động cơ Toyota Vios/Yaris", unit_price: 390000, stock_quantity: 14, min_stock_alert: 5 },
+      { id: 19, code: "PT-023", name: "Lọc nhiên liệu xăng Bosch", unit_price: 365000, stock_quantity: 9, min_stock_alert: 3 },
+      { id: 20, code: "PT-024", name: "Má phanh sau Toyota Innova bộ 4 miếng", unit_price: 980000, stock_quantity: 7, min_stock_alert: 3 },
+      { id: 21, code: "PT-025", name: "Dầu phanh DOT 4 500ml", unit_price: 155000, stock_quantity: 18, min_stock_alert: 5 },
+      { id: 22, code: "PT-026", name: "Đĩa phanh trước Honda Civic", unit_price: 1250000, stock_quantity: 4, min_stock_alert: 2 },
+      { id: 23, code: "PT-027", name: "Cao su càng A Toyota Vios", unit_price: 285000, stock_quantity: 12, min_stock_alert: 4 },
+      { id: 24, code: "PT-028", name: "Rotuyn cân bằng trước Mazda CX-5", unit_price: 420000, stock_quantity: 6, min_stock_alert: 2 },
+      { id: 25, code: "PT-029", name: "Bạc đạn bánh trước Hyundai Accent", unit_price: 890000, stock_quantity: 3, min_stock_alert: 2 },
+      { id: 26, code: "PT-030", name: "Dây curoa cam Toyota Fortuner", unit_price: 1250000, stock_quantity: 5, min_stock_alert: 2 },
+      { id: 27, code: "PT-031", name: "Bugi Iridium Mazda Skyactiv", unit_price: 320000, stock_quantity: 20, min_stock_alert: 8 },
+      { id: 28, code: "PT-032", name: "Ron nắp dàn cò Honda CR-V", unit_price: 540000, stock_quantity: 5, min_stock_alert: 2 },
+      { id: 29, code: "PT-033", name: "Mô-tơ quạt két nước Toyota", unit_price: 1850000, stock_quantity: 2, min_stock_alert: 2 },
+      { id: 30, code: "PT-034", name: "Nước làm mát màu đỏ 1L", unit_price: 145000, stock_quantity: 30, min_stock_alert: 8 },
+      { id: 31, code: "PT-035", name: "Máy phát điện 12V Honda City", unit_price: 4650000, stock_quantity: 2, min_stock_alert: 1 },
+      { id: 32, code: "PT-036", name: "Cầu chì mini hộp 10A–30A", unit_price: 180000, stock_quantity: 16, min_stock_alert: 4 },
+      { id: 33, code: "PT-037", name: "Lọc gió điều hòa Toyota Camry", unit_price: 480000, stock_quantity: 7, min_stock_alert: 3 },
+      { id: 34, code: "PT-038", name: "Dầu máy nén điều hòa PAG 46", unit_price: 390000, stock_quantity: 4, min_stock_alert: 2 },
+      { id: 35, code: "PT-039", name: "Van Schrader điều hòa ô tô", unit_price: 120000, stock_quantity: 25, min_stock_alert: 6 },
+      { id: 36, code: "PT-040", name: "Gạt mưa silicon 24 inch", unit_price: 280000, stock_quantity: 10, min_stock_alert: 4 }
     ];
     const customParts = dbRead(DB_KEYS.parts);
     return [...defaultParts, ...customParts];
