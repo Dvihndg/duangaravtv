@@ -88,6 +88,7 @@ def initialize_database():
     try:
         Base.metadata.create_all(bind=engine)
         from backend.app.models import User, UserRole
+        from backend.app.demo_catalog import ensure_demo_catalog
 
         # Seed nhân viên độc lập với Admin; không cần và không thay đổi mật khẩu Admin.
         staff_seed = [
@@ -112,6 +113,12 @@ def initialize_database():
                     db.commit()
         finally:
             db.close()
+
+        catalog_db = SessionLocal()
+        try:
+            ensure_demo_catalog(catalog_db)
+        finally:
+            catalog_db.close()
 
         if (
             os.getenv("SYNC_ADMIN_PASSWORD", "false").lower() == "true"

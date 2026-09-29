@@ -102,7 +102,8 @@ def init_db_background():
         print(f"Migration notice: {e}")
 
     try:
-        from backend.app.models import User, UserRole, Service, Part
+        from backend.app.models import User, UserRole
+        from backend.app.demo_catalog import ensure_demo_catalog
         from backend.app.auth import get_password_hash, verify_password
         db = SessionLocal()
         try:
@@ -158,19 +159,7 @@ def init_db_background():
                     admin.hashed_password = get_password_hash(admin_password)
                     db.commit()
 
-            if not db.query(Service).first():
-                s1 = Service(code="DV-001", name="Bảo dưỡng định kỳ 5,000 km", category="Bảo dưỡng", labor_cost=450000, estimated_duration=60)
-                s2 = Service(code="DV-002", name="Chẩn đoán lỗi động cơ (Scan OBD-II)", category="Chẩn đoán", labor_cost=300000, estimated_duration=45)
-                s3 = Service(code="DV-003", name="Thay dầu nhớt & Lọc nhớt động cơ", category="Bảo dưỡng", labor_cost=150000, estimated_duration=30)
-                db.add_all([s1, s2, s3])
-                db.commit()
-
-            if not db.query(Part).first():
-                p1 = Part(code="PT-001", name="Dầu nhớt Fully Synthetic 5W-30 (Can 4L)", category="Hóa chất / Dầu nhớt", unit="Can", cost_price=650000, unit_price=850000, stock_quantity=45, min_stock_alert=10)
-                p2 = Part(code="PT-002", name="Lọc nhớt động cơ Toyota Camry/Corolla", category="Phụ tùng thay thế", unit="Cái", cost_price=120000, unit_price=180000, stock_quantity=30, min_stock_alert=5)
-                p3 = Part(code="PT-003", name="Má phanh trước Honda CR-V (Bộ 4 miếng)", category="Phụ tùng thay thế", unit="Bộ", cost_price=850000, unit_price=1250000, stock_quantity=15, min_stock_alert=4)
-                db.add_all([p1, p2, p3])
-                db.commit()
+            ensure_demo_catalog(db)
         finally:
             db.close()
     except Exception as e:
