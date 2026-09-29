@@ -788,7 +788,13 @@ function getOfflineMockResponse(endpoint, options) {
       { id: 7, code: "SER-007", name: "Vệ sinh gầm xe & Phủ bóng Ceramic bảo vệ sơn", labor_cost: 1200000 },
       { id: 8, code: "SER-008", name: "Chẩn đoán & Xóa lỗi đọc chuẩn OBD-II ECU", labor_cost: 200000 },
       { id: 9, code: "SER-009", name: "Thay bình ắc quy GS/Varta & Kiểm tra máy phát", labor_cost: 100000 },
-      { id: 10, code: "SER-010", name: "Bảo dưỡng tổng thể mốc 80.000 km", labor_cost: 800000 }
+      { id: 10, code: "SER-010", name: "Bảo dưỡng tổng thể mốc 80.000 km", labor_cost: 800000 },
+      { id: 11, code: "CB-DV-001", name: "Combo Thay dầu tiêu chuẩn (Dầu 5W-30 + lọc nhớt)", labor_cost: 1050000 },
+      { id: 12, code: "CB-DV-002", name: "Combo Bảo dưỡng 10.000 km (dầu + lọc dầu + lọc gió)", labor_cost: 1450000 },
+      { id: 13, code: "CB-DV-003", name: "Combo An toàn phanh (kiểm tra + má phanh trước)", labor_cost: 1650000 },
+      { id: 14, code: "CB-DV-004", name: "Combo Điều hòa mát sâu (vệ sinh + nạp gas kiểm tra)", labor_cost: 950000 },
+      { id: 15, code: "CB-DV-005", name: "Combo Chăm sóc xe cơ bản (nội thất + ngoại thất)", labor_cost: 1800000 },
+      { id: 16, code: "CB-DV-006", name: "Combo Sẵn sàng đường dài (dầu + phanh + lốp + kiểm tra gầm)", labor_cost: 2450000 }
     ];
     const customServices = dbRead(DB_KEYS.services);
     return [...defaultServices, ...customServices];
@@ -823,7 +829,13 @@ function getOfflineMockResponse(endpoint, options) {
       { id: 7, code: "PAR-007", name: "Lốp xe Michelin Pilot Sport 4 (235/45R18)", unit_price: 3400000, stock_quantity: 12, min_stock_alert: 4 },
       { id: 8, code: "PAR-008", name: "Cặp gạt mưa Silicon Bosch Aerotwin", unit_price: 380000, stock_quantity: 2, min_stock_alert: 5 },
       { id: 9, code: "PAR-009", name: "Dầu phanh cao cấp Motul DOT4 (1L)", unit_price: 250000, stock_quantity: 15, min_stock_alert: 4 },
-      { id: 10, code: "PAR-010", name: "Nước làm mát động cơ Motul Inugel (5L)", unit_price: 420000, stock_quantity: 20, min_stock_alert: 5 }
+      { id: 10, code: "PAR-010", name: "Nước làm mát động cơ Motul Inugel (5L)", unit_price: 420000, stock_quantity: 20, min_stock_alert: 5 },
+      { id: 11, code: "CB-KHO-001", name: "Combo kho: Dầu 5W-30 + lọc nhớt", unit_price: 1050000, stock_quantity: 8, min_stock_alert: 2 },
+      { id: 12, code: "CB-KHO-002", name: "Combo kho: Bộ bảo dưỡng 10.000 km", unit_price: 1450000, stock_quantity: 5, min_stock_alert: 2 },
+      { id: 13, code: "CB-KHO-003", name: "Combo kho: Má phanh trước + dầu phanh DOT 4", unit_price: 1650000, stock_quantity: 3, min_stock_alert: 2 },
+      { id: 14, code: "CB-KHO-004", name: "Combo kho: Vệ sinh điều hòa + gas R134a", unit_price: 950000, stock_quantity: 6, min_stock_alert: 2 },
+      { id: 15, code: "CB-KHO-005", name: "Combo kho: Chăm sóc nội thất & ngoại thất", unit_price: 1800000, stock_quantity: 4, min_stock_alert: 2 },
+      { id: 16, code: "CB-KHO-006", name: "Combo kho: Sẵn sàng đường dài", unit_price: 2450000, stock_quantity: 2, min_stock_alert: 2 }
     ];
     const customParts = dbRead(DB_KEYS.parts);
     return [...defaultParts, ...customParts];

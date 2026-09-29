@@ -18,6 +18,12 @@ DEMO_SERVICES = [
     ("DV-010", "Đồng sơn chi tiết thân vỏ", "Đồng sơn", 1800000, 480),
     ("DV-011", "Kiểm tra gầm và chạy thử", "Chẩn đoán", 150000, 30),
     ("DV-012", "Vệ sinh nội thất cao cấp", "Chăm sóc xe", 900000, 180),
+    ("CB-DV-001", "Combo Thay dầu tiêu chuẩn (Dầu 5W-30 + lọc nhớt)", "Combo dịch vụ", 1050000, 45),
+    ("CB-DV-002", "Combo Bảo dưỡng 10.000 km (dầu + lọc dầu + lọc gió)", "Combo dịch vụ", 1450000, 150),
+    ("CB-DV-003", "Combo An toàn phanh (kiểm tra + má phanh trước)", "Combo dịch vụ", 1650000, 120),
+    ("CB-DV-004", "Combo Điều hòa mát sâu (vệ sinh + nạp gas kiểm tra)", "Combo dịch vụ", 950000, 150),
+    ("CB-DV-005", "Combo Chăm sóc xe cơ bản (nội thất + ngoại thất)", "Combo dịch vụ", 1800000, 240),
+    ("CB-DV-006", "Combo Sẵn sàng đường dài (dầu + phanh + lốp + kiểm tra gầm)", "Combo dịch vụ", 2450000, 180),
 ]
 
 DEMO_PARTS = [
@@ -41,6 +47,12 @@ DEMO_PARTS = [
     ("PT-018", "Mô-bin đánh lửa Toyota", "Denso", "Điện động cơ", "Cái", 980000, 720000, 6, 2),
     ("PT-019", "Gas lạnh R134a nạp bổ sung", "Denso", "Điều hòa", "Lon", 280000, 170000, 11, 4),
     ("PT-020", "Khăn lau microfiber cao cấp", "Garage VTV", "Chăm sóc xe", "Cái", 95000, 50000, 80, 15),
+    ("CB-KHO-001", "Combo kho: Dầu 5W-30 + lọc nhớt", "Garage VTV", "Combo đóng gói", "Combo", 1050000, 770000, 8, 2),
+    ("CB-KHO-002", "Combo kho: Bộ bảo dưỡng 10.000 km", "Garage VTV", "Combo đóng gói", "Combo", 1450000, 1080000, 5, 2),
+    ("CB-KHO-003", "Combo kho: Má phanh trước + dầu phanh DOT 4", "Garage VTV", "Combo đóng gói", "Combo", 1650000, 1040000, 3, 2),
+    ("CB-KHO-004", "Combo kho: Vệ sinh điều hòa + gas R134a", "Garage VTV", "Combo đóng gói", "Combo", 950000, 590000, 6, 2),
+    ("CB-KHO-005", "Combo kho: Chăm sóc nội thất & ngoại thất", "Garage VTV", "Combo đóng gói", "Combo", 1800000, 980000, 4, 2),
+    ("CB-KHO-006", "Combo kho: Sẵn sàng đường dài", "Garage VTV", "Combo đóng gói", "Combo", 2450000, 1740000, 2, 2),
 ]
 
 
