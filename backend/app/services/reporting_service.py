@@ -97,6 +97,12 @@ def parse_report_period(query: str, now: Optional[datetime] = None) -> ReportPer
     if "hôm nay" in text or "hom nay" in text:
         return ReportPeriod(today, today, f"Ngày {today:%d/%m/%Y}")
 
+    if ("đầu tuần trước" in text or "dau tuan truoc" in text) and ("giữa tuần này" in text or "giua tuan nay" in text):
+        current_monday = today - timedelta(days=today.weekday())
+        start = current_monday - timedelta(days=7)
+        end = min(current_monday + timedelta(days=2), today)
+        return ReportPeriod(start, end, f"Từ đầu tuần trước đến giữa tuần này ({start:%d/%m/%Y}–{end:%d/%m/%Y})")
+
     day_match = re.search(r"(?:ngày|ngay)\s+([0-9]{1,2}[/.\-][0-9]{1,2}(?:[/.\-][0-9]{4})?)", text)
     if day_match:
         target = _parse_date_token(day_match.group(1), today)

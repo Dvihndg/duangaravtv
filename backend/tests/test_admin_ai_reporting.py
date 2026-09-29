@@ -12,6 +12,9 @@ def test_ts_adm_01_standard_periods_use_local_timezone():
     assert yesterday.end_date.isoformat() == "2026-09-28"
     assert parse_report_period("doanh thu quý 3/2026", now=now).start_date.isoformat() == "2026-07-01"
     assert parse_report_period("doanh thu tháng 8/2026", now=now).end_date.isoformat() == "2026-08-31"
+    relative = parse_report_period("doanh thu từ đầu tuần trước tới giữa tuần này", now=now)
+    assert relative.start_date.isoformat() == "2026-09-21"
+    assert relative.end_date.isoformat() == "2026-09-29"
     # 00:00 local UTC+7 is 17:00 of the prior UTC day.
     assert yesterday.start_utc.hour == 17
 
