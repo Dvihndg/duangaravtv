@@ -9,6 +9,7 @@ from backend.app.config import settings
 from backend.app.models import AILog, RepairOrder, Vehicle, AIKnowledgeBase
 from backend.app.ai.tools import AGENT_TOOLS, execute_tool, get_monthly_revenue_tool
 from backend.app.services.reporting_service import format_dashboard_revenue_context, format_report_context, report_for_query
+from backend.app.services.lookup_service import lookup_operational_context
 from backend.app.ai.prompts import (
     SYSTEM_GARAGE_ASSISTANT,
     SYSTEM_GARAGE_ADMIN_ASSISTANT,
@@ -782,6 +783,17 @@ class AIService:
             )
 
         is_admin = mode == "admin"
+        lower_question = question.lower()
+        sensitive_terms = ("bảng lương", "luong", "lương", "hoa hồng", "hoa hong", "tài khoản ngân hàng", "tai khoan ngan hang", "số tài khoản", "so tai khoan")
+        if is_admin and any(term in lower_question for term in sensitive_terms):
+            context_parts.append(
+                "--- QUYỀN BẢO MẬT ---\n"
+                "TỪ CHỐI: Không cung cấp bảng lương, hoa hồng, số tài khoản ngân hàng hoặc dữ liệu tài chính cá nhân. "
+                "Vai trò AI không có quyền truy cập các trường dữ liệu này; không được suy đoán, xuất file hoặc tiết lộ một phần."
+            )
+        lookup_context = lookup_operational_context(db, question) if is_admin else None
+        if lookup_context:
+            context_parts.append(lookup_context)
         finance_terms = ("doanh thu", "doanh số", "tài chính", "phiếu thu", "hóa đơn", "hoa don")
         if is_admin and any(term in question.lower() for term in finance_terms):
             if current_role in {"manager", "cashier"}:

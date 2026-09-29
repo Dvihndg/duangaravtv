@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from backend.app.models import Invoice, InvoiceStatus, RepairOrder, RepairOrderItem, RepairOrderItemType, Part
 from backend.app.services.reporting_service import build_revenue_report, format_dashboard_revenue_context, parse_report_period, report_for_query
 from backend.app.auth import create_access_token
+from backend.app.services.lookup_service import lookup_customer, lookup_inventory, lookup_operational_context
 
 
 def test_ts_adm_01_standard_periods_use_local_timezone():
@@ -90,3 +91,13 @@ def test_dashboard_revenue_context_answers_month_without_follow_up_questions():
     full_context = format_dashboard_revenue_context("doanh thu")
     assert "TỔNG 6 THÁNG" in full_context
     assert "1,303,000,000 VNĐ" in full_context
+
+
+def test_operational_lookup_context_returns_real_records(db_session):
+    inventory = lookup_inventory(db_session, "Test Part")
+    assert "PAR-TEST" in inventory
+    customer = lookup_customer(db_session, "Test Customer")
+    assert "Test Customer" in customer
+    assert "99A-999.99" in customer
+    assert lookup_operational_context(db_session, "tra cứu khách hàng Test Customer") == customer
+    assert "Không tìm thấy hóa đơn/đơn hàng" in lookup_operational_context(db_session, "tra cứu hóa đơn INV-404")
