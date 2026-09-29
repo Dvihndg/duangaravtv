@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.models import AILog, RepairOrder, Vehicle, AIKnowledgeBase
 from backend.app.ai.tools import AGENT_TOOLS, execute_tool, get_monthly_revenue_tool
+from backend.app.services.reporting_service import format_report_context, report_for_query
 from backend.app.ai.prompts import (
     SYSTEM_GARAGE_ASSISTANT,
     SYSTEM_GARAGE_ADMIN_ASSISTANT,
@@ -783,7 +784,10 @@ class AIService:
         is_admin = mode == "admin"
         finance_terms = ("doanh thu", "doanh số", "tài chính", "phiếu thu", "hóa đơn", "hoa don")
         if is_admin and any(term in question.lower() for term in finance_terms):
-            context_parts.append("--- DOANH THU THỰC THU TỪ CSDL ---\n" + get_monthly_revenue_tool(db))
+            if current_role in {"manager", "cashier"}:
+                context_parts.append(format_report_context(report_for_query(db, question)))
+            else:
+                context_parts.append("--- QUYỀN TÀI CHÍNH ---\nVai trò hiện tại không được xem báo cáo tài chính chi tiết. Yêu cầu Quản lý hoặc Thu ngân thực hiện tra cứu.")
         context_info = "\n\n".join(context_parts) if context_parts else "Không có thông tin xe hoặc phiếu sửa chữa cụ thể."
 
         prompt_template = PROMPT_ADMIN_ASSISTANT if is_admin else PROMPT_AI_ASSISTANT

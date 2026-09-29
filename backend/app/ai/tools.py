@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from backend.app.models import Part, Vehicle, RepairOrder, Appointment, Customer, Invoice, InvoiceStatus, Payment
+from backend.app.services.reporting_service import format_report_context, report_for_query
 
 def check_inventory_tool(db: Session, part_name: str) -> str:
     """Tra cứu tồn kho phụ tùng."""
@@ -116,6 +117,11 @@ def get_monthly_revenue_tool(db: Session, year: Optional[int] = None, month: Opt
         "- Căn cứ chính: Invoice.invoice_date và Invoice.paid_amount, cùng logic Dashboard; không dùng số liệu ước tính."
     )
 
+
+def get_revenue_report_tool(db: Session, query: str) -> str:
+    """Lập báo cáo doanh thu theo ngôn ngữ tự nhiên bằng parser deterministic."""
+    return format_report_context(report_for_query(db, query))
+
 # =====================================================================
 # AGENT TOOL SCHEMAS FOR OPENAI / GROQ
 # =====================================================================
@@ -202,6 +208,20 @@ AGENT_TOOLS = [
                 "required": []
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_revenue_report_tool",
+            "description": "Lập báo cáo doanh thu theo ngày, tuần, tháng, quý, năm hoặc khoảng ngày; không tự tính số liệu bằng LLM.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Ví dụ: doanh thu tháng 8/2026 hoặc từ ngày 12/03/2026 đến 27/04/2026"}
+                },
+                "required": ["query"]
+            }
+        }
     }
 ]
 
@@ -220,5 +240,7 @@ def execute_tool(db: Session, tool_name: str, kwargs: Dict[str, Any]) -> str:
         return get_appointment_schedule_tool(db, kwargs.get("date_str", ""))
     elif tool_name == "get_monthly_revenue_tool":
         return get_monthly_revenue_tool(db, kwargs.get("year"), kwargs.get("month"))
+    elif tool_name == "get_revenue_report_tool":
+        return get_revenue_report_tool(db, kwargs.get("query", ""))
     else:
         return f"Lỗi: Không tìm thấy công cụ {tool_name}"
