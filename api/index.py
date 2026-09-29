@@ -87,12 +87,36 @@ def initialize_database():
     """
     try:
         Base.metadata.create_all(bind=engine)
+        from backend.app.models import User, UserRole
+
+        # Seed nhân viên độc lập với Admin; không cần và không thay đổi mật khẩu Admin.
+        staff_seed = [
+            ("letan", "letan@garage.com", "Trần Thị Lễ Tân", UserRole.RECEPTIONIST, "0902222222", "DEFAULT_RECEPTIONIST_PASSWORD"),
+            ("kythuat", "kythuat@garage.com", "Lê Hoàng Kỹ Thuật", UserRole.TECHNICIAN, "0903333333", "DEFAULT_TECHNICIAN_PASSWORD"),
+            ("thungan", "thungan@garage.com", "Phạm Thị Thu Ngân", UserRole.CASHIER, "0904444444", "DEFAULT_CASHIER_PASSWORD"),
+        ]
+        db = SessionLocal()
+        try:
+            sync_staff = os.getenv("SYNC_STAFF_PASSWORDS", "false").lower() == "true"
+            for username, email, full_name, role, phone, env_name in staff_seed:
+                password = os.getenv(env_name, "").strip()
+                if not password:
+                    continue
+                staff_user = db.query(User).filter(User.username == username).first()
+                if not staff_user:
+                    db.add(User(username=username, email=email, hashed_password=get_password_hash(password), full_name=full_name, role=role, phone=phone))
+                    db.commit()
+                elif sync_staff and not verify_password(password, str(staff_user.hashed_password)):
+                    staff_user.hashed_password = get_password_hash(password)
+                    staff_user.role = role
+                    db.commit()
+        finally:
+            db.close()
+
         if (
             os.getenv("SYNC_ADMIN_PASSWORD", "false").lower() == "true"
             and os.getenv("DEFAULT_ADMIN_PASSWORD", "").strip()
         ):
-            from backend.app.models import User
-
             admin_password = os.getenv("DEFAULT_ADMIN_PASSWORD", "").strip()
             db = SessionLocal()
             try:

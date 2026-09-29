@@ -112,34 +112,43 @@ def init_db_background():
                 "kythuat": os.getenv("DEFAULT_TECHNICIAN_PASSWORD", ""),
                 "thungan": os.getenv("DEFAULT_CASHIER_PASSWORD", ""),
             }
-            if not db.query(User).filter(User.username == "admin").first() and all(seed_passwords.values()):
+            # Admin và nhân viên được seed độc lập. Thiếu mật khẩu Admin không
+            # được phép ngăn việc tạo các tài khoản nhân viên.
+            admin_password = seed_passwords["admin"].strip()
+            if not db.query(User).filter(User.username == "admin").first() and admin_password:
                 admin_user = User(
                     username="admin", email="admin@garage.com",
                     hashed_password=get_password_hash(seed_passwords["admin"]),
                     full_name="Nguyễn Văn Quản Lý", role=UserRole.MANAGER, phone="0901111111"
                 )
-                letan_user = User(
-                    username="letan", email="letan@garage.com",
-                    hashed_password=get_password_hash(seed_passwords["letan"]),
-                    full_name="Trần Thị Lễ Tân", role=UserRole.RECEPTIONIST, phone="0902222222"
-                )
-                tech_user = User(
-                    username="kythuat", email="kythuat@garage.com",
-                    hashed_password=get_password_hash(seed_passwords["kythuat"]),
-                    full_name="Lê Hoàng Kỹ Thuật", role=UserRole.TECHNICIAN, phone="0903333333"
-                )
-                cashier_user = User(
-                    username="thungan", email="thungan@garage.com",
-                    hashed_password=get_password_hash(seed_passwords["thungan"]),
-                    full_name="Phạm Thị Thu Ngân", role=UserRole.CASHIER, phone="0904444444"
-                )
-                db.add_all([admin_user, letan_user, tech_user, cashier_user])
+                db.add(admin_user)
                 db.commit()
 
-            # Password reset is opt-in and environment-managed. This avoids
-            # silently changing credentials on every deployment while still
-            # allowing a controlled reset when the current password is lost.
-            admin_password = seed_passwords["admin"].strip()
+            staff_seed = [
+                ("letan", "letan@garage.com", "Trần Thị Lễ Tân", UserRole.RECEPTIONIST, "0902222222"),
+                ("kythuat", "kythuat@garage.com", "Lê Hoàng Kỹ Thuật", UserRole.TECHNICIAN, "0903333333"),
+                ("thungan", "thungan@garage.com", "Phạm Thị Thu Ngân", UserRole.CASHIER, "0904444444"),
+            ]
+            sync_staff = os.getenv("SYNC_STAFF_PASSWORDS", "false").lower() == "true"
+            for username, email, full_name, role, phone in staff_seed:
+                password = seed_passwords[username].strip()
+                if not password:
+                    continue
+                staff_user = db.query(User).filter(User.username == username).first()
+                if not staff_user:
+                    db.add(User(
+                        username=username, email=email,
+                        hashed_password=get_password_hash(password),
+                        full_name=full_name, role=role, phone=phone
+                    ))
+                    db.commit()
+                elif sync_staff and not verify_password(password, str(staff_user.hashed_password)):
+                    staff_user.hashed_password = get_password_hash(password)
+                    staff_user.role = role
+                    db.commit()
+
+            # Admin password reset remains opt-in and is intentionally isolated
+            # from staff password synchronization.
             if (
                 os.getenv("SYNC_ADMIN_PASSWORD", "false").lower() == "true"
                 and admin_password
