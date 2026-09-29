@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
-from backend.app.models import Part, Vehicle, RepairOrder, Appointment, Customer
+from backend.app.models import Part, Vehicle, RepairOrder, Appointment, Customer, Invoice, InvoiceStatus, Payment
 
 def check_inventory_tool(db: Session, part_name: str) -> str:
     """Tra cứu tồn kho phụ tùng."""
@@ -73,6 +73,38 @@ def get_appointment_schedule_tool(db: Session, date_str: str) -> str:
         res.append(f"- {appt.start_time or 'Không rõ giờ'}: Xe {lp} - Dịch vụ: {appt.service_type or 'Bảo dưỡng'} ({appt.status.value if hasattr(appt.status, 'value') else appt.status})")
     
     return "\n".join(res)
+
+def get_monthly_revenue_tool(db: Session, year: Optional[int] = None, month: Optional[int] = None) -> str:
+    """Tổng hợp tiền đã thu trong một tháng từ các phiếu thanh toán thực tế."""
+    now = datetime.utcnow()
+    target_year = int(year or now.year)
+    target_month = int(month or now.month)
+    if target_month < 1 or target_month > 12:
+        return "Tháng không hợp lệ. Vui lòng dùng giá trị từ 1 đến 12."
+    if target_year < 2000 or target_year > 2100:
+        return "Năm không hợp lệ."
+    from calendar import monthrange
+    start = datetime(target_year, target_month, 1)
+    end = datetime(target_year, target_month, monthrange(target_year, target_month)[1], 23, 59, 59, 999999)
+    payments = db.query(Payment).join(Invoice, Payment.invoice_id == Invoice.id).filter(
+        Payment.payment_date >= start,
+        Payment.payment_date <= end,
+        Invoice.status != InvoiceStatus.CANCELLED,
+    ).all()
+    revenue = sum(float(payment.amount or 0) for payment in payments)
+    invoice_ids = {payment.invoice_id for payment in payments}
+    cancelled_count = db.query(Invoice).filter(
+        Invoice.status == InvoiceStatus.CANCELLED,
+        Invoice.invoice_date >= start,
+        Invoice.invoice_date <= end,
+    ).count()
+    return (
+        f"Doanh thu thực thu tháng {target_month:02d}/{target_year}: {revenue:,.0f} VNĐ\n"
+        f"- Số phiếu thanh toán đã ghi nhận: {len(payments)}\n"
+        f"- Số hóa đơn có phát sinh thanh toán: {len(invoice_ids)}\n"
+        f"- Hóa đơn hủy loại khỏi doanh thu: {cancelled_count}\n"
+        "- Căn cứ: tổng các Payment theo payment_date trong kỳ; không dùng số liệu ước tính."
+    )
 
 # =====================================================================
 # AGENT TOOL SCHEMAS FOR OPENAI / GROQ
@@ -145,6 +177,21 @@ AGENT_TOOLS = [
                 "required": ["date_str"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_monthly_revenue_tool",
+            "description": "Tra cứu doanh thu thực thu của tháng từ các thanh toán đã ghi nhận trong CSDL; loại trừ hóa đơn đã hủy.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "year": {"type": "integer", "description": "Năm cần tra cứu; bỏ trống để dùng năm hiện tại."},
+                    "month": {"type": "integer", "description": "Tháng cần tra cứu 1-12; bỏ trống để dùng tháng hiện tại."}
+                },
+                "required": []
+            }
+        }
     }
 ]
 
@@ -161,5 +208,7 @@ def execute_tool(db: Session, tool_name: str, kwargs: Dict[str, Any]) -> str:
         return check_repair_progress_tool(db, kwargs.get("license_plate", ""))
     elif tool_name == "get_appointment_schedule_tool":
         return get_appointment_schedule_tool(db, kwargs.get("date_str", ""))
+    elif tool_name == "get_monthly_revenue_tool":
+        return get_monthly_revenue_tool(db, kwargs.get("year"), kwargs.get("month"))
     else:
         return f"Lỗi: Không tìm thấy công cụ {tool_name}"

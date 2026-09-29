@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.config import settings
 from backend.app.models import AILog, RepairOrder, Vehicle, AIKnowledgeBase
-from backend.app.ai.tools import AGENT_TOOLS, execute_tool
+from backend.app.ai.tools import AGENT_TOOLS, execute_tool, get_monthly_revenue_tool
 from backend.app.ai.prompts import (
     SYSTEM_GARAGE_ASSISTANT,
     SYSTEM_GARAGE_ADMIN_ASSISTANT,
@@ -779,9 +779,12 @@ class AIService:
                 f"Năm sản xuất: {vehicle.year or 'Không rõ'}"
             )
 
+        is_admin = mode == "admin"
+        finance_terms = ("doanh thu", "doanh số", "tài chính", "phiếu thu", "hóa đơn", "hoa don")
+        if is_admin and any(term in question.lower() for term in finance_terms):
+            context_parts.append("--- DOANH THU THỰC THU TỪ CSDL ---\n" + get_monthly_revenue_tool(db))
         context_info = "\n\n".join(context_parts) if context_parts else "Không có thông tin xe hoặc phiếu sửa chữa cụ thể."
 
-        is_admin = mode == "admin"
         prompt_template = PROMPT_ADMIN_ASSISTANT if is_admin else PROMPT_AI_ASSISTANT
         user_prompt = prompt_template.format(
             question=question,
@@ -844,13 +847,8 @@ class AIService:
     @classmethod
     def analyze_business_performance(cls, db: Session, question: str) -> Dict[str, Any]:
         """AI Chức năng Phân tích Kinh doanh cho Quản lý (Manager)"""
-        business_data = (
-            "Doanh thu tháng này: 245,000,000 VNĐ | Lợi nhuận gộp tạm tính: 68,500,000 VNĐ (28%)\n"
-            "Tổng số xe tiếp nhận: 54 xe | Số phiếu sửa chữa hoàn thành: 48 phiếu\n"
-            "Top dịch vụ bán chạy: 1. Bảo dưỡng định kỳ (32 lượt), 2. Láng đĩa phanh 3D (18 lượt)\n"
-            "Top phụ tùng xuất kho: 1. Dầu Castrol 5W-30 (45 can), 2. Lọc dầu Toyota (28 cái)\n"
-            "Tỷ lệ khách hàng quay lại: 74.2% | Hiệu suất KTV dẫn đầu: KTV Phạm Văn Minh (18 phiếu)"
-        )
+        business_data = get_monthly_revenue_tool(db)
+        business_data += "\nCác chỉ số lợi nhuận, công nợ, dịch vụ bán chạy và hiệu suất KTV cần được truy xuất riêng nếu người dùng yêu cầu."
         prompt = PROMPT_BUSINESS_INTELLIGENCE.format(question=question, business_data=business_data)
         system_prompt = cls._get_system_prompt_with_memory(db, SYSTEM_GARAGE_ASSISTANT)
         output_text, model_used = cls._call_llm(system_prompt, prompt)

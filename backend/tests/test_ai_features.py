@@ -1,3 +1,42 @@
+from datetime import datetime
+
+from backend.app.ai.tools import get_monthly_revenue_tool
+from backend.app.models import Invoice, InvoiceStatus, Payment, PaymentMethod
+
+
+def test_monthly_revenue_tool_uses_recorded_payments_and_excludes_cancelled(db_session):
+    now = datetime.utcnow()
+    paid_invoice = Invoice(
+        invoice_number="INV-AI-MONTHLY-001",
+        repair_order_id=9001,
+        total_amount=1250000,
+        paid_amount=1250000,
+        status=InvoiceStatus.PAID,
+        invoice_date=now,
+        issued_date=now,
+    )
+    cancelled_invoice = Invoice(
+        invoice_number="INV-AI-MONTHLY-002",
+        repair_order_id=9002,
+        total_amount=900000,
+        paid_amount=900000,
+        status=InvoiceStatus.CANCELLED,
+        invoice_date=now,
+        issued_date=now,
+    )
+    db_session.add_all([paid_invoice, cancelled_invoice])
+    db_session.commit()
+    db_session.add_all([
+        Payment(invoice_id=paid_invoice.id, amount=1250000, payment_method=PaymentMethod.CASH, payment_date=now),
+        Payment(invoice_id=cancelled_invoice.id, amount=900000, payment_method=PaymentMethod.CASH, payment_date=now),
+    ])
+    db_session.commit()
+
+    result = get_monthly_revenue_tool(db_session, now.year, now.month)
+    assert "1,250,000 VNĐ" in result
+    assert "Số phiếu thanh toán đã ghi nhận: 1" in result
+
+
 def test_ai_history_summary(client, auth_headers):
     # Test valid vehicle
     res = client.post(
@@ -124,4 +163,3 @@ def test_ai_edge_cases(client, auth_headers):
     )
     assert res_quo.status_code == 400
     assert "Không tìm thấy" in res_quo.json()["detail"]
-
