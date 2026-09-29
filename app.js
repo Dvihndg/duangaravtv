@@ -12,6 +12,7 @@ const API_BASE = configuredApiBase || (
 // Application State
 let currentState = {
   currentRole: "receptionist",
+  currentUser: null,
   token: null,
   activeView: "customer-requests",
   customers: [],
@@ -204,8 +205,13 @@ async function loginAsCurrentRole() {
         headers: { Authorization: `Bearer ${savedToken}` }
       });
       if (verify.ok) {
+        const user = await verify.json();
         currentState.token = savedToken;
+        currentState.currentUser = user;
+        currentState.currentRole = user.role;
+        localStorage.setItem("garage_user_role", user.role);
         isBackendAvailable = true;
+        applyRolePermissions();
         return;
       } else if (verify.status === 401) {
         localStorage.removeItem("garage_access_token");
@@ -867,12 +873,44 @@ function getOfflineMockResponse(endpoint, options) {
   }
   return [];
 }
+function applyRolePermissions() {
+  const role = currentState.currentRole;
+  const roleSelect = document.getElementById("role-select");
+  const isManager = role === "manager";
+  const canUseAdminAI = ["manager", "receptionist", "technician"].includes(role);
+  document.querySelectorAll(".manager-only").forEach(el => {
+    el.style.display = isManager ? "" : "none";
+  });
+  document.querySelectorAll(".ai-staff-only").forEach(el => {
+    el.style.display = canUseAdminAI ? "" : "none";
+  });
+  if (roleSelect) {
+    roleSelect.value = role;
+    // Production sessions cannot impersonate another employee in the browser.
+    roleSelect.disabled = Boolean(currentState.token) && !ENABLE_OFFLINE_DEMO;
+    roleSelect.title = roleSelect.disabled ? "Vai trò lấy từ tài khoản đăng nhập; chỉ Quản lý mới được cấp quyền." : "Chế độ demo";
+  }
+  const roleLabels = { manager: "Quản Lý", receptionist: "Lễ Tân", technician: "Kỹ Thuật Viên", cashier: "Thu Ngân", customer: "Khách Hàng" };
+  const fullRoleLabels = { manager: "Quản Lý (Admin)", receptionist: "Lễ Tân", technician: "Kỹ Thuật Viên", cashier: "Thu Ngân", customer: "Khách Hàng" };
+  const roleBadge = document.getElementById("role-badge");
+  if (roleBadge) { roleBadge.className = `role-badge ${role}`; roleBadge.textContent = roleLabels[role] || "Người Dùng"; }
+  const sidebarRole = document.getElementById("sidebar-role-label");
+  if (sidebarRole) sidebarRole.textContent = fullRoleLabels[role] || role;
+  const username = document.getElementById("sidebar-username");
+  if (username && currentState.currentUser) username.textContent = currentState.currentUser.full_name || currentState.currentUser.username;
+}
+
 function setupRoleSwitcher() {
   const roleSelect = document.getElementById("role-select");
   const roleBadge = document.getElementById("role-badge");
   if (!roleSelect || !roleBadge) return;
 
   roleSelect.addEventListener("change", async (e) => {
+    if (currentState.token && !ENABLE_OFFLINE_DEMO) {
+      e.target.value = currentState.currentRole;
+      showToast("Vai trò được xác định bởi tài khoản đăng nhập; không thể tự đổi quyền.");
+      return;
+    }
     currentState.currentRole = e.target.value;
     localStorage.setItem("garage_user_role", currentState.currentRole);
     roleBadge.className = `role-badge ${currentState.currentRole}`;
@@ -898,9 +936,47 @@ function setupRoleSwitcher() {
       sidebarRole.textContent = fullRoleLabels[currentState.currentRole] || currentState.currentRole;
     }
 
+    applyRolePermissions();
     await loginAsCurrentRole();
     await loadAllData();
   });
+}
+
+// Staff management (manager-only; backend enforces the same policy)
+const STAFF_ROLE_LABELS = { manager: "Quản lý (Admin)", receptionist: "Lễ tân", technician: "Kỹ thuật viên", cashier: "Thu ngân" };
+async function loadStaffManagement() {
+  if (currentState.currentRole !== "manager") return;
+  const tbody = document.getElementById("staff-tbody");
+  if (!tbody) return;
+  try {
+    const users = await apiFetch("/auth/users");
+    tbody.innerHTML = "";
+    (Array.isArray(users) ? users : []).forEach(user => {
+      const row = document.createElement("tr");
+      row.innerHTML = `<td><strong>${escapeHTML(user.full_name)}</strong><br><small style="color:var(--text-muted);">${escapeHTML(user.phone || "Chưa cập nhật")}</small></td><td>${escapeHTML(user.username)}<br><small style="color:var(--text-muted);">${escapeHTML(user.email)}</small></td><td><span class="role-badge ${escapeHTML(user.role)}">${escapeHTML(STAFF_ROLE_LABELS[user.role] || user.role)}</span></td><td><span class="status-pill ${user.is_active ? "completed" : "cancelled"}">${user.is_active ? "Đang hoạt động" : "Đã khóa"}</span></td>`;
+      tbody.appendChild(row);
+    });
+    if (!tbody.children.length) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:1.5rem; color:var(--text-muted);">Chưa có nhân viên</td></tr>`;
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--accent-rose); padding:1rem;">Không thể tải danh sách: ${escapeHTML(err.message)}</td></tr>`;
+  }
+}
+function openStaffCreateForm() { document.getElementById("staff-create-panel").style.display = "block"; }
+function closeStaffCreateForm() { document.getElementById("staff-create-panel").style.display = "none"; }
+async function submitStaffCreate(event) {
+  event.preventDefault();
+  if (currentState.currentRole !== "manager") return showToast("Chỉ Quản lý mới được tạo tài khoản nhân viên.");
+  try {
+    await apiFetch("/auth/users", { method: "POST", body: JSON.stringify({
+      full_name: document.getElementById("staff-full-name").value.trim(),
+      username: document.getElementById("staff-username").value.trim(),
+      email: document.getElementById("staff-email").value.trim(),
+      phone: document.getElementById("staff-phone").value.trim() || null,
+      password: document.getElementById("staff-password").value,
+      role: document.getElementById("staff-role").value
+    }) });
+    event.target.reset(); closeStaffCreateForm(); await loadStaffManagement(); showToast("Đã tạo tài khoản nhân viên và gán vai trò.");
+  } catch (err) { showToast(`Không thể tạo nhân viên: ${err.message}`); }
 }
 
 // Navigation Handler
@@ -952,6 +1028,14 @@ function setupGlobalEventDelegation() {
 
 function switchView(viewName) {
   if (viewName === "appointments") viewName = "customer-requests";
+  if (viewName === "staff-management" && currentState.currentRole !== "manager") {
+    showToast("Bạn không có quyền truy cập màn hình quản lý nhân viên.");
+    return;
+  }
+  if (viewName === "ai-studio" && !["manager", "receptionist", "technician"].includes(currentState.currentRole)) {
+    showToast("Vai trò Thu ngân không có quyền dùng AI Quản trị.");
+    return;
+  }
   currentState.activeView = viewName;
 
   const activeSec = document.getElementById(`view-${viewName}`);
@@ -1065,6 +1149,7 @@ async function loadAllData() {
     else if (currentState.activeView === "inventory") await loadInventory();
     else if (currentState.activeView === "invoices") await loadInvoices();
     else if (currentState.activeView === "ai-studio") await loadAISandboxData();
+    else if (currentState.activeView === "staff-management") await loadStaffManagement();
 
     // 2. Pre-populate all active tabs in background for instant 0ms tab switching
     Promise.all([
@@ -3619,6 +3704,11 @@ window.runAIDraftQuotation = runAIDraftQuotation;
 window.runAIHistorySummary = runAIHistorySummary;
 window.sendAIChatMessage = sendAIChatMessage;
 window.triggerQuickPrompt = triggerQuickPrompt;
+window.applyRolePermissions = applyRolePermissions;
+window.openStaffCreateForm = openStaffCreateForm;
+window.closeStaffCreateForm = closeStaffCreateForm;
+window.submitStaffCreate = submitStaffCreate;
+window.loadStaffManagement = loadStaffManagement;
 window.clearAIChatHistory = clearAIChatHistory;
 window.submitOBDDiagnosticForm = submitOBDDiagnosticForm;
 window.toggleItemSelectType = toggleItemSelectType;

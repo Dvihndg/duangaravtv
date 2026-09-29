@@ -727,6 +727,7 @@ class AIService:
         repair_order_id: Optional[int] = None,
         vehicle_id: Optional[int] = None,
         mode: str = "customer",
+        current_role: str = "customer",
     ) -> Dict[str, Any]:
         """Trợ lý AI: customer chỉ tư vấn xe; admin hỗ trợ vận hành nội bộ."""
         question = (question or "").strip()
@@ -789,6 +790,7 @@ class AIService:
         user_prompt = prompt_template.format(
             question=question,
             context_info=context_info,
+            current_role=current_role,
         )
 
         base_system_prompt = SYSTEM_GARAGE_ADMIN_ASSISTANT if is_admin else SYSTEM_GARAGE_ASSISTANT

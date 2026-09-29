@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/v1/ai", tags=["AI Engine"])
 def ask_ai_assistant(
     req: AIAssistantRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_roles([UserRole.MANAGER, UserRole.RECEPTIONIST, UserRole.TECHNICIAN]))
 ):
     """
     Trợ Lý AI Garage Hợp Nhất: Giải đáp thắc mắc tự do về dịch vụ xe, kỹ thuật ô tô, báo giá nháp & giải thích quy trình.
@@ -31,7 +31,8 @@ def ask_ai_assistant(
         question=req.question,
         repair_order_id=req.repair_order_id,
         vehicle_id=req.vehicle_id,
-        mode="admin"
+        mode="admin",
+        current_role=current_user.role.value
     )
     if not res.get("success", False):
         raise HTTPException(status_code=400, detail=res.get("output", "Lỗi AI"))
@@ -50,7 +51,8 @@ def ask_ai_assistant_open(
         question=req.question,
         repair_order_id=req.repair_order_id,
         vehicle_id=req.vehicle_id,
-        mode="customer"
+        mode="customer",
+        current_role="customer"
     )
     if not res.get("success", False):
         raise HTTPException(status_code=400, detail=res.get("output", "Lỗi AI"))
