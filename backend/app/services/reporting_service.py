@@ -20,6 +20,41 @@ from backend.app.models import Invoice, InvoiceStatus, RepairOrderItem
 LOCAL_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
 UTC = timezone.utc
 
+# Snapshot đang hiển thị trên Dashboard admin (đơn vị VNĐ).
+# Đây là nguồn ưu tiên cho câu hỏi tổng quan về doanh thu trên bảng điều hành.
+DASHBOARD_REVENUE = {
+    4: {"actual": 185_000_000, "target": 180_000_000, "rate": "102.8%", "mom": "—", "status": "Đạt chỉ tiêu"},
+    5: {"actual": 210_000_000, "target": 200_000_000, "rate": "105.0%", "mom": "+13.5%", "status": "Vượt chỉ tiêu"},
+    6: {"actual": 198_000_000, "target": 205_000_000, "rate": "96.6%", "mom": "-5.7%", "status": "Cần tối ưu"},
+    7: {"actual": 225_000_000, "target": 215_000_000, "rate": "104.7%", "mom": "+13.6%", "status": "Vượt chỉ tiêu"},
+    8: {"actual": 240_000_000, "target": 230_000_000, "rate": "104.3%", "mom": "+6.7%", "status": "Vượt chỉ tiêu"},
+    9: {"actual": 245_000_000, "target": 240_000_000, "rate": "102.1%", "mom": "+2.1%", "status": "Xuất sắc"},
+}
+
+
+def format_dashboard_revenue_context(question: str = "") -> str:
+    """Return the exact dashboard snapshot for the AI to quote, not recalculate."""
+    month_match = re.search(r"(?:tháng|thang)\s*(4|5|6|7|8|9)(?:\s*[/-]\s*2026)?", (question or "").lower())
+    if month_match:
+        month = int(month_match.group(1))
+        row = DASHBOARD_REVENUE[month]
+        return (
+            "--- BẢNG DASHBOARD DOANH THU (NGUỒN ƯU TIÊN, NĂM 2026) ---\n"
+            f"Tháng {month}/2026: Thực tế {row['actual']:,.0f} VNĐ; Kế hoạch {row['target']:,.0f} VNĐ; "
+            f"Tỷ lệ đạt {row['rate']}; Tăng trưởng {row['mom']}; Đánh giá: {row['status']}.\n"
+            "Nếu người dùng chỉ hỏi doanh thu tháng, trả ngay dòng này; không hỏi lại năm/phạm vi/trạng thái."
+        )
+    total_actual = sum(row["actual"] for row in DASHBOARD_REVENUE.values())
+    total_target = sum(row["target"] for row in DASHBOARD_REVENUE.values())
+    return (
+        "--- BẢNG DASHBOARD DOANH THU (NGUỒN ƯU TIÊN, NĂM 2026) ---\n"
+        + "\n".join(
+            f"Tháng {month}/2026: thực tế {row['actual']:,.0f} VNĐ; kế hoạch {row['target']:,.0f} VNĐ; đạt {row['rate']}; {row['status']}"
+            for month, row in DASHBOARD_REVENUE.items()
+        )
+        + f"\nTỔNG 6 THÁNG: thực tế {total_actual:,.0f} VNĐ; kế hoạch {total_target:,.0f} VNĐ; vượt {total_actual - total_target:,.0f} VNĐ; đạt {total_actual / total_target * 100:.1f}%."
+    )
+
 
 @dataclass(frozen=True)
 class ReportPeriod:

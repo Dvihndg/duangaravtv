@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from backend.app.models import Invoice, InvoiceStatus, RepairOrder, RepairOrderItem, RepairOrderItemType, Part
-from backend.app.services.reporting_service import build_revenue_report, parse_report_period, report_for_query
+from backend.app.services.reporting_service import build_revenue_report, format_dashboard_revenue_context, parse_report_period, report_for_query
 from backend.app.auth import create_access_token
 
 
@@ -79,3 +79,14 @@ def test_ts_adm_06_export_xlsx_and_pdf_and_rbac(client, auth_headers):
     receptionist_headers = {"Authorization": f"Bearer {create_access_token({'sub': 'reception_test', 'role': 'receptionist'})}"}
     denied = client.get("/api/v1/analytics/revenue-report", params={"query": "doanh thu tháng 8/2026"}, headers=receptionist_headers)
     assert denied.status_code == 403
+
+
+def test_dashboard_revenue_context_answers_month_without_follow_up_questions():
+    context = format_dashboard_revenue_context("doanh thu tháng 4")
+    assert "185,000,000 VNĐ" in context
+    assert "180,000,000 VNĐ" in context
+    assert "không hỏi lại năm/phạm vi/trạng thái" in context
+
+    full_context = format_dashboard_revenue_context("doanh thu")
+    assert "TỔNG 6 THÁNG" in full_context
+    assert "1,303,000,000 VNĐ" in full_context
