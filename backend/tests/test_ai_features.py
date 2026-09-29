@@ -33,8 +33,10 @@ def test_monthly_revenue_tool_uses_recorded_payments_and_excludes_cancelled(db_s
     db_session.commit()
 
     result = get_monthly_revenue_tool(db_session, now.year, now.month)
+    assert "Doanh thu trên Dashboard theo hóa đơn" in result
     assert "1,250,000 VNĐ" in result
-    assert "Số phiếu thanh toán đã ghi nhận: 1" in result
+    assert "Số hóa đơn trong kỳ: 1" in result
+    assert "Tiền thanh toán ghi nhận trong kỳ để đối soát: 1,250,000 VNĐ (1 phiếu)" in result
 
 
 def test_ai_history_summary(client, auth_headers):

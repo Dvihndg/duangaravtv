@@ -75,7 +75,7 @@ def get_appointment_schedule_tool(db: Session, date_str: str) -> str:
     return "\n".join(res)
 
 def get_monthly_revenue_tool(db: Session, year: Optional[int] = None, month: Optional[int] = None) -> str:
-    """Tổng hợp tiền đã thu trong một tháng từ các phiếu thanh toán thực tế."""
+    """Tổng hợp doanh thu theo hóa đơn giống Dashboard và kèm đối soát thanh toán."""
     now = datetime.utcnow()
     target_year = int(year or now.year)
     target_month = int(month or now.month)
@@ -86,24 +86,34 @@ def get_monthly_revenue_tool(db: Session, year: Optional[int] = None, month: Opt
     from calendar import monthrange
     start = datetime(target_year, target_month, 1)
     end = datetime(target_year, target_month, monthrange(target_year, target_month)[1], 23, 59, 59, 999999)
+    invoices = db.query(Invoice).filter(
+        Invoice.invoice_date >= start,
+        Invoice.invoice_date <= end,
+        Invoice.status != InvoiceStatus.CANCELLED,
+    ).all()
+    dashboard_revenue = sum(float(invoice.paid_amount or 0) for invoice in invoices)
+    invoiced_total = sum(float(invoice.total_amount or 0) for invoice in invoices)
+    paid_count = sum(invoice.status == InvoiceStatus.PAID for invoice in invoices)
+    partial_count = sum(invoice.status == InvoiceStatus.PARTIAL for invoice in invoices)
+    unpaid_count = sum(invoice.status == InvoiceStatus.UNPAID for invoice in invoices)
     payments = db.query(Payment).join(Invoice, Payment.invoice_id == Invoice.id).filter(
         Payment.payment_date >= start,
         Payment.payment_date <= end,
         Invoice.status != InvoiceStatus.CANCELLED,
     ).all()
-    revenue = sum(float(payment.amount or 0) for payment in payments)
-    invoice_ids = {payment.invoice_id for payment in payments}
+    payment_total = sum(float(payment.amount or 0) for payment in payments)
     cancelled_count = db.query(Invoice).filter(
         Invoice.status == InvoiceStatus.CANCELLED,
         Invoice.invoice_date >= start,
         Invoice.invoice_date <= end,
     ).count()
     return (
-        f"Doanh thu thực thu tháng {target_month:02d}/{target_year}: {revenue:,.0f} VNĐ\n"
-        f"- Số phiếu thanh toán đã ghi nhận: {len(payments)}\n"
-        f"- Số hóa đơn có phát sinh thanh toán: {len(invoice_ids)}\n"
+        f"Doanh thu trên Dashboard theo hóa đơn tháng {target_month:02d}/{target_year}: {dashboard_revenue:,.0f} VNĐ\n"
+        f"- Tổng giá trị hóa đơn: {invoiced_total:,.0f} VNĐ\n"
+        f"- Số hóa đơn trong kỳ: {len(invoices)} (đã thanh toán: {paid_count}, trả một phần: {partial_count}, chưa thanh toán: {unpaid_count})\n"
+        f"- Tiền thanh toán ghi nhận trong kỳ để đối soát: {payment_total:,.0f} VNĐ ({len(payments)} phiếu)\n"
         f"- Hóa đơn hủy loại khỏi doanh thu: {cancelled_count}\n"
-        "- Căn cứ: tổng các Payment theo payment_date trong kỳ; không dùng số liệu ước tính."
+        "- Căn cứ chính: Invoice.invoice_date và Invoice.paid_amount, cùng logic Dashboard; không dùng số liệu ước tính."
     )
 
 # =====================================================================
