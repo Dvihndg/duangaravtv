@@ -28,21 +28,21 @@ def db_session():
     manager = User(
         username="admin_test",
         email="admin_test@garage.com",
-        hashed_password=get_password_hash("admin123"),
+        hashed_password=get_password_hash("test-admin-pass"),
         full_name="Test Manager",
         role=UserRole.MANAGER
     )
     receptionist = User(
         username="reception_test",
         email="reception_test@garage.com",
-        hashed_password=get_password_hash("letan123"),
+        hashed_password=get_password_hash("test-reception-pass"),
         full_name="Test Receptionist",
         role=UserRole.RECEPTIONIST
     )
     cashier = User(
         username="cashier_test",
         email="cashier_test@garage.com",
-        hashed_password=get_password_hash("cashier123"),
+        hashed_password=get_password_hash("test-cashier-pass"),
         full_name="Test Cashier",
         role=UserRole.CASHIER
     )

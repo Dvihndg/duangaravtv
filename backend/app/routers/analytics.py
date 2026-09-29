@@ -1,5 +1,7 @@
 # pyrefly: ignore [missing-import]
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse
+from io import BytesIO
 import math
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
@@ -11,9 +13,68 @@ from backend.app.models import (
     Customer, Vehicle, Appointment, RepairOrder, RepairOrderStatus,
     Invoice, InvoiceStatus, Part, Service, RepairOrderItem, CustomerRequest
 )
-from backend.app.auth import get_current_user
+from backend.app.auth import get_current_user, require_roles
+from backend.app.models import User, UserRole
+from backend.app.services.reporting_service import report_for_query
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["Analytics & Reporting"])
+
+@router.get("/revenue-report")
+def get_revenue_report(
+    query: str = Query(..., min_length=2, description="Ví dụ: doanh thu tháng 8/2026 hoặc từ ngày 12/03/2026 đến 27/04/2026"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.CASHIER])),
+):
+    """Báo cáo định lượng; parser và phép tính chạy deterministic, không giao cho LLM."""
+    return report_for_query(db, query)
+
+
+@router.get("/revenue-report/export")
+def export_revenue_report(
+    query: str = Query(..., min_length=2),
+    format: str = Query("xlsx", pattern="^(xlsx|pdf)$"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles([UserRole.MANAGER, UserRole.CASHIER])),
+):
+    """Xuất file thực tế; việc gửi email cần connector email riêng và không bị giả nhận."""
+    report = report_for_query(db, query)
+    if not report.get("valid"):
+        return report
+    safe_name = "bao-cao-doanh-thu"
+    output = BytesIO()
+    if format == "xlsx":
+        from openpyxl import Workbook
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Doanh thu"
+        sheet.append(["Chỉ tiêu", "Giá trị"])
+        for key, value in report.items():
+            if key not in {"period", "top_services", "valid", "source"}:
+                sheet.append([key, value])
+        sheet.append(["Kỳ", report["period"]["label"]])
+        sheet.append(["Múi giờ", report["period"]["timezone"]])
+        workbook.save(output)
+        media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        filename = f"{safe_name}.xlsx"
+    else:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.pdfgen import canvas
+        pdf = canvas.Canvas(output, pagesize=A4)
+        y = 800
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(40, y, "BAO CAO DOANH THU GARAGE VTV")
+        y -= 28
+        pdf.setFont("Helvetica", 10)
+        pdf.drawString(40, y, f"Ky: {report['period']['label']} | Timezone: UTC+7")
+        y -= 24
+        for label, value in [("Doanh thu thuc thu", report["paid_revenue"]), ("Tong hoa don", report["invoiced_total"]), ("Thue", report["tax_total"]), ("So hoa don", report["invoice_count"]), ("So RO", report["repair_order_count"]), ("Loi nhuan gop", report["gross_profit"]), ("Bien gop (%)", report["gross_margin_rate"])]:
+            pdf.drawString(55, y, f"{label}: {value:,.2f}" if isinstance(value, float) else f"{label}: {value}")
+            y -= 18
+        pdf.save()
+        media_type = "application/pdf"
+        filename = f"{safe_name}.pdf"
+    output.seek(0)
+    return StreamingResponse(output, media_type=media_type, headers={"Content-Disposition": f"attachment; filename={filename}"})
 
 @router.get("/dashboard")
 def get_dashboard_summary(
@@ -124,8 +185,8 @@ def get_dashboard_summary(
             "type": "request",
             "time_ago_mins": max(0, ago),
             "created_at": req.created_at,
-            "title": f"YÃƒÂªu cÃ¡ÂºÂ§u tÃ¡Â»Â« {req.full_name}",
-            "description": f"Xe {req.license_plate} - {req.service_type or 'BÃ¡ÂºÂ£o dÃ†Â°Ã¡Â»Â¡ng'}",
+            "title": f"Yêu cầu từ {req.full_name}",
+            "description": f"Xe {req.license_plate} - {req.service_type or 'Bảo dưỡng'}",
             "icon": "fa-bell",
             "color": "#fbbf24"
         })
@@ -137,7 +198,7 @@ def get_dashboard_summary(
             "type": "order",
             "time_ago_mins": max(0, ago),
             "created_at": ro.created_at,
-            "title": f"LÃ¡ÂºÂ­p phiÃ¡ÂºÂ¿u sÃ¡Â»Â­a chÃ¡Â»Â¯a {ro.code}",
+            "title": f"Lập phiếu sửa chữa {ro.code}",
             "description": f"Xe {getattr(vehicle, 'license_plate', None) or 'N/A'}",
             "icon": "fa-wrench",
             "color": "#38bdf8"

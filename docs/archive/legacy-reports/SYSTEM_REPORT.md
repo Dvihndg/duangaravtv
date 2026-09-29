@@ -209,7 +209,7 @@ manager | receptionist | technician | cashier
 ```
 POST /api/v1/auth/login
 Content-Type: application/x-www-form-urlencoded
-Body: username=admin&password=admin123
+Body: username=admin&password=[configured via environment]
 
 Response: { "access_token": "eyJ...", "token_type": "bearer" }
 
@@ -278,10 +278,10 @@ POST /api/v1/ai/chat
 ### Tài khoản demo
 | Vai trò | Username | Password |
 |---|---|---|
-| Manager (Admin) | `admin` | `admin123` |
-| Receptionist | `letan` | `letan123` |
-| Technician | `kythuat` | `tech123` |
-| Cashier | `thungan` | `cashier123` |
+| Manager (Admin) | `admin` | `[configured via environment]` |
+| Receptionist | `letan` | `[configured via environment]` |
+| Technician | `kythuat` | `[configured via environment]` |
+| Cashier | `thungan` | `[configured via environment]` |
 
 ---
 

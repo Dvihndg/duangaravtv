@@ -529,7 +529,7 @@ Hệ thống đặt trọng tâm vào 4 tiêu chuẩn phi chức năng cốt lõ
     10. Giao diện `admin.html` tự động kích hoạt bộ lọc hiển thị thanh menu và các phân hệ phù hợp với vai trò của người dùng.
 *   **Luồng thay thế (Offline Fallback):**
     *   Tại bước 5, nếu Backend không phản hồi (ERR_CONNECTION_REFUSED hoặc timeout quá 6 giây), client tự động chuyển sang chế độ Local Storage Engine.
-    *   Hệ thống kiểm tra thông tin tài khoản mẫu nội bộ: `admin/admin123`, `letan/letan123`, `kythuat/tech123`, `thungan/cashier123`.
+    *   Hệ thống kiểm tra thông tin tài khoản mẫu nội bộ: `admin/[configured via environment]`, `letan/[configured via environment]`, `kythuat/[configured via environment]`, `thungan/[configured via environment]`.
     *   Nếu khớp, cấp quyền làm việc ngoại tuyến, hiển thị thông báo: *"Đang làm việc ở chế độ Local Storage Engine"*.
 *   **Ngoại lệ:**
     *   Nhập sai username hoặc password: Hệ thống trả về HTTP 401 Unauthorized kèm thông báo: *"Tên đăng nhập hoặc mật khẩu không chính xác"*.
@@ -1366,10 +1366,10 @@ Hệ thống cung cấp sẵn 4 tài khoản thử nghiệm tương ứng với 
 
 | Vai trò nghiệp vụ | Tên đăng nhập (`username`) | Mật khẩu mặc định | Phân hệ giao diện chính | Quyền hạn trọng tâm |
 |---|---|---|---|---|
-| **Quản Lý (Manager)** | `admin` | `admin123` | Toàn bộ các phân hệ | Toàn quyền cấu hình, xem báo cáo doanh thu, audit log |
-| **Lễ Tân (Receptionist)** | `letan` | `letan123` | Lịch hẹn, Khách & Xe, Báo giá | Tiếp nhận xe, đặt lịch, tạo báo giá, duyệt yêu cầu |
-| **Kỹ Thuật Viên (Technician)** | `kythuat` | `tech123` | Phiếu sửa chữa, Kho vật tư | Nhận xe, chẩn đoán, đề xuất phụ tùng, kiểm định KCS |
-| **Thu Ngân (Cashier)** | `thungan` | `cashier123` | Hóa đơn & Thanh toán | Lập hóa đơn từ RO, thu tiền mặt, tạo VietQR, in phiếu |
+| **Quản Lý (Manager)** | `admin` | `[configured via environment]` | Toàn bộ các phân hệ | Toàn quyền cấu hình, xem báo cáo doanh thu, audit log |
+| **Lễ Tân (Receptionist)** | `letan` | `[configured via environment]` | Lịch hẹn, Khách & Xe, Báo giá | Tiếp nhận xe, đặt lịch, tạo báo giá, duyệt yêu cầu |
+| **Kỹ Thuật Viên (Technician)** | `kythuat` | `[configured via environment]` | Phiếu sửa chữa, Kho vật tư | Nhận xe, chẩn đoán, đề xuất phụ tùng, kiểm định KCS |
+| **Thu Ngân (Cashier)** | `thungan` | `[configured via environment]` | Hóa đơn & Thanh toán | Lập hóa đơn từ RO, thu tiền mặt, tạo VietQR, in phiếu |
 
 ---
 

@@ -102,47 +102,64 @@ def init_db_background():
         print(f"Migration notice: {e}")
 
     try:
-        from backend.app.models import User, UserRole, Service, Part
-        from backend.app.auth import get_password_hash
+        from backend.app.models import User, UserRole
+        from backend.app.demo_catalog import ensure_demo_catalog
+        from backend.app.auth import get_password_hash, verify_password
         db = SessionLocal()
         try:
-            if not db.query(User).filter(User.username == "admin").first():
+            seed_passwords = {
+                "admin": os.getenv("DEFAULT_ADMIN_PASSWORD", ""),
+                "letan": os.getenv("DEFAULT_RECEPTIONIST_PASSWORD", ""),
+                "kythuat": os.getenv("DEFAULT_TECHNICIAN_PASSWORD", ""),
+                "thungan": os.getenv("DEFAULT_CASHIER_PASSWORD", ""),
+            }
+            # Admin và nhân viên được seed độc lập. Thiếu mật khẩu Admin không
+            # được phép ngăn việc tạo các tài khoản nhân viên.
+            admin_password = seed_passwords["admin"].strip()
+            if not db.query(User).filter(User.username == "admin").first() and admin_password:
                 admin_user = User(
                     username="admin", email="admin@garage.com",
-                    hashed_password=get_password_hash("admin123"),
+                    hashed_password=get_password_hash(seed_passwords["admin"]),
                     full_name="Nguyễn Văn Quản Lý", role=UserRole.MANAGER, phone="0901111111"
                 )
-                letan_user = User(
-                    username="letan", email="letan@garage.com",
-                    hashed_password=get_password_hash("letan123"),
-                    full_name="Trần Thị Lễ Tân", role=UserRole.RECEPTIONIST, phone="0902222222"
-                )
-                tech_user = User(
-                    username="kythuat", email="kythuat@garage.com",
-                    hashed_password=get_password_hash("tech123"),
-                    full_name="Lê Hoàng Kỹ Thuật", role=UserRole.TECHNICIAN, phone="0903333333"
-                )
-                cashier_user = User(
-                    username="thungan", email="thungan@garage.com",
-                    hashed_password=get_password_hash("cashier123"),
-                    full_name="Phạm Thị Thu Ngân", role=UserRole.CASHIER, phone="0904444444"
-                )
-                db.add_all([admin_user, letan_user, tech_user, cashier_user])
+                db.add(admin_user)
                 db.commit()
 
-            if not db.query(Service).first():
-                s1 = Service(code="DV-001", name="Bảo dưỡng định kỳ 5,000 km", category="Bảo dưỡng", labor_cost=450000, estimated_duration=60)
-                s2 = Service(code="DV-002", name="Chẩn đoán lỗi động cơ (Scan OBD-II)", category="Chẩn đoán", labor_cost=300000, estimated_duration=45)
-                s3 = Service(code="DV-003", name="Thay dầu nhớt & Lọc nhớt động cơ", category="Bảo dưỡng", labor_cost=150000, estimated_duration=30)
-                db.add_all([s1, s2, s3])
-                db.commit()
+            staff_seed = [
+                ("letan", "letan@garage.com", "Trần Thị Lễ Tân", UserRole.RECEPTIONIST, "0902222222"),
+                ("kythuat", "kythuat@garage.com", "Lê Hoàng Kỹ Thuật", UserRole.TECHNICIAN, "0903333333"),
+                ("thungan", "thungan@garage.com", "Phạm Thị Thu Ngân", UserRole.CASHIER, "0904444444"),
+            ]
+            sync_staff = os.getenv("SYNC_STAFF_PASSWORDS", "false").lower() == "true"
+            for username, email, full_name, role, phone in staff_seed:
+                password = seed_passwords[username].strip()
+                if not password:
+                    continue
+                staff_user = db.query(User).filter(User.username == username).first()
+                if not staff_user:
+                    db.add(User(
+                        username=username, email=email,
+                        hashed_password=get_password_hash(password),
+                        full_name=full_name, role=role, phone=phone
+                    ))
+                    db.commit()
+                elif sync_staff and not verify_password(password, str(staff_user.hashed_password)):
+                    staff_user.hashed_password = get_password_hash(password)
+                    staff_user.role = role
+                    db.commit()
 
-            if not db.query(Part).first():
-                p1 = Part(code="PT-001", name="Dầu nhớt Fully Synthetic 5W-30 (Can 4L)", category="Hóa chất / Dầu nhớt", unit="Can", cost_price=650000, unit_price=850000, stock_quantity=45, min_stock_alert=10)
-                p2 = Part(code="PT-002", name="Lọc nhớt động cơ Toyota Camry/Corolla", category="Phụ tùng thay thế", unit="Cái", cost_price=120000, unit_price=180000, stock_quantity=30, min_stock_alert=5)
-                p3 = Part(code="PT-003", name="Má phanh trước Honda CR-V (Bộ 4 miếng)", category="Phụ tùng thay thế", unit="Bộ", cost_price=850000, unit_price=1250000, stock_quantity=15, min_stock_alert=4)
-                db.add_all([p1, p2, p3])
-                db.commit()
+            # Admin password reset remains opt-in and is intentionally isolated
+            # from staff password synchronization.
+            if (
+                os.getenv("SYNC_ADMIN_PASSWORD", "false").lower() == "true"
+                and admin_password
+            ):
+                admin = db.query(User).filter(User.username == "admin").first()
+                if admin and not verify_password(admin_password, str(admin.hashed_password)):
+                    admin.hashed_password = get_password_hash(admin_password)
+                    db.commit()
+
+            ensure_demo_catalog(db)
         finally:
             db.close()
     except Exception as e:
@@ -164,10 +181,11 @@ app = FastAPI(
 
 
 
-# Cấu hình CORS cho phép Live Server kết nối
+# Cấu hình CORS theo environment, không dùng wildcard với credentials.
+cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Cho phép tất cả các nguồn truy cập
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -180,12 +198,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={"detail": f"Internal Server Error: {str(exc)}"},
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-        }
+        headers={"Access-Control-Allow-Credentials": "true"}
     )
 
 # Include API Routers
@@ -343,4 +356,3 @@ try:
     handler = Mangum(app, lifespan="off")
 except Exception:
     handler = app
-

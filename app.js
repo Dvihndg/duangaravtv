@@ -2,16 +2,17 @@ const configuredApiBase = window.GARAGE_API_BASE || localStorage.getItem("garage
 const _origin = window.location.origin;
 const _isLocalFile = _origin === "null" || _origin === "" || _origin.startsWith("file:");
 const _isLocalhost = _origin.includes("localhost") || _origin.includes("127.0.0.1");
-const API_BASE_URL = "https://127.0.0.1:8000";
+const ENABLE_OFFLINE_DEMO = window.ENABLE_OFFLINE_DEMO === true;
 const API_BASE = configuredApiBase || (
   (_isLocalFile || _isLocalhost)
-    ? "http://127.0.0.1:8000/api/v1"
+    ? `http://${window.location.hostname}:8000/api/v1`
     : "/api/v1"
 );
 
 // Application State
 let currentState = {
   currentRole: "receptionist",
+  currentUser: null,
   token: null,
   activeView: "customer-requests",
   customers: [],
@@ -23,14 +24,6 @@ let currentState = {
   invoices: [],
   activeROId: null,
   activeAIContext: { repair_order_id: null, vehicle_id: null }
-};
-
-// Role Credentials Mapping for fast switching during demo
-const ROLE_CREDENTIALS = {
-  manager: { username: "admin", password: "admin123" },
-  receptionist: { username: "letan", password: "letan123" },
-  technician: { username: "kythuat", password: "tech123" },
-  cashier: { username: "thungan", password: "cashier123" }
 };
 
 // Fault-Tolerant Application Initialization
@@ -52,7 +45,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try { setupGlobalEventDelegation(); } catch (e) { console.error("setupGlobalEventDelegation:", e); }
+  try { setupPhoneInputGuards(); } catch (e) { console.error("setupPhoneInputGuards:", e); }
 });
+
+// Phone fields accept digits only, including pasted/autofilled values.
+function setupPhoneInputGuards() {
+  document.querySelectorAll('input[type="tel"], input[data-phone-input="true"]').forEach((input) => {
+    input.inputMode = "numeric";
+    input.pattern = "[0-9]*";
+    input.addEventListener("input", () => {
+      const digitsOnly = input.value.replace(/[^0-9]/g, "");
+      if (input.value !== digitsOnly) input.value = digitsOnly;
+    });
+    input.addEventListener("beforeinput", (event) => {
+      if (event.data && /[^0-9]/.test(event.data)) event.preventDefault();
+    });
+  });
+}
 
 function setupTheme() {
   const savedTheme = localStorage.getItem("garage_theme") || "light";
@@ -85,7 +94,8 @@ function checkAuthPermission() {
 
   // Enforce internal authorization check specifically when accessing admin.html or /admin
   if (path.endsWith("admin.html") || path.endsWith("/admin")) {
-    if (!isLoggedIn || !internalRoles.includes(role)) {
+    const token = localStorage.getItem("garage_access_token") || "";
+    if (!isLoggedIn || !internalRoles.includes(role) || !token || token.startsWith("local_session_")) {
       window.location.href = "login.html";
       return false;
     }
@@ -176,16 +186,16 @@ function closeModal(modalId) {
 // Detect static hosting environment (Only true static hosts like GitHub Pages without API)
 const isKnownStaticHost = window.location.hostname.includes("github.io") && !configuredApiBase;
 
-let isBackendAvailable = !isKnownStaticHost;
+let isBackendAvailable = !isKnownStaticHost || !ENABLE_OFFLINE_DEMO;
 
 // Auth & Role Handler
 async function loginAsCurrentRole() {
-  if (!isBackendAvailable) {
+  if (!isBackendAvailable && ENABLE_OFFLINE_DEMO) {
     console.info("💡 Hệ thống đang chạy trên Static Hosting (Chế độ Local Engine - Không gửi request backend).");
     return;
   }
   const savedToken = localStorage.getItem("garage_access_token");
-  if (savedToken && savedToken.startsWith("local_session_")) {
+  if (savedToken && savedToken.startsWith("local_session_") && ENABLE_OFFLINE_DEMO) {
     isBackendAvailable = false;
     return;
   }
@@ -195,57 +205,36 @@ async function loginAsCurrentRole() {
         headers: { Authorization: `Bearer ${savedToken}` }
       });
       if (verify.ok) {
+        const user = await verify.json();
         currentState.token = savedToken;
+        currentState.currentUser = user;
+        currentState.currentRole = user.role;
+        localStorage.setItem("garage_user_role", user.role);
         isBackendAvailable = true;
+        applyRolePermissions();
         return;
       } else if (verify.status === 401) {
         localStorage.removeItem("garage_access_token");
       }
     } catch (err) {
-      // Backend offline: chuyển sang local storage engine, giữ nguyên phiên làm việc
+      if (!ENABLE_OFFLINE_DEMO) throw err;
+      // Backend offline: chỉ cho phép local engine trong demo được bật rõ ràng.
       isBackendAvailable = false;
       return;
     }
   }
-
-  const creds = ROLE_CREDENTIALS[currentState.currentRole];
-  if (!creds) return;
-  try {
-    const formData = new URLSearchParams();
-    formData.append("username", creds.username);
-    formData.append("password", creds.password);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formData,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-
-      if (res.ok) {
-        const data = await res.json();
-        currentState.token = data.access_token;
-        localStorage.setItem("garage_access_token", data.access_token);
-        isBackendAvailable = true;
-    } else {
-      isBackendAvailable = false;
-      console.info("💡 Backend server không phản hồi (404/Offline). Chuyển sang Local Storage Engine.");
-    }
-  } catch (err) {
+  if (ENABLE_OFFLINE_DEMO) {
     isBackendAvailable = false;
-    console.info("💡 Không thể kết nối Backend. Chuyển sang Local Storage Engine.");
+    return;
   }
+  throw new Error("Phiên đăng nhập máy chủ không tồn tại.");
 }
 
 // Helper fetch wrapper connecting directly to Online Backend API
 async function apiFetch(endpoint, options = {}) {
   const isAiCall = endpoint.includes("/ai/");
   // Nếu đã phát hiện backend không khả dụng (cho các bảng tĩnh), dùng offline mock
-  if (!isBackendAvailable && !isAiCall) {
+  if (!isBackendAvailable && ENABLE_OFFLINE_DEMO && !isAiCall) {
     return getOfflineMockResponse(endpoint, options);
   }
 
@@ -269,7 +258,7 @@ async function apiFetch(endpoint, options = {}) {
     clearTimeout(timeoutId);
 
     if (!res.ok) {
-      if (res.status === 404 && !isAiCall) {
+      if (res.status === 404 && !isAiCall && ENABLE_OFFLINE_DEMO) {
         isBackendAvailable = false;
       }
       const errData = await res.json().catch(() => ({ detail: `Lỗi kết nối máy chủ (${res.status})` }));
@@ -283,8 +272,11 @@ async function apiFetch(endpoint, options = {}) {
     if (isAiCall || err.status === 401 || err.status === 403) {
       throw err;
     }
-    isBackendAvailable = false;
-    return getOfflineMockResponse(endpoint, options);
+    if (ENABLE_OFFLINE_DEMO && !isAiCall) {
+      isBackendAvailable = false;
+      return getOfflineMockResponse(endpoint, options);
+    }
+    throw err;
   }
 }
 
@@ -881,12 +873,44 @@ function getOfflineMockResponse(endpoint, options) {
   }
   return [];
 }
+function applyRolePermissions() {
+  const role = currentState.currentRole;
+  const roleSelect = document.getElementById("role-select");
+  const isManager = role === "manager";
+  const canUseAdminAI = ["manager", "receptionist", "technician"].includes(role);
+  document.querySelectorAll(".manager-only").forEach(el => {
+    el.style.display = isManager ? "" : "none";
+  });
+  document.querySelectorAll(".ai-staff-only").forEach(el => {
+    el.style.display = canUseAdminAI ? "" : "none";
+  });
+  if (roleSelect) {
+    roleSelect.value = role;
+    // Production sessions cannot impersonate another employee in the browser.
+    roleSelect.disabled = Boolean(currentState.token) && !ENABLE_OFFLINE_DEMO;
+    roleSelect.title = roleSelect.disabled ? "Vai trò lấy từ tài khoản đăng nhập; chỉ Quản lý mới được cấp quyền." : "Chế độ demo";
+  }
+  const roleLabels = { manager: "Quản Lý", receptionist: "Lễ Tân", technician: "Kỹ Thuật Viên", cashier: "Thu Ngân", customer: "Khách Hàng" };
+  const fullRoleLabels = { manager: "Quản Lý (Admin)", receptionist: "Lễ Tân", technician: "Kỹ Thuật Viên", cashier: "Thu Ngân", customer: "Khách Hàng" };
+  const roleBadge = document.getElementById("role-badge");
+  if (roleBadge) { roleBadge.className = `role-badge ${role}`; roleBadge.textContent = roleLabels[role] || "Người Dùng"; }
+  const sidebarRole = document.getElementById("sidebar-role-label");
+  if (sidebarRole) sidebarRole.textContent = fullRoleLabels[role] || role;
+  const username = document.getElementById("sidebar-username");
+  if (username && currentState.currentUser) username.textContent = currentState.currentUser.full_name || currentState.currentUser.username;
+}
+
 function setupRoleSwitcher() {
   const roleSelect = document.getElementById("role-select");
   const roleBadge = document.getElementById("role-badge");
   if (!roleSelect || !roleBadge) return;
 
   roleSelect.addEventListener("change", async (e) => {
+    if (currentState.token && !ENABLE_OFFLINE_DEMO) {
+      e.target.value = currentState.currentRole;
+      showToast("Vai trò được xác định bởi tài khoản đăng nhập; không thể tự đổi quyền.");
+      return;
+    }
     currentState.currentRole = e.target.value;
     localStorage.setItem("garage_user_role", currentState.currentRole);
     roleBadge.className = `role-badge ${currentState.currentRole}`;
@@ -912,9 +936,47 @@ function setupRoleSwitcher() {
       sidebarRole.textContent = fullRoleLabels[currentState.currentRole] || currentState.currentRole;
     }
 
+    applyRolePermissions();
     await loginAsCurrentRole();
     await loadAllData();
   });
+}
+
+// Staff management (manager-only; backend enforces the same policy)
+const STAFF_ROLE_LABELS = { manager: "Quản lý (Admin)", receptionist: "Lễ tân", technician: "Kỹ thuật viên", cashier: "Thu ngân" };
+async function loadStaffManagement() {
+  if (currentState.currentRole !== "manager") return;
+  const tbody = document.getElementById("staff-tbody");
+  if (!tbody) return;
+  try {
+    const users = await apiFetch("/auth/users");
+    tbody.innerHTML = "";
+    (Array.isArray(users) ? users : []).forEach(user => {
+      const row = document.createElement("tr");
+      row.innerHTML = `<td><strong>${escapeHTML(user.full_name)}</strong><br><small style="color:var(--text-muted);">${escapeHTML(user.phone || "Chưa cập nhật")}</small></td><td>${escapeHTML(user.username)}<br><small style="color:var(--text-muted);">${escapeHTML(user.email)}</small></td><td><span class="role-badge ${escapeHTML(user.role)}">${escapeHTML(STAFF_ROLE_LABELS[user.role] || user.role)}</span></td><td><span class="status-pill ${user.is_active ? "completed" : "cancelled"}">${user.is_active ? "Đang hoạt động" : "Đã khóa"}</span></td>`;
+      tbody.appendChild(row);
+    });
+    if (!tbody.children.length) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:1.5rem; color:var(--text-muted);">Chưa có nhân viên</td></tr>`;
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--accent-rose); padding:1rem;">Không thể tải danh sách: ${escapeHTML(err.message)}</td></tr>`;
+  }
+}
+function openStaffCreateForm() { document.getElementById("staff-create-panel").style.display = "block"; }
+function closeStaffCreateForm() { document.getElementById("staff-create-panel").style.display = "none"; }
+async function submitStaffCreate(event) {
+  event.preventDefault();
+  if (currentState.currentRole !== "manager") return showToast("Chỉ Quản lý mới được tạo tài khoản nhân viên.");
+  try {
+    await apiFetch("/auth/users", { method: "POST", body: JSON.stringify({
+      full_name: document.getElementById("staff-full-name").value.trim(),
+      username: document.getElementById("staff-username").value.trim(),
+      email: document.getElementById("staff-email").value.trim(),
+      phone: document.getElementById("staff-phone").value.trim() || null,
+      password: document.getElementById("staff-password").value,
+      role: document.getElementById("staff-role").value
+    }) });
+    event.target.reset(); closeStaffCreateForm(); await loadStaffManagement(); showToast("Đã tạo tài khoản nhân viên và gán vai trò.");
+  } catch (err) { showToast(`Không thể tạo nhân viên: ${err.message}`); }
 }
 
 // Navigation Handler
@@ -966,6 +1028,14 @@ function setupGlobalEventDelegation() {
 
 function switchView(viewName) {
   if (viewName === "appointments") viewName = "customer-requests";
+  if (viewName === "staff-management" && currentState.currentRole !== "manager") {
+    showToast("Bạn không có quyền truy cập màn hình quản lý nhân viên.");
+    return;
+  }
+  if (viewName === "ai-studio" && !["manager", "receptionist", "technician"].includes(currentState.currentRole)) {
+    showToast("Vai trò Thu ngân không có quyền dùng AI Quản trị.");
+    return;
+  }
   currentState.activeView = viewName;
 
   const activeSec = document.getElementById(`view-${viewName}`);
@@ -1079,6 +1149,7 @@ async function loadAllData() {
     else if (currentState.activeView === "inventory") await loadInventory();
     else if (currentState.activeView === "invoices") await loadInvoices();
     else if (currentState.activeView === "ai-studio") await loadAISandboxData();
+    else if (currentState.activeView === "staff-management") await loadStaffManagement();
 
     // 2. Pre-populate all active tabs in background for instant 0ms tab switching
     Promise.all([
@@ -1156,9 +1227,9 @@ async function loadDashboard() {
                   </div>
                   <div style="flex: 1; font-size: 0.82rem;">
                     <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">
-                      ${act.title} <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 400;">${timeStr}</span>
+                      ${escapeHTML(act.title || "Hoạt động mới")} <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 400;">${timeStr}</span>
                     </div>
-                    <div style="color: var(--text-muted); line-height: 1.35;">${act.description}</div>
+                    <div style="color: var(--text-muted); line-height: 1.35;">${escapeHTML(act.description || "")}</div>
                   </div>
                 </div>
               `;
@@ -3099,11 +3170,11 @@ async function sendAIChatMessage() {
 function triggerQuickPrompt(promptKey) {
   const promptsMap = {
     vios_vibration: "Xe Toyota Vios 2018 bị rung khi chạy không tải thì có thể do đâu?",
-    history_analysis: "Phân tích lịch sử sửa chữa xe 51H-888.88",
-    draft_mazda: "Xe Mazda 3 cần thay dầu máy, lọc dầu và kiểm tra phanh.",
-    business_analysis: "Doanh thu tháng này thế nào?",
-    predict_maintenance: "Dự đoán bảo dưỡng đợt tiếp theo cho xe 51H-888.88",
-    customer_progress: "Xe của tôi đang sửa đến đâu rồi?"
+    history_analysis: "Tiếp nhận xe 51H-888.88: phân tích lịch sử sửa chữa và các điểm cần ưu tiên kiểm tra",
+    draft_mazda: "Kho hiện còn thiếu phụ tùng nào cho ca Mazda 3 thay dầu và kiểm tra phanh? Đề xuất cách bổ sung.",
+    business_analysis: "Phân tích doanh thu, công nợ và dấu hiệu thất thoát cần đối soát trong tháng này.",
+    predict_maintenance: "Lập kế hoạch điều phối các phiếu đang chờ theo mức độ ưu tiên và năng lực kỹ thuật viên.",
+    customer_progress: "Xem lịch hẹn hôm nay và đề xuất cách chăm sóc các khách hàng đang chờ."
   };
 
   const text = promptsMap[promptKey] || promptKey;
@@ -3213,7 +3284,7 @@ function renderBookingConfirmation(reqData) {
   if (!confCard) return;
 
   const codeEl = document.getElementById("conf-request-code");
-  if (codeEl) codeEl.innerText = reqData.requestCode || reqData.code || "REQ-SUCCESS";
+  if (codeEl) codeEl.innerText = reqData.requestCode || reqData.code || "—";
 
   const nameEl = document.getElementById("conf-cust-name");
   if (nameEl) nameEl.innerText = reqData.fullName || reqData.name || "";
@@ -3311,9 +3382,10 @@ function renderHorizontalTracker(status) {
   if (!container) return;
   
   const statusOrder = ["Pending", "Contacted", "Confirmed", "InProgress", "Completed"];
-  const currentIdx = statusOrder.indexOf(status);
+  const normalizedStatus = status === "Converted" ? "InProgress" : status;
+  const currentIdx = statusOrder.indexOf(normalizedStatus);
   
-  const isCancelled = (status === "Cancelled");
+  const isCancelled = (status === "Cancelled" || status === "NoShow");
   
   const steps = [
     { title: "1. Đã Gửi Yêu Cầu", icon: "fa-circle-check", activeStatus: "Hoàn thành" },
@@ -3474,7 +3546,10 @@ async function submitCustomerPortalRegistration(e) {
       body: JSON.stringify(payload)
     });
 
-    const reqCode = res.requestCode || res.code || dbNextRequestCode();
+    const reqCode = res.requestCode || res.code;
+    if (!reqCode || !res.status || !res.createdAt) {
+      throw new Error("Phản hồi máy chủ không hợp lệ. Vui lòng thử lại.");
+    }
     const reqData = {
       ...payload,
       requestCode: reqCode,
@@ -3541,19 +3616,18 @@ async function lookupCustomerVehicleProgress(plateParam = "") {
   resContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 1rem;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tìm kiếm thông tin xe ${input}...</div>`;
 
   try {
-    const roList = await apiFetch("/repair-orders");
-    const matched = roList.find(ro =>
-      ((ro && ro.code) || "").toLowerCase().includes(input.toLowerCase()) ||
-      (ro && ro.license_plate && ro.license_plate.toLowerCase().includes(input.toLowerCase()))
-    );
+    const matched = await apiFetch(`/customer-requests/lookup?query=${encodeURIComponent(input)}`);
 
     if (matched) {
       const statusMap = {
-        received: { text: "Đã Tiếp Nhận Xe", color: "#38bdf8", icon: "fa-car-tunnel" },
-        diagnosing: { text: "KTV Đang Kiểm Tra & Lập Báo Giá", color: "#fbbf24", icon: "fa-stethoscope" },
-        in_progress: { text: "Đang Sửa Chữa Tại Xưởng", color: "#a855f7", icon: "fa-wrench" },
-        completed: { text: "Đã Hoàn Thành - Sẵn Sàng Giao Xe", color: "#34d399", icon: "fa-circle-check" },
-        closed: { text: "Đã Thanh Toán & Đã Giao Xe", color: "#94a3b8", icon: "fa-flag-checkered" }
+        Pending: { text: "Đã gửi - chờ lễ tân xác nhận", color: "#fbbf24", icon: "fa-clock" },
+        Contacted: { text: "Lễ tân đã liên hệ", color: "#38bdf8", icon: "fa-phone" },
+        Confirmed: { text: "Đã xác nhận lịch hẹn", color: "#60a5fa", icon: "fa-calendar-check" },
+        InProgress: { text: "Đang xử lý tại xưởng", color: "#a855f7", icon: "fa-wrench" },
+        Completed: { text: "Đã hoàn thành", color: "#34d399", icon: "fa-circle-check" },
+        Converted: { text: "Đã tiếp nhận tại xưởng", color: "#a855f7", icon: "fa-file-circle-check" },
+        Cancelled: { text: "Đã hủy", color: "#fb7185", icon: "fa-ban" },
+        NoShow: { text: "Không đến hẹn", color: "#94a3b8", icon: "fa-user-xmark" }
       };
       const st = statusMap[matched.status] || { text: matched.status, color: "#cbd5e1", icon: "fa-info-circle" };
 
@@ -3561,18 +3635,18 @@ async function lookupCustomerVehicleProgress(plateParam = "") {
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
           <div>
             <h4 style="font-family: Arial; margin: 0; color: var(--text-main); font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
-              <i class="fa-solid fa-car" style="color: var(--accent-primary);"></i> Xe: ${matched.license_plate || input.toUpperCase()}
+              <i class="fa-solid fa-car" style="color: var(--accent-primary);"></i> Xe: ${matched.licensePlate || input.toUpperCase()}
             </h4>
-            <span style="font-size: 0.82rem; color: var(--text-muted);">Mã Phiếu: <strong>${matched.code}</strong> | Ngày nhận: ${new Date(matched.created_at || Date.now()).toLocaleDateString('vi-VN')}</span>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Mã Yêu Cầu: <strong>${matched.requestCode}</strong> | Ngày gửi: ${new Date(matched.createdAt || Date.now()).toLocaleDateString('vi-VN')}</span>
           </div>
           <span style="background: ${st.color}20; color: ${st.color}; border: 1px solid ${st.color}50; font-size: 0.82rem; font-weight: 700; padding: 4px 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 0.35rem;">
             <i class="fa-solid ${st.icon}"></i> ${st.text}
           </span>
         </div>
         <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
-          <div><strong>Triệu chứng ban đầu:</strong> ${matched.initial_symptoms || 'Bảo dưỡng định kỳ'}</div>
-          <div><strong>Chẩn đoán kỹ thuật:</strong> ${matched.technical_diagnosis || 'KTV đang tiến hành phân tích hạng mục'}</div>
-          <div style="margin-top: 0.5rem; color: var(--accent-cyan); font-weight: 600;">Tổng chi phí dự toán: ${(matched.final_cost || 0).toLocaleString('vi-VN')} VNĐ</div>
+          <div><strong>Dịch vụ:</strong> ${matched.serviceType || 'Bảo dưỡng định kỳ'}</div>
+          <div><strong>Thời gian mong muốn:</strong> ${matched.preferredDate || 'Lễ tân sẽ liên hệ'} ${matched.preferredTime || ''}</div>
+          <div style="margin-top: 0.5rem; color: var(--accent-cyan); font-weight: 600;">Trạng thái được lấy trực tiếp từ hệ thống Garage VTV.</div>
         </div>
       `;
     } else {
@@ -3630,6 +3704,11 @@ window.runAIDraftQuotation = runAIDraftQuotation;
 window.runAIHistorySummary = runAIHistorySummary;
 window.sendAIChatMessage = sendAIChatMessage;
 window.triggerQuickPrompt = triggerQuickPrompt;
+window.applyRolePermissions = applyRolePermissions;
+window.openStaffCreateForm = openStaffCreateForm;
+window.closeStaffCreateForm = closeStaffCreateForm;
+window.submitStaffCreate = submitStaffCreate;
+window.loadStaffManagement = loadStaffManagement;
 window.clearAIChatHistory = clearAIChatHistory;
 window.submitOBDDiagnosticForm = submitOBDDiagnosticForm;
 window.toggleItemSelectType = toggleItemSelectType;
@@ -3690,8 +3769,7 @@ function initSSERealtimeStream() {
         sseEventSource.close();
         sseEventSource = null;
       }
-      isBackendAvailable = false;
-      console.info("💡 Realtime SSE không khả dụng trên hosting tĩnh. Đã chuyển sang Local Storage.");
+      console.info("💡 SSE không khả dụng; tiếp tục polling dữ liệu từ API/database mỗi 10 giây.");
     };
   } catch (e) {
     // Silent fail for static host
@@ -4227,7 +4305,7 @@ function showBookingSuccess(data) {
   const success = document.getElementById("booking-confirmation");
   if (!success) return;
 
-  const code = data.requestCode || data.request_code || data.code || "REQ-SUCCESS";
+  const code = data.requestCode || data.request_code || data.code || "—";
   const codeEl = document.getElementById("booking-success-code");
   const nameEl = document.getElementById("booking-success-name");
   const phoneEl = document.getElementById("booking-success-phone");
@@ -4267,6 +4345,4 @@ window.convertRequestToRepairOrder = convertRequestToRepairOrder;
 window.openTrackRequestModal = openTrackRequestModal;
 window.submitCreateService = submitCreateService;
 window.submitCreatePart = submitCreatePart;
-window.openAIAssistantModal = function() { switchView('ai-studio'); };
 window.switchView = switchView;
-

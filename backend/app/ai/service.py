@@ -7,10 +7,14 @@ from sqlalchemy.orm import Session
 
 from backend.app.config import settings
 from backend.app.models import AILog, RepairOrder, Vehicle, AIKnowledgeBase
-from backend.app.ai.tools import AGENT_TOOLS, execute_tool
+from backend.app.ai.tools import AGENT_TOOLS, execute_tool, get_monthly_revenue_tool
+from backend.app.services.reporting_service import format_dashboard_revenue_context, format_report_context, report_for_query
+from backend.app.services.lookup_service import lookup_operational_context
 from backend.app.ai.prompts import (
     SYSTEM_GARAGE_ASSISTANT,
+    SYSTEM_GARAGE_ADMIN_ASSISTANT,
     PROMPT_AI_ASSISTANT,
+    PROMPT_ADMIN_ASSISTANT,
     PROMPT_HISTORY_SUMMARY,
     PROMPT_SERVICE_EXPLAINER,
     PROMPT_DRAFT_QUOTATION,
@@ -724,8 +728,10 @@ class AIService:
         question: str,
         repair_order_id: Optional[int] = None,
         vehicle_id: Optional[int] = None,
+        mode: str = "customer",
+        current_role: str = "customer",
     ) -> Dict[str, Any]:
-        """Trợ lý AI Garage tổng quát."""
+        """Trợ lý AI: customer chỉ tư vấn xe; admin hỗ trợ vận hành nội bộ."""
         question = (question or "").strip()
         if not question:
             return {
@@ -776,18 +782,42 @@ class AIService:
                 f"Năm sản xuất: {vehicle.year or 'Không rõ'}"
             )
 
+        is_admin = mode == "admin"
+        lower_question = question.lower()
+        sensitive_terms = ("bảng lương", "luong", "lương", "hoa hồng", "hoa hong", "tài khoản ngân hàng", "tai khoan ngan hang", "số tài khoản", "so tai khoan")
+        if is_admin and any(term in lower_question for term in sensitive_terms):
+            context_parts.append(
+                "--- QUYỀN BẢO MẬT ---\n"
+                "TỪ CHỐI: Không cung cấp bảng lương, hoa hồng, số tài khoản ngân hàng hoặc dữ liệu tài chính cá nhân. "
+                "Vai trò AI không có quyền truy cập các trường dữ liệu này; không được suy đoán, xuất file hoặc tiết lộ một phần."
+            )
+        lookup_context = lookup_operational_context(db, question) if is_admin else None
+        if lookup_context:
+            context_parts.append(lookup_context)
+        finance_terms = ("doanh thu", "doanh số", "tài chính", "phiếu thu", "hóa đơn", "hoa don")
+        if is_admin and any(term in question.lower() for term in finance_terms):
+            if current_role in {"manager", "cashier"}:
+                # Câu hỏi tổng quan phải trả đúng bảng Dashboard đang hiển thị;
+                # không bắt người dùng lặp lại năm/phạm vi/trạng thái mặc định.
+                context_parts.append(format_dashboard_revenue_context(question))
+                context_parts.append(format_report_context(report_for_query(db, question)))
+            else:
+                context_parts.append("--- QUYỀN TÀI CHÍNH ---\nVai trò hiện tại không được xem báo cáo tài chính chi tiết. Yêu cầu Quản lý hoặc Thu ngân thực hiện tra cứu.")
         context_info = "\n\n".join(context_parts) if context_parts else "Không có thông tin xe hoặc phiếu sửa chữa cụ thể."
 
-        user_prompt = PROMPT_AI_ASSISTANT.format(
+        prompt_template = PROMPT_ADMIN_ASSISTANT if is_admin else PROMPT_AI_ASSISTANT
+        user_prompt = prompt_template.format(
             question=question,
             context_info=context_info,
+            current_role=current_role,
         )
 
-        system_prompt = cls._get_system_prompt_with_memory(db, SYSTEM_GARAGE_ASSISTANT)
+        base_system_prompt = SYSTEM_GARAGE_ADMIN_ASSISTANT if is_admin else SYSTEM_GARAGE_ASSISTANT
+        system_prompt = cls._get_system_prompt_with_memory(db, base_system_prompt)
         output_text, model_used = cls._call_llm_agent(db, system_prompt, user_prompt)
         cls._save_ai_log(
             db=db,
-            feature="ai_assistant",
+            feature="ai_admin_assistant" if is_admin else "ai_assistant",
             prompt_input=user_prompt,
             response_output=output_text,
             model_used=model_used,
@@ -802,6 +832,7 @@ class AIService:
                 "question": question,
                 "repair_order_id": repair_order_id,
                 "vehicle_id": vehicle_id,
+                "mode": "admin" if is_admin else "customer",
             },
         }
 
@@ -837,13 +868,8 @@ class AIService:
     @classmethod
     def analyze_business_performance(cls, db: Session, question: str) -> Dict[str, Any]:
         """AI Chức năng Phân tích Kinh doanh cho Quản lý (Manager)"""
-        business_data = (
-            "Doanh thu tháng này: 245,000,000 VNĐ | Lợi nhuận gộp tạm tính: 68,500,000 VNĐ (28%)\n"
-            "Tổng số xe tiếp nhận: 54 xe | Số phiếu sửa chữa hoàn thành: 48 phiếu\n"
-            "Top dịch vụ bán chạy: 1. Bảo dưỡng định kỳ (32 lượt), 2. Láng đĩa phanh 3D (18 lượt)\n"
-            "Top phụ tùng xuất kho: 1. Dầu Castrol 5W-30 (45 can), 2. Lọc dầu Toyota (28 cái)\n"
-            "Tỷ lệ khách hàng quay lại: 74.2% | Hiệu suất KTV dẫn đầu: KTV Phạm Văn Minh (18 phiếu)"
-        )
+        business_data = get_monthly_revenue_tool(db)
+        business_data += "\nCác chỉ số lợi nhuận, công nợ, dịch vụ bán chạy và hiệu suất KTV cần được truy xuất riêng nếu người dùng yêu cầu."
         prompt = PROMPT_BUSINESS_INTELLIGENCE.format(question=question, business_data=business_data)
         system_prompt = cls._get_system_prompt_with_memory(db, SYSTEM_GARAGE_ASSISTANT)
         output_text, model_used = cls._call_llm(system_prompt, prompt)
@@ -885,4 +911,3 @@ class AIService:
             "output": output_text,
             "model_used": model_used
         }
-

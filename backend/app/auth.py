@@ -35,7 +35,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.now(timezone.utc) + timedelta(minutes=exp_min)
 
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    algorithm = str(settings.ALGORITHM).strip().upper()
+    if algorithm not in {"HS256", "HS384", "HS512"}:
+        algorithm = "HS256"
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=algorithm)
     return encoded_jwt
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
@@ -45,7 +48,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        algorithm = str(settings.ALGORITHM).strip().upper()
+        if algorithm not in {"HS256", "HS384", "HS512"}:
+            algorithm = "HS256"
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[algorithm])
         username: str = payload.get("sub")
         role: str = payload.get("role")
         if username is None:

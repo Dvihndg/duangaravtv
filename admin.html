@@ -579,12 +579,15 @@
       <li class="nav-item" data-view="invoices">
         <i class="fa-solid fa-receipt"></i> Hóa Đơn & Thanh Toán
       </li>
+      <li class="nav-item manager-only" data-view="staff-management">
+        <i class="fa-solid fa-user-shield"></i> Nhân Viên & Phân Quyền
+      </li>
     </ul>
 
     <!-- Nav: Công cụ AI -->
     <div class="nav-section-title">Công cụ AI</div>
     <ul class="nav-list" style="margin-bottom: 0.5rem;">
-      <li class="nav-item ai-tab" data-view="ai-studio" style="background: rgba(124,58,237,0.2); border: 1px solid rgba(168,85,247,0.35); color: #c084fc; margin: 0.15rem 0.65rem; border-radius: var(--radius-sm);">
+      <li class="nav-item ai-tab ai-staff-only" data-view="ai-studio" style="background: rgba(124,58,237,0.2); border: 1px solid rgba(168,85,247,0.35); color: #c084fc; margin: 0.15rem 0.65rem; border-radius: var(--radius-sm);">
         <i class="fa-solid fa-robot"></i> AI Quản Trị
       </li>
     </ul>
@@ -1232,9 +1235,59 @@
       </section>
 
       <!-- ╔══════════════════════════════════╗ -->
+      <!-- ║   VIEW 8: STAFF MANAGEMENT        ║ -->
+      <!-- ╚══════════════════════════════════╝ -->
+      <section id="view-staff-management" class="view-section manager-only">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title"><i class="fa-solid fa-user-shield" style="color: var(--accent-cyan);"></i> Nhân viên & phân quyền</h3>
+            <p style="color: var(--text-muted); margin: .35rem 0 0; font-size: .85rem;">Chỉ Quản lý (Admin) được tạo tài khoản và cấp vai trò. Quyền thật luôn được kiểm tra ở backend.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openStaffCreateForm()"><i class="fa-solid fa-user-plus"></i> Thêm nhân viên</button>
+        </div>
+        <div style="display:grid; grid-template-columns: 1.3fr 1fr; gap:1.25rem; align-items:start;">
+          <div class="table-card" style="padding:1rem; overflow:auto;">
+            <table class="data-table" style="width:100%;">
+              <thead><tr><th>Nhân viên</th><th>Tài khoản</th><th>Vai trò</th><th>Trạng thái</th></tr></thead>
+              <tbody id="staff-tbody"><tr><td colspan="4" style="text-align:center; padding:1.5rem; color:var(--text-muted);">Đang tải danh sách...</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-card" style="padding:1.25rem;">
+            <h4 style="margin:0 0 1rem; color:var(--text-main);"><i class="fa-solid fa-key" style="color:#fbbf24;"></i> Ma trận quyền</h4>
+            <div style="overflow:auto;">
+              <table class="data-table" style="width:100%; font-size:.78rem;">
+                <thead><tr><th>Phân hệ</th><th>Quản lý</th><th>Lễ tân</th><th>KTV</th><th>Thu ngân</th></tr></thead>
+                <tbody>
+                  <tr><td>Dashboard</td><td>Toàn quyền</td><td>Xem</td><td>Cá nhân</td><td>Doanh thu</td></tr>
+                  <tr><td>Lịch hẹn/khách</td><td>Toàn quyền</td><td>Tạo & xử lý</td><td>Xem</td><td>Tra cứu</td></tr>
+                  <tr><td>Phiếu sửa chữa</td><td>Toàn quyền</td><td>Tạo & chuyển</td><td>Cập nhật</td><td>Chi phí</td></tr>
+                  <tr><td>Kho</td><td>Toàn quyền</td><td>Xem</td><td>Đề xuất</td><td>Giá bán</td></tr>
+                  <tr><td>Hóa đơn</td><td>Toàn quyền</td><td>Xem</td><td>Không</td><td>Lập & thu</td></tr>
+                  <tr><td>AI Quản trị</td><td>Toàn quyền</td><td>Sử dụng</td><td>Sử dụng</td><td>Không</td></tr>
+                  <tr><td>Người dùng</td><td>Quản lý</td><td>Không</td><td>Không</td><td>Không</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div id="staff-create-panel" class="table-card" style="display:none; margin-top:1.25rem; padding:1.25rem;">
+          <h4 style="margin:0 0 1rem;">Tạo tài khoản nhân viên</h4>
+          <form onsubmit="submitStaffCreate(event)" style="display:grid; grid-template-columns:repeat(2,1fr); gap:.8rem;">
+            <input id="staff-full-name" class="form-control" placeholder="Họ và tên *" required>
+            <input id="staff-username" class="form-control" placeholder="Tên đăng nhập *" required>
+            <input id="staff-email" type="email" class="form-control" placeholder="Email *" required>
+            <input id="staff-phone" class="form-control" placeholder="Số điện thoại">
+            <input id="staff-password" type="password" minlength="8" class="form-control" placeholder="Mật khẩu (tối thiểu 8 ký tự) *" required>
+            <select id="staff-role" class="form-control" required><option value="receptionist">Lễ tân</option><option value="technician">Kỹ thuật viên</option><option value="cashier">Thu ngân</option><option value="manager">Quản lý (Admin)</option></select>
+            <div style="grid-column:1/-1; display:flex; gap:.6rem; justify-content:flex-end;"><button type="button" class="btn btn-secondary" onclick="closeStaffCreateForm()">Hủy</button><button class="btn btn-primary" type="submit"><i class="fa-solid fa-check"></i> Tạo tài khoản</button></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ╔══════════════════════════════════╗ -->
       <!-- ║   VIEW 8: AI STUDIO              ║ -->
       <!-- ╚══════════════════════════════════╝ -->
-      <section id="view-ai-studio" class="view-section">
+      <section id="view-ai-studio" class="view-section ai-staff-only">
         <div id="ai-tab-content-chat" class="ai-tab-content">
           <div class="table-card" style="padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-lg);">
 
@@ -1249,7 +1302,7 @@
                     AI Quản Trị
                     <span style="font-size: 0.72rem; background: rgba(8,145,178,0.15); color: var(--accent-cyan); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(8,145,178,0.3);">Pro Active Engine</span>
                   </h4>
-                  <div style="font-size: 0.8rem; color: var(--text-muted);">Tư vấn dịch vụ, combo bảo dưỡng, báo giá nháp & tra cứu tiến độ xe</div>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Tiếp nhận & chẩn đoán • Kho phụ tùng • Lịch hẹn & CSKH • Điều phối nhân sự • Tài chính & chống thất thoát</div>
                 </div>
               </div>
               <button class="btn btn-secondary btn-sm" onclick="clearAIChatHistory()">
@@ -1265,8 +1318,10 @@
                 </div>
                 <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.9rem 1.15rem; border-radius: 14px; border-top-left-radius: 2px; max-width: 88%; font-size: 0.92rem; line-height: 1.6; color: var(--text-main);">
                   👋 Xin chào! Tôi là <strong>AI Quản Trị VTV</strong> — luôn sẵn sàng hỗ trợ bạn!<br><br>
-                  Bạn có thể hỏi tôi về: 🔧 Chẩn đoán xe &bull; 💰 Báo giá dịch vụ &bull; 📋 Lịch sử sửa chữa &bull; 📍 Tiến độ sửa xe<br><br>
-                  Xe bạn đang gặp vấn đề gì? Cứ nói tôi nghe nhé! 🚗
+                  Tôi hỗ trợ nội bộ về:<br>
+                  🔧 Tiếp nhận & chẩn đoán lỗi xe &bull; 📦 Tối ưu kho phụ tùng &bull; 📅 Lịch hẹn & chăm sóc khách hàng<br>
+                  👥 Điều phối công việc & nhân sự &bull; 💰 Tài chính & chống thất thoát<br><br>
+                  Hãy đặt câu hỏi vận hành hoặc yêu cầu tôi phân tích dữ liệu hệ thống.
                 </div>
               </div>
             </div>
@@ -1274,7 +1329,7 @@
             <!-- Input bar -->
             <div style="display: flex; gap: 0.75rem;">
               <input type="text" id="ai-chat-input" class="form-control"
-                placeholder="Nhập câu hỏi kỹ thuật, yêu cầu báo giá hoặc tra cứu tiến độ..."
+                placeholder="Hỏi về tiếp nhận, kho, lịch hẹn, nhân sự, tài chính hoặc chống thất thoát..."
                 onkeypress="if(event.key==='Enter') sendAIChatMessage()">
               <button class="btn btn-ai" onclick="sendAIChatMessage()"
                 style="padding: 0 1.25rem; flex-shrink: 0; background: linear-gradient(135deg, #0891b2, #0284c7); border: none;">
@@ -1314,7 +1369,7 @@
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
                   <label>Số Điện Thoại Liên Hệ (*):</label>
-                  <input type="tel" id="cp-cust-phone" class="form-control" placeholder="0333442358" required>
+                  <input type="tel" id="cp-cust-phone" inputmode="numeric" pattern="[0-9]*" class="form-control" placeholder="0333442358" required>
                 </div>
               </div>
 
@@ -1670,7 +1725,7 @@
           </h4>
           <form onsubmit="submitCallbackRequest(event)">
             <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
-              <input type="tel" id="cb-phone" class="form-control" placeholder="Nhập SĐT của bạn..." required
+              <input type="tel" id="cb-phone" inputmode="numeric" pattern="[0-9]*" class="form-control" placeholder="Nhập SĐT của bạn..." required
                 style="background: rgba(30,41,59,0.7); border-color: rgba(148,163,184,0.2); color: white;">
               <select id="cb-time" class="form-control" style="width: 140px; background: rgba(30,41,59,0.7); border-color: rgba(148,163,184,0.2); color: white;">
                 <option value="immediate">Gọi ngay (5p)</option>
@@ -1849,7 +1904,7 @@
         </div>
         <div class="form-group">
           <label>Số Điện Thoại:</label>
-          <input type="text" id="cust-phone" class="form-control" required placeholder="0333442358">
+          <input type="tel" id="cust-phone" inputmode="numeric" pattern="[0-9]*" class="form-control" required placeholder="0333442358">
         </div>
         <div class="form-group">
           <label>Địa Chỉ:</label>
@@ -2084,6 +2139,7 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="static-config.js?v=1.0"></script>
   <script src="app.js?v=11.0"></script>
 
   <script>

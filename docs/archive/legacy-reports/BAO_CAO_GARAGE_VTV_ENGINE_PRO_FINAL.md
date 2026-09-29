@@ -1053,9 +1053,9 @@ Base.metadata.create_all(bind=engine)
 
 | STT | Tên đăng nhập (`username`) | Mật khẩu mẫu (`password`) | Vai trò (`Role`) | Quyền hạn tương ứng trong môi trường Demo |
 |:---:|---|---|:---:|---|
-| **1** | `admin` | `admin123` | `manager` | Toàn quyền quản trị, xem báo cáo doanh thu, phân quyền nhân sự, xem Audit Log. |
+| **1** | `admin` | `[configured via environment]` | `manager` | Toàn quyền quản trị, xem báo cáo doanh thu, phân quyền nhân sự, xem Audit Log. |
 | **2** | `receptionist` | `recept123` | `receptionist` | Tiếp nhận xe tại xưởng, quản lý khách hàng & xe, tạo phiếu sửa chữa, soạn báo giá. |
-| **3** | `technician` | `tech123` | `technician` | Xem các phiếu sửa chữa được giao, nhập chẩn đoán, cập nhật tiến độ, xuất kho. |
+| **3** | `technician` | `[configured via environment]` | `technician` | Xem các phiếu sửa chữa được giao, nhập chẩn đoán, cập nhật tiến độ, xuất kho. |
 | **4** | `cashier` | `cash123` | `cashier` | Xem danh sách xe sửa xong, lập hóa đơn quyết toán, thu tiền mặt / tạo VietQR. |
 
 ---

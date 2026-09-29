@@ -2,14 +2,14 @@ import re
 import html
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 
 from backend.app.models import CustomerRequestStatus
 
 class CustomerRequestCreate(BaseModel):
     fullName: str = Field(..., min_length=2, max_length=100, description="Họ và tên khách hàng")
     phone: str = Field(..., max_length=20, description="Số điện thoại liên hệ")
-    email: Optional[str] = Field(default=None, max_length=100)
+    email: Optional[EmailStr] = Field(default=None, max_length=100)
     address: Optional[str] = Field(default=None, max_length=255)
     
     licensePlate: str = Field(..., min_length=3, max_length=20, description="Biển số xe")
@@ -23,6 +23,40 @@ class CustomerRequestCreate(BaseModel):
     preferredDate: Optional[str] = Field(default=None, max_length=30)
     preferredTime: Optional[str] = Field(default=None, max_length=30)
     note: Optional[str] = Field(default=None, max_length=1000)
+
+    @field_validator('manufactureYear')
+    @classmethod
+    def validate_year(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and not 1886 <= v <= datetime.now().year + 1:
+            raise ValueError('Năm sản xuất không hợp lệ')
+        return v
+
+    @field_validator('currentMileage')
+    @classmethod
+    def validate_mileage(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and v < 0:
+            raise ValueError('Số km không được âm')
+        return v
+
+    @field_validator('preferredDate')
+    @classmethod
+    def validate_date(cls, v: Optional[str]) -> Optional[str]:
+        if v:
+            try:
+                datetime.strptime(v, '%Y-%m-%d')
+            except ValueError as exc:
+                raise ValueError('Ngày mong muốn phải có định dạng YYYY-MM-DD') from exc
+        return v
+
+    @field_validator('preferredTime')
+    @classmethod
+    def validate_time(cls, v: Optional[str]) -> Optional[str]:
+        if v:
+            try:
+                datetime.strptime(v, '%H:%M')
+            except ValueError as exc:
+                raise ValueError('Giờ mong muốn phải có định dạng HH:MM') from exc
+        return v
 
     @field_validator('phone')
     @classmethod

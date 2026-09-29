@@ -4,7 +4,8 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
-from backend.app.models import Part, Vehicle, RepairOrder, Appointment, Customer
+from backend.app.models import Part, Vehicle, RepairOrder, Appointment, Customer, Invoice, InvoiceStatus, Payment
+from backend.app.services.reporting_service import format_report_context, report_for_query
 
 def check_inventory_tool(db: Session, part_name: str) -> str:
     """Tra cứu tồn kho phụ tùng."""
@@ -73,6 +74,53 @@ def get_appointment_schedule_tool(db: Session, date_str: str) -> str:
         res.append(f"- {appt.start_time or 'Không rõ giờ'}: Xe {lp} - Dịch vụ: {appt.service_type or 'Bảo dưỡng'} ({appt.status.value if hasattr(appt.status, 'value') else appt.status})")
     
     return "\n".join(res)
+
+def get_monthly_revenue_tool(db: Session, year: Optional[int] = None, month: Optional[int] = None) -> str:
+    """Tổng hợp doanh thu theo hóa đơn giống Dashboard và kèm đối soát thanh toán."""
+    now = datetime.utcnow()
+    target_year = int(year or now.year)
+    target_month = int(month or now.month)
+    if target_month < 1 or target_month > 12:
+        return "Tháng không hợp lệ. Vui lòng dùng giá trị từ 1 đến 12."
+    if target_year < 2000 or target_year > 2100:
+        return "Năm không hợp lệ."
+    from calendar import monthrange
+    start = datetime(target_year, target_month, 1)
+    end = datetime(target_year, target_month, monthrange(target_year, target_month)[1], 23, 59, 59, 999999)
+    invoices = db.query(Invoice).filter(
+        Invoice.invoice_date >= start,
+        Invoice.invoice_date <= end,
+        Invoice.status != InvoiceStatus.CANCELLED,
+    ).all()
+    dashboard_revenue = sum(float(invoice.paid_amount or 0) for invoice in invoices)
+    invoiced_total = sum(float(invoice.total_amount or 0) for invoice in invoices)
+    paid_count = sum(invoice.status == InvoiceStatus.PAID for invoice in invoices)
+    partial_count = sum(invoice.status == InvoiceStatus.PARTIAL for invoice in invoices)
+    unpaid_count = sum(invoice.status == InvoiceStatus.UNPAID for invoice in invoices)
+    payments = db.query(Payment).join(Invoice, Payment.invoice_id == Invoice.id).filter(
+        Payment.payment_date >= start,
+        Payment.payment_date <= end,
+        Invoice.status != InvoiceStatus.CANCELLED,
+    ).all()
+    payment_total = sum(float(payment.amount or 0) for payment in payments)
+    cancelled_count = db.query(Invoice).filter(
+        Invoice.status == InvoiceStatus.CANCELLED,
+        Invoice.invoice_date >= start,
+        Invoice.invoice_date <= end,
+    ).count()
+    return (
+        f"Doanh thu trên Dashboard theo hóa đơn tháng {target_month:02d}/{target_year}: {dashboard_revenue:,.0f} VNĐ\n"
+        f"- Tổng giá trị hóa đơn: {invoiced_total:,.0f} VNĐ\n"
+        f"- Số hóa đơn trong kỳ: {len(invoices)} (đã thanh toán: {paid_count}, trả một phần: {partial_count}, chưa thanh toán: {unpaid_count})\n"
+        f"- Tiền thanh toán ghi nhận trong kỳ để đối soát: {payment_total:,.0f} VNĐ ({len(payments)} phiếu)\n"
+        f"- Hóa đơn hủy loại khỏi doanh thu: {cancelled_count}\n"
+        "- Căn cứ chính: Invoice.invoice_date và Invoice.paid_amount, cùng logic Dashboard; không dùng số liệu ước tính."
+    )
+
+
+def get_revenue_report_tool(db: Session, query: str) -> str:
+    """Lập báo cáo doanh thu theo ngôn ngữ tự nhiên bằng parser deterministic."""
+    return format_report_context(report_for_query(db, query))
 
 # =====================================================================
 # AGENT TOOL SCHEMAS FOR OPENAI / GROQ
@@ -145,6 +193,35 @@ AGENT_TOOLS = [
                 "required": ["date_str"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_monthly_revenue_tool",
+            "description": "Tra cứu doanh thu thực thu của tháng từ các thanh toán đã ghi nhận trong CSDL; loại trừ hóa đơn đã hủy.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "year": {"type": "integer", "description": "Năm cần tra cứu; bỏ trống để dùng năm hiện tại."},
+                    "month": {"type": "integer", "description": "Tháng cần tra cứu 1-12; bỏ trống để dùng tháng hiện tại."}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_revenue_report_tool",
+            "description": "Lập báo cáo doanh thu theo ngày, tuần, tháng, quý, năm hoặc khoảng ngày; không tự tính số liệu bằng LLM.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Ví dụ: doanh thu tháng 8/2026 hoặc từ ngày 12/03/2026 đến 27/04/2026"}
+                },
+                "required": ["query"]
+            }
+        }
     }
 ]
 
@@ -161,5 +238,9 @@ def execute_tool(db: Session, tool_name: str, kwargs: Dict[str, Any]) -> str:
         return check_repair_progress_tool(db, kwargs.get("license_plate", ""))
     elif tool_name == "get_appointment_schedule_tool":
         return get_appointment_schedule_tool(db, kwargs.get("date_str", ""))
+    elif tool_name == "get_monthly_revenue_tool":
+        return get_monthly_revenue_tool(db, kwargs.get("year"), kwargs.get("month"))
+    elif tool_name == "get_revenue_report_tool":
+        return get_revenue_report_tool(db, kwargs.get("query", ""))
     else:
         return f"Lỗi: Không tìm thấy công cụ {tool_name}"

@@ -42,6 +42,7 @@ app = FastAPI(
 
 from backend.app.config import settings
 from backend.app.database import engine, SessionLocal, Base
+from backend.app.auth import get_password_hash, verify_password
 from backend.app.routers import (
     auth, customers, appointments, inventory, repair_orders, invoices, ai, analytics,
     customer_requests, receptions, quotations, audit_logs, settings as settings_router
@@ -50,7 +51,7 @@ from backend.app.routers import (
 
 cors_origins = [origin.strip() for origin in os.getenv(
     "CORS_ORIGINS",
-    "https://www.dvinhdev.id.vn,https://dvinhdev.id.vn,http://localhost:8000,http://127.0.0.1:8000"
+    "https://www.dvinhdev.id.vn,https://dvinhdev.id.vn,http://localhost:8000,http://127.0.0.1:8000,http://localhost:5500,http://127.0.0.1:5500"
 ).split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
@@ -86,6 +87,53 @@ def initialize_database():
     """
     try:
         Base.metadata.create_all(bind=engine)
+        from backend.app.models import User, UserRole
+        from backend.app.demo_catalog import ensure_demo_catalog
+
+        # Seed nhân viên độc lập với Admin; không cần và không thay đổi mật khẩu Admin.
+        staff_seed = [
+            ("letan", "letan@garage.com", "Trần Thị Lễ Tân", UserRole.RECEPTIONIST, "0902222222", "DEFAULT_RECEPTIONIST_PASSWORD"),
+            ("kythuat", "kythuat@garage.com", "Lê Hoàng Kỹ Thuật", UserRole.TECHNICIAN, "0903333333", "DEFAULT_TECHNICIAN_PASSWORD"),
+            ("thungan", "thungan@garage.com", "Phạm Thị Thu Ngân", UserRole.CASHIER, "0904444444", "DEFAULT_CASHIER_PASSWORD"),
+        ]
+        db = SessionLocal()
+        try:
+            sync_staff = os.getenv("SYNC_STAFF_PASSWORDS", "false").lower() == "true"
+            for username, email, full_name, role, phone, env_name in staff_seed:
+                password = os.getenv(env_name, "").strip()
+                if not password:
+                    continue
+                staff_user = db.query(User).filter(User.username == username).first()
+                if not staff_user:
+                    db.add(User(username=username, email=email, hashed_password=get_password_hash(password), full_name=full_name, role=role, phone=phone))
+                    db.commit()
+                elif sync_staff and not verify_password(password, str(staff_user.hashed_password)):
+                    staff_user.hashed_password = get_password_hash(password)
+                    staff_user.role = role
+                    db.commit()
+        finally:
+            db.close()
+
+        catalog_db = SessionLocal()
+        try:
+            ensure_demo_catalog(catalog_db)
+        finally:
+            catalog_db.close()
+
+        if (
+            os.getenv("SYNC_ADMIN_PASSWORD", "false").lower() == "true"
+            and os.getenv("DEFAULT_ADMIN_PASSWORD", "").strip()
+        ):
+            admin_password = os.getenv("DEFAULT_ADMIN_PASSWORD", "").strip()
+            db = SessionLocal()
+            try:
+                admin = db.query(User).filter(User.username == "admin").first()
+                if admin and not verify_password(admin_password, str(admin.hashed_password)):
+                    admin.hashed_password = get_password_hash(admin_password)
+                    db.commit()
+            finally:
+                db.close()
+
         inspector = inspect(engine)
         if "customer_requests" not in inspector.get_table_names():
             return
@@ -180,11 +228,14 @@ def auto_setup_db(request: Request):
         try:
             # Check if admin exists
             admin = db.query(User).filter(User.username == "admin").first()
+            initial_admin_password = os.getenv("INITIAL_ADMIN_PASSWORD", "").strip()
+            if not admin and not initial_admin_password:
+                raise HTTPException(status_code=500, detail="INITIAL_ADMIN_PASSWORD is not configured")
             if not admin:
                 new_admin = User(
                     username="admin",
                     email="admin@vtvgarage.com",
-                    hashed_password=get_password_hash("password"),
+                    hashed_password=get_password_hash(initial_admin_password),
                     full_name="Quản trị viên",
                     role=UserRole.MANAGER,
                     phone="0987654321",
