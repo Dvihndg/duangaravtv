@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/v1/ai", tags=["AI Engine"])
 def ask_ai_assistant(
     req: AIAssistantRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(require_roles([UserRole.MANAGER, UserRole.RECEPTIONIST, UserRole.TECHNICIAN]))
+    current_user = Depends(require_roles([UserRole.MANAGER, UserRole.RECEPTIONIST, UserRole.TECHNICIAN, UserRole.CASHIER]))
 ):
     """
     Trợ Lý AI Garage Hợp Nhất: Giải đáp thắc mắc tự do về dịch vụ xe, kỹ thuật ô tô, báo giá nháp & giải thích quy trình.
@@ -49,8 +49,9 @@ def ask_ai_assistant_open(
     res = AIService.ask_assistant(
         db,
         question=req.question,
-        repair_order_id=req.repair_order_id,
-        vehicle_id=req.vehicle_id,
+        # Public chat must not expose internal records via guessable numeric IDs.
+        repair_order_id=None,
+        vehicle_id=None,
         mode="customer",
         current_role="customer"
     )

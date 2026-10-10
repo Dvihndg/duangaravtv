@@ -4,6 +4,7 @@ from backend.app.models import Invoice, InvoiceStatus, RepairOrder, RepairOrderI
 from backend.app.services.reporting_service import build_revenue_report, format_dashboard_revenue_context, parse_report_period, report_for_query
 from backend.app.auth import create_access_token
 from backend.app.services.lookup_service import lookup_customer, lookup_inventory, lookup_operational_context
+from backend.app.ai.tools import get_agent_tools_for_role
 
 
 def test_ts_adm_01_standard_periods_use_local_timezone():
@@ -101,3 +102,21 @@ def test_operational_lookup_context_returns_real_records(db_session):
     assert "99A-999.99" in customer
     assert lookup_operational_context(db_session, "tra cứu khách hàng Test Customer") == customer
     assert "Không tìm thấy hóa đơn/đơn hàng" in lookup_operational_context(db_session, "tra cứu hóa đơn INV-404")
+
+
+def test_admin_ai_agent_tools_are_scoped_by_role():
+    def names(role):
+        return {tool["function"]["name"] for tool in get_agent_tools_for_role(role)}
+
+    manager_tools = names("manager")
+    cashier_tools = names("cashier")
+    receptionist_tools = names("receptionist")
+    technician_tools = names("technician")
+    finance_tools = {"get_monthly_revenue_tool", "get_revenue_report_tool"}
+
+    assert finance_tools <= manager_tools
+    assert finance_tools <= cashier_tools
+    assert not (finance_tools & receptionist_tools)
+    assert not (finance_tools & technician_tools)
+    assert names("customer") == set()
+    assert names("") == set()

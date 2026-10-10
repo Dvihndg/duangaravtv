@@ -225,6 +225,21 @@ AGENT_TOOLS = [
     }
 ]
 
+FINANCIAL_AGENT_TOOL_NAMES = {"get_monthly_revenue_tool", "get_revenue_report_tool"}
+
+
+def get_agent_tools_for_role(role: str) -> List[Dict[str, Any]]:
+    """Return only tools permitted to an authenticated garage staff role."""
+    normalized_role = (role or "").strip().lower()
+    if normalized_role not in {"manager", "receptionist", "technician", "cashier"}:
+        return []
+    if normalized_role in {"manager", "cashier"}:
+        return AGENT_TOOLS
+    return [
+        tool for tool in AGENT_TOOLS
+        if tool["function"]["name"] not in FINANCIAL_AGENT_TOOL_NAMES
+    ]
+
 # =====================================================================
 # DISPATCHER
 # =====================================================================

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.config import settings
 from backend.app.models import AILog, RepairOrder, Vehicle, AIKnowledgeBase
-from backend.app.ai.tools import AGENT_TOOLS, execute_tool, get_monthly_revenue_tool
+from backend.app.ai.tools import execute_tool, get_agent_tools_for_role, get_monthly_revenue_tool
 from backend.app.services.reporting_service import format_dashboard_revenue_context, format_report_context, report_for_query
 from backend.app.services.lookup_service import lookup_operational_context
 from backend.app.ai.prompts import (
@@ -637,15 +637,19 @@ class AIService:
     # ============================================================
     
     @classmethod
-    def _call_llm_agent(cls, db: Session, system_prompt: str, user_prompt: str) -> Tuple[str, str]:
-        """Vòng lặp Agent gọi Tools tự động bằng Function Calling của Groq."""
+    def _call_llm_agent(
+        cls, db: Session, system_prompt: str, user_prompt: str,
+        allow_internal_tools: bool = False, current_role: str = "customer",
+    ) -> Tuple[str, str]:
+        """Run tool calling only for authenticated staff, filtered by their role."""
         # pyrefly: ignore [missing-import]
         import httpx
         import json
         
         groq_api_key = getattr(settings, "GROQ_API_KEY", "") or os.getenv("GROQ_API_KEY", "")
-        # Nếu không có key hoặc chỉ dùng Fallback thì gọi LLM thường (không tools)
-        if not groq_api_key:
+        # Public/customer chat must never query internal records through tools.
+        agent_tools = get_agent_tools_for_role(current_role) if allow_internal_tools else []
+        if not groq_api_key or not agent_tools:
             return cls._call_llm(system_prompt, user_prompt)
         
         messages = [
@@ -665,7 +669,7 @@ class AIService:
             payload = {
                 "model": model_name,
                 "messages": messages,
-                "tools": AGENT_TOOLS,
+                "tools": agent_tools,
                 "tool_choice": "auto",
                 "temperature": 0.2,
                 "max_tokens": 2048,
@@ -814,7 +818,11 @@ class AIService:
 
         base_system_prompt = SYSTEM_GARAGE_ADMIN_ASSISTANT if is_admin else SYSTEM_GARAGE_ASSISTANT
         system_prompt = cls._get_system_prompt_with_memory(db, base_system_prompt)
-        output_text, model_used = cls._call_llm_agent(db, system_prompt, user_prompt)
+        output_text, model_used = cls._call_llm_agent(
+            db, system_prompt, user_prompt,
+            allow_internal_tools=is_admin,
+            current_role=current_role,
+        )
         cls._save_ai_log(
             db=db,
             feature="ai_admin_assistant" if is_admin else "ai_assistant",

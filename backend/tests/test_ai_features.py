@@ -138,6 +138,27 @@ def test_ai_assistant(client, auth_headers):
     assert len(data_ro["output"]) > 0
 
 
+def test_public_ai_assistant_ignores_internal_record_ids(client, monkeypatch):
+    from backend.app.ai.service import AIService
+
+    received = {}
+
+    def fake_ask_assistant(db, **kwargs):
+        received.update(kwargs)
+        return {"success": True, "feature": "ai_assistant", "output": "Xin chào.", "model_used": "test"}
+
+    monkeypatch.setattr(AIService, "ask_assistant", fake_ask_assistant)
+    response = client.post(
+        "/api/v1/ai/assistant/open",
+        json={"question": "Tóm tắt lịch sử xe", "repair_order_id": 1, "vehicle_id": 1},
+    )
+
+    assert response.status_code == 200
+    assert received["repair_order_id"] is None
+    assert received["vehicle_id"] is None
+    assert received["mode"] == "customer"
+
+
 def test_ai_edge_cases(client, auth_headers):
     # 1. Non-existent vehicle_id
     res_veh = client.post(
